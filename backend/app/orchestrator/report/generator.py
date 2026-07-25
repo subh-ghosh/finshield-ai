@@ -40,7 +40,7 @@ def _build_deterministic_report(result: InvestigationResult) -> str:
     timeline_md = ""
     if result.timeline:
         timeline_md = "\n".join(
-            f"| `{e.get('timestamp', '')[:19]}` | **{e.get('action', '')}** | {e.get('description', '')} |"
+            f"| `{e.get('timestamp', '')[:19].replace('T', ' ')}` | **{e.get('action', '')}** | {e.get('description', '')} |"
             for e in result.timeline
         )
     
