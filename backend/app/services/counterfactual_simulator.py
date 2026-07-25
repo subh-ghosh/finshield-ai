@@ -57,7 +57,25 @@ class CounterfactualRiskSimulator:
         simulated_recommendation = self._classify_recommendation(simulated_score)
         recommendation_flipped = (simulated_recommendation != baseline_recommendation)
 
-        # 6. Generate Deterministic Counterfactual Narrative
+        # 6. Risk Contribution Breakdown (Feature 1)
+        structuring_contrib = round(cash_delta * 0.48, 1)
+        velocity_contrib = round(vel_delta + (cash_delta * 0.22), 1)
+        cb_contrib = round(cb_delta, 1)
+        ml_contrib = round(cash_delta * 0.30, 1)
+
+        risk_contributions = {
+            "Structuring Pattern": structuring_contrib,
+            "Transaction Velocity": velocity_contrib,
+            "Cross-Border Exposure": cb_contrib,
+            "Isolation Forest Anomaly": ml_contrib
+        }
+
+        # 7. Minimum Change Required Calculation (Feature 2)
+        next_target, target_score, min_changes = self._calculate_minimum_changes(
+            current_score=b_score
+        )
+
+        # 8. Generate Deterministic Counterfactual Narrative
         narrative = self._generate_narrative(
             customer_id=customer_id,
             baseline_score=b_score,
@@ -84,8 +102,45 @@ class CounterfactualRiskSimulator:
                 "cash_deposit_impact": round(cash_delta, 1),
                 "cross_border_impact": round(cb_delta, 1),
                 "velocity_impact": round(vel_delta, 1)
-            }
+            },
+            risk_contributions=risk_contributions,
+            next_threshold_target=next_target,
+            next_threshold_score=target_score,
+            minimum_changes_required=min_changes
         )
+
+    def _calculate_minimum_changes(self, current_score: float):
+        if current_score < 35.0:
+            target = "MANUAL_REVIEW"
+            target_score = 35.0
+        elif current_score < 65.0:
+            target = "ESCALATE"
+            target_score = 65.0
+        elif current_score < 85.0:
+            target = "FILE_SAR"
+            target_score = 85.0
+        else:
+            return "FILE_SAR", 85.0, ["Entity already at maximum risk threshold (FILE SAR)."]
+
+        needed = target_score - current_score
+
+        # Option A: Cash deposits of ₹9,500 needed
+        # Each ₹9,500 deposit yields ~7.5 * 1.35 * (9500 / 4500) = ~21.37 pts per deposit
+        pts_per_deposit = 21.37
+        req_deposits = math.ceil(needed / pts_per_deposit)
+
+        # Option B: Cross-border transfer volume % needed
+        # Each +10% shift yields +1.8 pts
+        req_cb_pct = math.ceil((needed / 18.0) * 100)
+
+        changes = [
+            f"+{req_deposits} additional cash deposit(s) of ₹9,500",
+            f"+{req_cb_pct}% cross-border transfer volume",
+            "One additional transfer from a High-Risk Jurisdiction"
+        ]
+
+        return target, target_score, changes
+
 
     def _classify_recommendation(self, score: float) -> str:
         if score >= self.DECISION_THRESHOLDS["FILE_SAR_MIN"]:

@@ -23,3 +23,8 @@ class CounterfactualSimulationResult(BaseModel):
     decision_boundary_thresholds: Dict[str, float]
     counterfactual_narrative: str
     simulated_breakdown: Dict[str, float]
+    risk_contributions: Dict[str, float] = Field(default_factory=dict)
+    next_threshold_target: Optional[str] = None
+    next_threshold_score: Optional[float] = None
+    minimum_changes_required: List[str] = Field(default_factory=list)
+
