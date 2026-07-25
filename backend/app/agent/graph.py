@@ -14,7 +14,7 @@ from app.agent.tools import get_tool_by_name
 # Initialize LLM lazily
 def get_llm():
     try:
-        return ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+        return ChatGoogleGenerativeAI(model="gemini-2.5-pro", temperature=0)
     except Exception:
         return None
 

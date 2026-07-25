@@ -12,6 +12,8 @@ export default function InvestigationWorkspace() {
   
   const [mode, setMode] = useState<'enterprise' | 'chat'>('enterprise')
   const [chatInput, setChatInput] = useState('')
+  const [sarConfirmed, setSarConfirmed] = useState(false)
+  const [showSarToast, setShowSarToast] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const { data: customer, isLoading: isCustLoading } = useCustomerDetails(customerId)
@@ -38,6 +40,16 @@ export default function InvestigationWorkspace() {
 
   const handleRunEnterprise = () => {
     investigate(customerId)
+  }
+
+  const handleFinalizeSAR = () => {
+    if (!sarConfirmed) {
+      if (window.confirm(`Finalize SAR recommendation for case ${id}?\n\nThis will generate a SAR filing report. Proceed?`)) {
+        setSarConfirmed(true)
+        setShowSarToast(true)
+        setTimeout(() => setShowSarToast(false), 4000)
+      }
+    }
   }
 
   const isLoading = isCustLoading || isInvLoading
@@ -108,8 +120,23 @@ export default function InvestigationWorkspace() {
 
           {/* SAR Button */}
           <div className="px-6 pb-6 mt-auto">
-            <button className="w-full bg-[#E1000F] hover:bg-[#c5000d] text-white font-bold py-3 text-[12px] tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm">
-              <CheckCircle2 className="h-4 w-4" /> FINALIZE SAR RECOMMENDATION
+            {showSarToast && (
+              <div className="mb-3 p-3 bg-[#F0FDF4] border border-[#86EFAC] text-[12px] text-[#166534] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[#22C55E] flex-shrink-0" />
+                SAR recommendation finalized for case {id}. Filing initiated.
+              </div>
+            )}
+            <button
+              onClick={handleFinalizeSAR}
+              disabled={sarConfirmed}
+              className={`w-full font-bold py-3 text-[12px] tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                sarConfirmed
+                  ? 'bg-[#10B981] text-white cursor-default'
+                  : 'bg-[#E1000F] hover:bg-[#c5000d] text-white'
+              }`}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {sarConfirmed ? 'SAR FILED ✓' : 'FINALIZE SAR RECOMMENDATION'}
             </button>
           </div>
         </StateView>

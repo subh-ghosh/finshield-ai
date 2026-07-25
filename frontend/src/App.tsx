@@ -21,6 +21,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="queue" element={<InvestigationQueue />} />
             <Route path="investigation/:id" element={<InvestigationWorkspace />} />
+            <Route path="customer" element={<Customer360 />} />
             <Route path="customer/:id" element={<Customer360 />} />
             <Route path="playground" element={<PlannerPlayground />} />
           </Route>

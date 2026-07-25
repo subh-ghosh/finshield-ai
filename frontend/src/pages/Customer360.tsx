@@ -1,14 +1,77 @@
-import { useParams, Link } from 'react-router-dom'
-import { Building2, Globe, Calendar, Briefcase, ExternalLink } from 'lucide-react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { Building2, Globe, Calendar, Briefcase, ExternalLink, ArrowLeft, Search } from 'lucide-react'
+import { useState } from 'react'
 import { useCustomerDetails } from '../hooks'
 import { StateView } from '../components/shared'
 
+// Quick-access sample customers
+const SAMPLE_CUSTOMERS = [
+  { id: 'CUST-8392', name: 'Acme Corp Ltd' },
+  { id: 'CUST-1042', name: 'Global Traders Inc' },
+  { id: 'CUST-4491', name: 'TechVentures LLC' },
+  { id: 'CUST-9921', name: 'Nexus Dynamics' },
+  { id: 'CUST-3371', name: 'Pacific Holdings' },
+]
+
 export default function Customer360() {
   const { id } = useParams()
-  const { data: customer, isLoading, isError, error } = useCustomerDetails(id || '');
+  const navigate = useNavigate()
+  const [searchInput, setSearchInput] = useState('')
+  const { data: customer, isLoading, isError, error } = useCustomerDetails(id || '')
+
+  // No ID — show customer selector landing
+  if (!id) {
+    return (
+      <div className="p-7 max-w-2xl mx-auto">
+        <h1 className="text-[18px] font-bold text-[#1E1E1E] mb-1">Customer 360 View</h1>
+        <p className="text-[12px] text-[#9CA3AF] mb-6">Search for a customer or select from recent investigations</p>
+
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && searchInput.trim()) navigate(`/customer/${searchInput.trim()}`) }}
+            placeholder="Enter Customer ID (e.g. CUST-8392) and press Enter..."
+            className="w-full pl-11 pr-4 py-3 bg-white border border-[#E4E7EC] text-[13px] text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#E1000F]/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
+          />
+        </div>
+
+        {/* Quick access */}
+        <h3 className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">Recent Investigations</h3>
+        <div className="space-y-2">
+          {SAMPLE_CUSTOMERS.map(c => (
+            <button
+              key={c.id}
+              onClick={() => navigate(`/customer/${c.id}`)}
+              className="w-full flex items-center justify-between p-4 bg-white border border-[#E4E7EC] hover:border-[#E1000F]/30 hover:bg-[#FAFBFF] transition-all text-left group"
+            >
+              <div>
+                <div className="text-[13px] font-semibold text-[#1E1E1E]">{c.name}</div>
+                <div className="text-[11px] font-mono text-[#9CA3AF] mt-0.5">{c.id}</div>
+              </div>
+              <ExternalLink className="h-4 w-4 text-[#9CA3AF] group-hover:text-[#E1000F] transition-colors" />
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6">
+      {/* Back link */}
+      <div className="mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B7280] hover:text-[#1E1E1E] transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
+        </button>
+      </div>
+
       <StateView isLoading={isLoading} isError={isError} error={error} isEmpty={!customer}>
         {customer && (
           <>
@@ -46,6 +109,20 @@ export default function Customer360() {
                     </div>
                   ))}
                 </div>
+
+                {/* KYC Status */}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-gray-400 uppercase tracking-wide">KYC Status</span>
+                    <span className={`text-[11px] font-bold px-2 py-0.5 ${
+                      customer.kyc_status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>{customer.kyc_status}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[11px] text-gray-400 uppercase tracking-wide">Risk Score</span>
+                    <span className="text-[16px] font-bold text-[#E1000F]">{customer.risk_score}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Right side */}
@@ -55,16 +132,21 @@ export default function Customer360() {
                   <h3 className="text-[11px] font-bold tracking-wider uppercase text-gray-500 mb-4 pb-2 border-b border-gray-200">Network Connections</h3>
                   <div className="space-y-2">
                     {customer.connections.map(conn => (
-                      <div key={conn.id} className="flex items-center justify-between py-2.5 px-3 bg-[#f9f9f9] border border-gray-100">
+                      <div key={conn.id} className="flex items-center justify-between py-2.5 px-3 bg-[#f9f9f9] border border-gray-100 hover:border-[#E1000F]/20 transition-colors group">
                         <div>
                           <div className="text-[13px] font-medium text-black">{conn.name}</div>
                           <div className="text-[11px] text-gray-400">{conn.role} • {conn.id}</div>
                         </div>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 ${
-                          conn.risk === 'High' ? 'bg-[#E1000F] text-white' : 'bg-gray-200 text-gray-600'
-                        }`}>
-                          {conn.risk.toUpperCase()}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[11px] font-bold px-2 py-0.5 ${
+                            conn.risk === 'High' ? 'bg-[#E1000F] text-white' : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            {conn.risk.toUpperCase()}
+                          </span>
+                          <Link to={`/customer/${conn.id}`} className="text-[#9CA3AF] hover:text-[#E1000F] transition-colors opacity-0 group-hover:opacity-100">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -80,6 +162,7 @@ export default function Customer360() {
                         <th className="text-left pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Type</th>
                         <th className="text-left pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Counterparty</th>
                         <th className="text-right pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Amount</th>
+                        <th className="text-right pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -89,6 +172,9 @@ export default function Customer360() {
                           <td className="py-2.5 text-black">{tx.type}</td>
                           <td className="py-2.5 text-black">{tx.party}</td>
                           <td className="py-2.5 text-right font-mono font-semibold text-black">{tx.amount}</td>
+                          <td className="py-2.5 text-right">
+                            <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5">{tx.status}</span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

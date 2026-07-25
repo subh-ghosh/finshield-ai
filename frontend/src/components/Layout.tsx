@@ -1,13 +1,24 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell } from 'lucide-react'
+import { useState } from 'react'
+import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell, X, ChevronRight, UserSquare2 } from 'lucide-react'
 
 export function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [showSettings, setShowSettings] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  
+  const notifications = [
+    { id: 1, text: 'CUST-3371 flagged as Critical risk', time: '2 min ago', unread: true },
+    { id: 2, text: 'SAR filing deadline approaching for CUST-8392', time: '15 min ago', unread: true },
+    { id: 3, text: 'Pipeline reprocessed 9,999 customers', time: '1 hr ago', unread: false },
+  ]
+  const unreadCount = notifications.filter(n => n.unread).length
   
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Investigation Queue', path: '/queue', icon: Briefcase },
+    { name: 'Customer 360', path: '/customer', icon: UserSquare2 },
     { name: 'Planner Playground', path: '/playground', icon: PlaySquare },
   ]
 
@@ -63,10 +74,16 @@ export function Layout() {
 
         {/* Bottom */}
         <div className="border-t border-white/[0.08] px-3 py-2 space-y-0.5">
-          <button className="flex items-center gap-3 px-4 py-2 text-[12px] text-white/40 hover:text-white/70 transition-colors w-full">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex items-center gap-3 px-4 py-2 text-[12px] text-white/40 hover:text-white/70 transition-colors w-full"
+          >
             <Settings className="h-4 w-4" /> Settings
           </button>
-          <button className="flex items-center gap-3 px-4 py-2 text-[12px] text-white/40 hover:text-white/70 transition-colors w-full">
+          <button
+            onClick={() => alert('FinShield AI Support\n\nFor technical issues contact:\nfinshield-support@societegenerale.com\nPhone: +33 1 42 14 20 00')}
+            className="flex items-center gap-3 px-4 py-2 text-[12px] text-white/40 hover:text-white/70 transition-colors w-full"
+          >
             <HelpCircle className="h-4 w-4" /> Support
           </button>
         </div>
@@ -79,7 +96,7 @@ export function Layout() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[12px] font-semibold text-white/90 truncate">Analyst 01</div>
-              <div className="text-[10px] text-white/35">Admin · Paris</div>
+              <div className="text-[10px] text-white/35">Admin &bull; Paris</div>
             </div>
             <button onClick={() => navigate('/login')} className="text-white/25 hover:text-white/60 transition-colors">
               <LogOut className="h-3.5 w-3.5" />
@@ -103,10 +120,43 @@ export function Layout() {
             <span className="text-[11px] text-[#9CA3AF]">AML Investigation Platform</span>
           </div>
           <div className="flex items-center gap-5">
-            <button className="relative text-[#9CA3AF] hover:text-[#1E1E1E] transition-colors">
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#E1000F] rounded-full" />
-            </button>
+            {/* Bell with dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(v => !v)}
+                className="relative text-[#9CA3AF] hover:text-[#1E1E1E] transition-colors"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#E1000F] rounded-full text-[9px] text-white font-bold flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {showNotifications && (
+                <div className="absolute right-0 top-8 z-50 w-[320px] bg-white border border-[#E4E7EC] shadow-xl">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#E4E7EC]">
+                    <span className="text-[12px] font-bold text-[#1E1E1E]">Notifications</span>
+                    <button onClick={() => setShowNotifications(false)}><X className="h-3.5 w-3.5 text-[#9CA3AF]" /></button>
+                  </div>
+                  <div className="divide-y divide-[#F3F4F6]">
+                    {notifications.map(n => (
+                      <div key={n.id} className={`px-4 py-3 flex items-start gap-3 hover:bg-[#F9FAFB] cursor-pointer ${n.unread ? 'bg-[#FAFBFF]' : ''}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? 'bg-[#E1000F]' : 'bg-[#E4E7EC]'}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] text-[#1E1E1E] leading-snug">{n.text}</p>
+                          <p className="text-[10px] text-[#9CA3AF] mt-1">{n.time}</p>
+                        </div>
+                        <ChevronRight className="h-3.5 w-3.5 text-[#9CA3AF] flex-shrink-0 mt-0.5" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="px-4 py-2 border-t border-[#E4E7EC]">
+                    <button className="text-[11px] text-[#E1000F] hover:underline font-medium">Mark all as read</button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="h-4 w-px bg-[#E4E7EC]" />
             <div className="flex items-center gap-2 text-[12px] text-[#6B7280]">
               <span>EN</span>
@@ -121,6 +171,66 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowSettings(false)} />
+          <div className="relative bg-white w-[480px] shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E4E7EC]">
+              <h2 className="text-[14px] font-bold text-[#1E1E1E] tracking-wide">Platform Settings</h2>
+              <button onClick={() => setShowSettings(false)}><X className="h-4 w-4 text-[#9CA3AF] hover:text-[#1E1E1E]" /></button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div>
+                <h3 className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">Appearance</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <span className="text-[13px] text-[#374151]">Theme</span>
+                    <span className="text-[12px] font-semibold text-[#1E1E1E] bg-[#F3F4F6] px-3 py-1">Light (SG Corporate)</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <span className="text-[13px] text-[#374151]">Language</span>
+                    <span className="text-[12px] font-semibold text-[#1E1E1E] bg-[#F3F4F6] px-3 py-1">English (EN)</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">Pipeline</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <span className="text-[13px] text-[#374151]">Backend API</span>
+                    <span className="text-[12px] font-mono text-[#10B981]">http://localhost:8000 ✓</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <span className="text-[13px] text-[#374151]">Investigation Engine</span>
+                    <span className="text-[12px] font-semibold text-[#1E1E1E]">Deterministic v2.0</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <span className="text-[13px] text-[#374151]">Dataset</span>
+                    <span className="text-[12px] font-semibold text-[#1E1E1E]">IBM AMLSim (9,999 customers)</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">Session</h3>
+                <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                  <span className="text-[13px] text-[#374151]">Analyst</span>
+                  <span className="text-[12px] font-semibold text-[#1E1E1E]">analyst@societegenerale.com</span>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-[#E4E7EC] flex justify-end gap-3">
+              <button onClick={() => setShowSettings(false)} className="px-5 py-2 text-[12px] font-medium text-[#6B7280] border border-[#E4E7EC] hover:bg-[#F9FAFB] transition-colors">
+                Close
+              </button>
+              <button onClick={() => setShowSettings(false)} className="px-5 py-2 text-[12px] font-bold bg-[#E1000F] hover:bg-[#c5000d] text-white transition-colors">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

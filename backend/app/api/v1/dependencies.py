@@ -84,6 +84,93 @@ def get_pipeline_result() -> PipelineResult:
     if _pipeline_result_cache is None:
         pipeline = get_pipeline()
         dataset_path = _resolve_dataset_path()
+
+        if not os.path.exists(dataset_path):
+            # Dataset CSV not present — attempt to load from cached pickle
+            logger.warning(f"Dataset file not found at '{dataset_path}'. Attempting to load from cache...")
+            import pickle
+            import glob
+            # __file__ = backend/app/api/v1/dependencies.py → 4x dirname = backend/
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+            cache_dir = pipeline.config.cache_dir if hasattr(pipeline, 'config') else "data/cache"
+            cache_dirs = [
+                os.path.join(base_dir, "data", "cache"),
+                os.path.join(base_dir, ".cache"),
+                os.path.join(base_dir, "reports"),
+            ]
+            for cdir in cache_dirs:
+                logger.info(f"Checking cache dir: '{cdir}' (exists: {os.path.exists(cdir)})")
+                pkl_files = glob.glob(os.path.join(cdir, "*.pkl"))
+                if pkl_files:
+                    pkl_path = pkl_files[0]
+                    logger.info(f"Found cached pickle at '{pkl_path}'. Loading...")
+                    try:
+                        with open(pkl_path, "rb") as f:
+                            cached_df = pickle.load(f)
+                        # Run full pipeline stages from cached clean DataFrame
+                        from app.services.feature_engineering import FeatureEngineering
+                        from app.services.rule_engine import RuleEngine
+                        from app.ml.anomaly_detection import AnomalyDetection
+                        from app.ml.hybrid_risk_engine import HybridRiskEngine
+                        from app.models.pipeline_context import PipelineContext
+                        from app.services.preprocessing import PreprocessingReport
+                        import pandas as pd
+
+                        fe = FeatureEngineering()
+                        customer_features = fe.run(cached_df)
+
+                        rule_engine = RuleEngine()
+                        rule_analysis = rule_engine.run(customer_features)
+                        rule_df = RuleEngine.to_dataframe(rule_analysis)
+
+                        detector = AnomalyDetection()
+                        anomaly_analysis = detector.run(customer_features)
+                        anomaly_df = pd.DataFrame()
+
+                        eval_context = PipelineContext(
+                            customer_features=customer_features,
+                            rule_results=rule_analysis,
+                            ml_results=anomaly_analysis,
+                            pipeline_version="2.0.0-cached",
+                            dataset_info={"name": "transactions.csv (cached)", "hash": "cached"}
+                        )
+                        hybrid_engine = HybridRiskEngine()
+                        hybrid_analysis = hybrid_engine.evaluate(eval_context)
+                        hybrid_df = HybridRiskEngine.to_dataframe(hybrid_analysis)
+
+                        report = PreprocessingReport(
+                            total_rows=len(cached_df), clean_rows=len(cached_df),
+                            missing_percentage=0.0, duplicate_percentage=0.0, invalid_percentage=0.0,
+                            null_columns=[], completeness_score=1.0,
+                            execution_time=0.0, columns_normalized=[],
+                            schema_mappings={}, warnings=[], data_quality_score=1.0
+                        )
+
+                        _pipeline_result_cache = PipelineResult(
+                            clean_dataframe=cached_df,
+                            customer_features=customer_features,
+                            rule_analysis=rule_analysis,
+                            rule_dataframe=rule_df,
+                            anomaly_analysis=anomaly_analysis,
+                            anomaly_dataframe=anomaly_df,
+                            hybrid_risk_analysis=hybrid_analysis,
+                            hybrid_risk_dataframe=hybrid_df,
+                            report=report,
+                            execution_time=0.0,
+                            pipeline_version="2.0.0-cached",
+                            model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0"},
+                            metadata={"dataset_name": "transactions.csv (cached)", "dataset_hash": "cached"}
+                        )
+                        logger.info("Pipeline result built from cached dataset successfully.")
+                        return _pipeline_result_cache
+                    except Exception as e:
+                        logger.error(f"Failed to load cached pickle: {e}", exc_info=True)
+                        continue
+            raise FileNotFoundError(
+                f"Dataset not found at '{dataset_path}' and no valid cache exists. "
+                "Please place the transactions.csv file in the expected directory."
+            )
+
         logger.info(f"FastAPI Dependency: Running AMLPipeline on resolved dataset path: '{dataset_path}'...")
         _pipeline_result_cache = pipeline.run(dataset_path)
     return _pipeline_result_cache

@@ -92,7 +92,7 @@ export default function Login() {
 
           <button 
             onClick={() => navigate('/dashboard')}
-            className="w-full mt-8 bg-[#9a9a9a] hover:bg-[#7a7a7a] text-white font-semibold py-3.5 text-sm tracking-wide transition-colors"
+            className="w-full mt-8 bg-[#E1000F] hover:bg-[#c5000d] text-white font-semibold py-3.5 text-sm tracking-wide transition-colors shadow-sm"
           >
             Sign in
           </button>

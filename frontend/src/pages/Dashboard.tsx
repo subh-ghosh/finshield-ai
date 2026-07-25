@@ -1,10 +1,16 @@
-import { Activity, AlertTriangle, Users, FileCheck, TrendingUp, TrendingDown, ArrowUpRight, Clock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Activity, AlertTriangle, Users, FileCheck, TrendingUp, TrendingDown, ArrowUpRight, Clock, RefreshCw } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Area, AreaChart } from 'recharts'
 import { useDashboardData } from '../hooks'
 import { StateView, CardSkeleton } from '../components/shared'
 
 export default function Dashboard() {
-  const { data, isLoading, isError, error } = useDashboardData();
+  const { data, isLoading, isError, error, refetch, isFetching } = useDashboardData();
+  const [lastUpdated, setLastUpdated] = useState(new Date())
+
+  useEffect(() => {
+    setLastUpdated(new Date())
+  }, [data])
   
   const stats = data?.metrics;
   const riskDistribution = data?.riskDistribution;
@@ -23,9 +29,21 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Clock className="h-3.5 w-3.5 text-[#9CA3AF]" />
-          <span className="text-[11px] text-[#9CA3AF]">Last updated: {new Date().toLocaleTimeString()} • Auto-refresh: 30s</span>
+          <span className="text-[11px] text-[#9CA3AF]">
+            Last updated: {lastUpdated.toLocaleTimeString()} · Auto-refresh: 30s
+          </span>
+          {isFetching && (
+            <span className="text-[10px] font-bold text-[#E1000F] animate-pulse">REFRESHING...</span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="h-7 px-3 text-[11px] font-medium text-[#6B7280] border border-[#E4E7EC] bg-white hover:bg-[#F9FAFB] disabled:opacity-40 transition-colors flex items-center gap-1.5"
+          >
+            <RefreshCw className={`h-3 w-3 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
+          </button>
           <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#10B981]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
             All Systems Operational

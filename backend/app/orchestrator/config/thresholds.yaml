@@ -1,0 +1,5 @@
+risk_thresholds:
+  FILE_SAR: 90
+  ESCALATE: 70
+  MANUAL_REVIEW: 50
+  CLEAR: 0
