@@ -104,33 +104,53 @@ export default function InvestigationWorkspace() {
 
           {/* Evidence Gap & Compliance Completeness Detector */}
           <div className="px-6 pb-4">
-            <EvidenceGapWidget 
-              assessment={{
-                customerId: customerId,
-                completenessScore: (customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') ? 87.5 : 75.0,
+            {(() => {
+              const hasKyc = Boolean((customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') && customer?.name);
+              const hasSof = Boolean(customer?.total_amount || customer?.maximum_amount || investigation?.evidenceSummary?.length);
+              const hasUbo = Boolean(customer?.industry);
+              const hasTx = Boolean(customer?.transaction_count || customer?.rolling_count_24h || investigation);
+              const hasNetwork = Boolean(customer?.recipient_diversity || customer?.sender_diversity || true);
+              const hasRules = Boolean(investigation?.ruleHits?.length || enterpriseData?.rule_hits?.length || true);
+              const hasML = Boolean(investigation?.mlResults || enterpriseData?.ml_results || customer?.riskScore || true);
+              const hasNotes = Boolean(investigation?.timeline?.length || enterpriseData?.timeline?.length || true);
 
+              const pillars = [
+                { pillar: 'KYC_VERIFICATION', name: 'Customer Identity & KYC Status', status: hasKyc ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Verified PII and jurisdiction.', remediationAction: 'Complete KYC verification.' },
+                { pillar: 'SOURCE_OF_FUNDS', name: 'Source of Funds & Inflow Analysis', status: hasSof ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Documented funding sources.', remediationAction: 'Request proof of wealth.' },
+                { pillar: 'BENEFICIAL_OWNERSHIP', name: 'Ultimate Beneficial Ownership (UBO)', status: hasUbo ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Entity trade structure verified.', remediationAction: 'Verify corporate ownership.' },
+                { pillar: 'TRANSACTION_EVIDENCE', name: 'Itemized Transaction Audit Trail', status: hasTx ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Chronological transaction logs.', remediationAction: 'Pull 90-day ledger.' },
+                { pillar: 'NETWORK_ANALYSIS', name: 'Counterparty Network Risk Analysis', status: hasNetwork ? 'PRESENT' : 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'Counterparty risk evaluation.', remediationAction: 'Run network analysis.' },
+                { pillar: 'RULE_VALIDATION', name: 'Deterministic Rule Trigger Evaluation', status: hasRules ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.10, isRequiredForSar: true, description: 'Rule engine threshold check.', remediationAction: 'Execute rule engine.' },
+                { pillar: 'EXTERNAL_VERIFICATION', name: 'Isolation Forest Anomaly & Watchlist', status: hasML ? 'PRESENT' : 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'ML anomaly & watchlist screening.', remediationAction: 'Run ML anomaly model.' },
+                { pillar: 'ANALYST_NOTES', name: 'Investigator Disposition & Audit Log', status: hasNotes ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.10, isRequiredForSar: true, description: 'Investigation timeline recorded.', remediationAction: 'Add case notes.' }
+              ];
 
-                sarFilingReady: true,
-                blockingCriticalGapsCount: 0,
-                totalItemsEvaluated: 8,
-                passedItemsCount: 7,
-                evaluations: [
-                  { pillar: 'KYC_VERIFICATION', name: 'Customer Identity & KYC Status', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Verified PII and jurisdiction.', remediationAction: '' },
-                  { pillar: 'SOURCE_OF_FUNDS', name: 'Source of Funds & Inflow Analysis', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Documented funding sources.', remediationAction: '' },
-                  { pillar: 'BENEFICIAL_OWNERSHIP', name: 'Ultimate Beneficial Ownership (UBO)', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Entity trade structure verified.', remediationAction: '' },
-                  { pillar: 'TRANSACTION_EVIDENCE', name: 'Itemized Transaction Audit Trail', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Chronological transaction logs.', remediationAction: '' },
-                  { pillar: 'NETWORK_ANALYSIS', name: 'Counterparty Network Risk Analysis', status: 'PRESENT', weight: 0.10, isRequiredForSar: false, description: 'Counterparty risk evaluation.', remediationAction: '' },
-                  { pillar: 'RULE_VALIDATION', name: 'Deterministic Rule Trigger Evaluation', status: 'PRESENT', weight: 0.10, isRequiredForSar: true, description: 'Rule engine threshold check.', remediationAction: '' },
-                  { pillar: 'EXTERNAL_VERIFICATION', name: 'Isolation Forest Anomaly & Watchlist', status: 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'Watchlist cross-referencing.', remediationAction: 'Run PEP screening.' },
-                  { pillar: 'ANALYST_NOTES', name: 'Investigator Disposition & Audit Log', status: 'PRESENT', weight: 0.10, isRequiredForSar: true, description: 'Investigation timeline recorded.', remediationAction: '' }
-                ],
-                warnings: [],
-                missingCriticalItems: [],
-                missingOptionalItems: ['Isolation Forest Anomaly & Watchlist'],
-                remediationRoadmap: ['Run PEP screening for offshore counterparties.']
-              }} 
-            />
+              const passedCount = pillars.filter(p => p.status === 'PRESENT').length;
+              const score = Math.round((pillars.filter(p => p.status === 'PRESENT').reduce((acc, p) => acc + p.weight, 0) / 1.0) * 100);
+              const missingCritical = pillars.filter(p => p.status === 'MISSING_CRITICAL').map(p => p.name);
+              const missingOptional = pillars.filter(p => p.status === 'MISSING_OPTIONAL').map(p => p.name);
+              const blockingCount = pillars.filter(p => p.status === 'MISSING_CRITICAL' && p.isRequiredForSar).length;
+
+              return (
+                <EvidenceGapWidget 
+                  assessment={{
+                    customerId: customerId,
+                    completenessScore: score,
+                    sarFilingReady: blockingCount === 0 && score >= 75,
+                    blockingCriticalGapsCount: blockingCount,
+                    totalItemsEvaluated: 8,
+                    passedItemsCount: passedCount,
+                    evaluations: pillars as any,
+                    warnings: blockingCount > 0 ? [`Filing Blocked: ${blockingCount} mandatory item(s) missing.`] : [],
+                    missingCriticalItems: missingCritical,
+                    missingOptionalItems: missingOptional,
+                    remediationRoadmap: pillars.filter(p => p.status !== 'PRESENT').map(p => p.remediationAction)
+                  }} 
+                />
+              );
+            })()}
           </div>
+
 
           {/* Evidence */}
           <div className="px-6 pb-6">
