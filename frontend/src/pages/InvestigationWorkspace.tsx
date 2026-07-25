@@ -6,7 +6,8 @@ import { motion } from 'framer-motion'
 import { FileText, CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
 import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation } from '../hooks'
 import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
-import { InvestigationReportView, EvidenceGapWidget } from '../components/investigation'
+import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget } from '../components/investigation'
+
 
 
 
@@ -102,8 +103,19 @@ export default function InvestigationWorkspace() {
             </div>
           </div>
 
+          {/* Counterfactual Risk Sensitivity Simulator */}
+          <div className="px-6 pb-4">
+            <CounterfactualSimulatorWidget 
+              customerId={customerId}
+              initialScore={Math.round(customer?.risk_score || customer?.riskScore || investigation?.riskScore || 41)}
+              initialRecommendation={investigation?.recommendation || 'MANUAL_REVIEW'}
+            />
+
+          </div>
+
           {/* Evidence Gap & Compliance Completeness Detector */}
           <div className="px-6 pb-4">
+
             {(() => {
               const hasKyc = Boolean((customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') && customer?.name);
               const hasSof = Boolean(customer?.total_amount || customer?.maximum_amount || investigation?.evidenceSummary?.length);

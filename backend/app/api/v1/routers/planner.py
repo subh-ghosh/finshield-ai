@@ -90,3 +90,44 @@ async def investigate(
         execution_time_ms=result.execution_time_ms,
         errors=[],
     )
+
+
+@router.post(
+    "/customer/{customer_id}/simulate-counterfactual",
+    status_code=status.HTTP_200_OK,
+    summary="Counterfactual Risk Simulator",
+    description="Simulates parameter shifts and counterfactual decision sensitivity deterministically."
+)
+async def simulate_counterfactual(
+    customer_id: str,
+    body: dict,
+    pipeline_res = Depends(get_pipeline_result)
+):
+    from app.models.counterfactual import CounterfactualSimulationRequest
+    from app.services.counterfactual_simulator import CounterfactualRiskSimulator
+    from app.orchestrator.engine import InvestigationOrchestrator
+
+    clean_id = customer_id.replace("CUST-", "C_")
+    
+    # Get baseline evaluation
+    orchestrator = InvestigationOrchestrator()
+    inv_res = await orchestrator.investigate(customer_id=clean_id, pipeline_res=pipeline_res)
+
+    req = CounterfactualSimulationRequest(
+        customer_id=clean_id,
+        additional_cash_deposits_count=int(body.get("additional_cash_deposits_count", 0)),
+        additional_cash_deposit_amount=float(body.get("additional_cash_deposit_amount", 0.0)),
+        cross_border_transfer_change_pct=float(body.get("cross_border_transfer_change_pct", 0.0)),
+        velocity_multiplier=float(body.get("velocity_multiplier", 1.0))
+    )
+
+    simulator = CounterfactualRiskSimulator()
+    baseline_score = float(inv_res.risk_score) * 100.0 if inv_res.risk_score <= 1.0 else float(inv_res.risk_score)
+    result = simulator.simulate(
+        request=req,
+        baseline_score_0_100=baseline_score,
+        baseline_recommendation=inv_res.recommendation
+    )
+
+    return result
+

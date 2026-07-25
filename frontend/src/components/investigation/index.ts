@@ -5,3 +5,5 @@ export * from './RecommendationCard';
 export * from './ReasoningTimeline';
 export * from './DeveloperSection';
 export * from './EvidenceGapWidget';
+export * from './CounterfactualSimulatorWidget';
+
