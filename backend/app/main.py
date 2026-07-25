@@ -1,24 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes import router as api_router
 
-app = FastAPI(
-    title="FinShield AI API",
-    description="Agentic AML Investigation Platform API",
-    version="1.0.0",
-)
+app = FastAPI(title="FinShield AI API", version="1.0.0")
 
-# Configure CORS
+# Setup CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For hackathon MVP purposes
+    allow_origins=["*"],  # In production, this should be specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to FinShield AI"}
+app.include_router(api_router, prefix="/api")
 
-# Mount routers here
-# app.include_router(investigations.router, prefix="/api/v1/investigations", tags=["Investigations"])
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "FinShield AI Backend"}
