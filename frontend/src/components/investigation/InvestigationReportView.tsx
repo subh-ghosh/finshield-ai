@@ -5,6 +5,7 @@ import { RecommendationCard } from './RecommendationCard';
 import { ReasoningTimeline } from './ReasoningTimeline';
 import { DeveloperSection } from './DeveloperSection';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Activity, ShieldAlert, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -82,7 +83,7 @@ export function InvestigationReportView({ result, isPending, error, onRetry }: P
               <h3 className="sg-section-label mb-4 pb-2 border-b border-[#E4E7EC]">Final Investigation Report</h3>
               <div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-[#1E1E1E] prose-p:text-[#1E1E1E] prose-p:leading-relaxed text-[13px]">
                 {result.final_report ? (
-                  <ReactMarkdown>{result.final_report}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.final_report}</ReactMarkdown>
                 ) : (
                   <span className="text-[#9CA3AF] italic">No report generated.</span>
                 )}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 // Extract a customer ID from a free-text message
 function extractCustomerId(message: string): string {
@@ -233,7 +234,7 @@ export default function PlannerPlayground() {
                             prose-ul:my-1 prose-li:text-[12px] prose-li:text-[#374151]
                             prose-table:text-[11px] prose-td:py-1 prose-th:py-1
                           ">
-                            <ReactMarkdown>{msg.result.final_report}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.result.final_report}</ReactMarkdown>
                           </div>
                         </div>
                       </div>
