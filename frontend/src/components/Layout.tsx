@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, UserCircle, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell, Search, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell } from 'lucide-react'
 
 export function Layout() {
   const location = useLocation()

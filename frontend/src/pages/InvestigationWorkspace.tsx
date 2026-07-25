@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { Send, ShieldAlert, Activity, FileText, CheckCircle2, ChevronRight, Check, AlertTriangle, Globe, Briefcase, Calendar, User } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Send, ShieldAlert, Activity, FileText, CheckCircle2, Check, AlertTriangle, Globe, Briefcase } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function InvestigationWorkspace() {
   const { id } = useParams()

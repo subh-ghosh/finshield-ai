@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import { Activity, Send, Terminal, Database, Code2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 
 export default function PlannerPlayground() {
   const [input, setInput] = useState('')

@@ -1,6 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Lock, User } from 'lucide-react'
 
 export default function Login() {
   const navigate = useNavigate()
