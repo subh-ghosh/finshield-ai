@@ -13,6 +13,9 @@ from app.ml.confidence_calculator import ConfidenceCalculator
 from app.ml.feature_selector import FeatureSelector
 from app.ml.model_registry import ModelRegistry
 from app.ml.hybrid_risk_engine import HybridRiskEngine
+from app.explainability.explainability_service import ExplainabilityService
+from app.models.explainability_context import ExplainabilityContext
+from app.models.evidence_bundle import EvidenceBundle
 from app.models.pipeline_context import PipelineContext
 from app.models.pipeline_result import PipelineResult
 from app.services.cache_manager import CacheManager
@@ -150,6 +153,20 @@ class AMLPipeline:
                     hybrid_engine = HybridRiskEngine()
                     hybrid_analysis = hybrid_engine.evaluate(eval_context)
                     hybrid_df = HybridRiskEngine.to_dataframe(hybrid_analysis)
+
+                # Run Explainability Service (optimized execution loop)
+                with PipelineProfiler.profile("Explainability Report"):
+                    explain_service = ExplainabilityService()
+                    explain_reports = []
+                    features_dict_map = {str(r["customer_id"]): r for r in customer_features.to_dict(orient="records")}
+                    for h_res in hybrid_analysis:
+                        raw_feat = features_dict_map.get(h_res.customer_id, {})
+                        exp_context = ExplainabilityContext(
+                            hybrid_result=h_res,
+                            evidence_bundle=EvidenceBundle(),
+                            pipeline_metadata={"raw_features": raw_feat, "dataset_name": dataset_name}
+                        )
+                        explain_reports.append(explain_service.explain(exp_context))
                 
                 elapsed = time.perf_counter() - start_time
                 self.context.execution_time = elapsed
@@ -167,10 +184,11 @@ class AMLPipeline:
                     anomaly_dataframe=anomaly_df,
                     hybrid_risk_analysis=hybrid_analysis,
                     hybrid_risk_dataframe=hybrid_df,
+                    explainability_reports=explain_reports,
                     report=report,
                     execution_time=elapsed,
                     pipeline_version=PIPELINE_VERSION,
-                    model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0"},
+                    model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0", "explainability_service": "1.0"},
                     metadata={
                         "dataset_name": dataset_name,
                         "dataset_hash": dataset_hash,
@@ -288,6 +306,20 @@ class AMLPipeline:
             hybrid_analysis = hybrid_engine.evaluate(eval_context)
             hybrid_df = HybridRiskEngine.to_dataframe(hybrid_analysis)
 
+        # 19. Run Explainability Service
+        with PipelineProfiler.profile("Explainability Report"):
+            explain_service = ExplainabilityService()
+            explain_reports = []
+            features_dict_map = {str(r["customer_id"]): r for r in customer_features.to_dict(orient="records")}
+            for h_res in hybrid_analysis:
+                raw_feat = features_dict_map.get(h_res.customer_id, {})
+                exp_context = ExplainabilityContext(
+                    hybrid_result=h_res,
+                    evidence_bundle=EvidenceBundle(),
+                    pipeline_metadata={"raw_features": raw_feat, "dataset_name": dataset_name}
+                )
+                explain_reports.append(explain_service.explain(exp_context))
+
         logger.info("Pipeline Completed")
         
         PipelineEvents.on_pipeline_finished(elapsed)
@@ -301,10 +333,11 @@ class AMLPipeline:
             anomaly_dataframe=anomaly_df,
             hybrid_risk_analysis=hybrid_analysis,
             hybrid_risk_dataframe=hybrid_df,
+            explainability_reports=explain_reports,
             report=report,
             execution_time=elapsed,
             pipeline_version=PIPELINE_VERSION,
-            model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0"},
+            model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0", "explainability_service": "1.0"},
             metadata={
                 "dataset_name": dataset_name,
                 "dataset_hash": dataset_hash,

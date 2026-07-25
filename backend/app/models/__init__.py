@@ -11,6 +11,12 @@ from app.models.pipeline_context import PipelineContext
 from app.models.risk_factor import RiskFactor
 from app.models.explanation import Explanation
 from app.models.hybrid_risk_result import HybridRiskResult
+from app.models.evidence_item import EvidenceItem
+from app.models.timeline_event import TimelineEvent
+from app.models.investigation_summary import InvestigationSummary
+from app.models.evidence_bundle import EvidenceBundle
+from app.models.explainability_context import ExplainabilityContext
+from app.models.explanation_response import ExplanationResponseV1
 
 __all__ = [
     "RuleEvaluation",
@@ -23,5 +29,11 @@ __all__ = [
     "PipelineContext",
     "RiskFactor",
     "Explanation",
-    "HybridRiskResult"
+    "HybridRiskResult",
+    "EvidenceItem",
+    "TimelineEvent",
+    "InvestigationSummary",
+    "EvidenceBundle",
+    "ExplainabilityContext",
+    "ExplanationResponseV1"
 ]
