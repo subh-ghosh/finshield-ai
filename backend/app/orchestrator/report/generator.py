@@ -103,14 +103,6 @@ machine learning anomaly scoring, and hybrid risk fusion.
 {timeline_md}
 
 ---
-
-## Analyst Notes
-
-- All findings above are **100% deterministic** and reproducible. Given the same input data, this report will always produce the same output.
-- LLM-based narrative generation is available when `GOOGLE_API_KEY` is configured.
-- This investigation was completed in **{round(result.execution_time_ms, 1)} ms**.
-
----
 *FinShield AI v2 — Enterprise AML Intelligence Platform*
 """
 
