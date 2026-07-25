@@ -1,44 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
-import { api } from '@/lib/api'
 import { ArrowRight, Filter, Search, Download, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useInvestigationQueue } from '../hooks'
+import { StateView, TableSkeleton, RiskBadge, PriorityBadge, StatusBadge } from '../components/shared'
 
 export default function InvestigationQueue() {
   const navigate = useNavigate()
-  const { data: queue, isLoading } = useQuery({
-    queryKey: ['queue'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/investigations/queue')
-        return res.data
-      } catch {
-        return [
-          { id: "CUST-8392", name: "Acme Corp Ltd", risk_score: 92, priority: "Critical", status: "Open", assigned_analyst: "Unassigned", recent_transactions: 145 },
-          { id: "CUST-1042", name: "Global Traders Inc", risk_score: 85, priority: "High", status: "In Progress", assigned_analyst: "Sarah Jenkins", recent_transactions: 89 },
-          { id: "CUST-4491", name: "TechVentures LLC", risk_score: 78, priority: "High", status: "Open", assigned_analyst: "Unassigned", recent_transactions: 56 },
-          { id: "CUST-9921", name: "Nexus Dynamics", risk_score: 65, priority: "Medium", status: "In Progress", assigned_analyst: "Michael Chen", recent_transactions: 34 },
-          { id: "CUST-3371", name: "Pacific Holdings", risk_score: 91, priority: "Critical", status: "Open", assigned_analyst: "Unassigned", recent_transactions: 201 },
-          { id: "CUST-7782", name: "Zenith Exports", risk_score: 72, priority: "High", status: "Pending Review", assigned_analyst: "Anna Müller", recent_transactions: 67 },
-        ]
-      }
-    }
-  })
-
-  const getRiskBadge = (score: number) => {
-    if (score >= 90) return <span className="sg-badge sg-badge-critical">CRITICAL ({score})</span>
-    if (score >= 75) return <span className="sg-badge sg-badge-high">HIGH ({score})</span>
-    if (score >= 50) return <span className="sg-badge sg-badge-medium">MEDIUM ({score})</span>
-    return <span className="sg-badge sg-badge-low">LOW ({score})</span>
-  }
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'Open': return 'bg-[#FEF2F2] text-[#E1000F] border-[#FECACA]'
-      case 'In Progress': return 'bg-[#FEF9C3] text-[#92400E] border-[#FDE68A]'
-      case 'Pending Review': return 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]'
-      default: return 'bg-[#F9FAFB] text-[#6B7280] border-[#E5E7EB]'
-    }
-  }
+  const { data: queue, isLoading, isError, error } = useInvestigationQueue();
 
   return (
     <div className="p-7 space-y-5">
@@ -79,44 +46,47 @@ export default function InvestigationQueue() {
               <th>Priority</th>
               <th>Status</th>
               <th>Assigned Analyst</th>
-              <th>Txns</th>
+              <th>Updated</th>
               <th style={{ textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={8} className="text-center py-12 text-[#9CA3AF]">Loading investigation queue...</td>
-              </tr>
-            ) : queue?.map((row: any) => (
-              <tr key={row.id}>
-                <td className="font-mono font-semibold text-[#1E1E1E]">{row.id}</td>
-                <td className="font-semibold text-[#1E1E1E]">{row.name}</td>
-                <td>{getRiskBadge(row.risk_score)}</td>
-                <td>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 ${
-                    row.priority === 'Critical' ? 'text-[#E1000F]' : row.priority === 'High' ? 'text-[#F59E0B]' : 'text-[#6B7280]'
-                  }`}>
-                    {row.priority}
-                  </span>
-                </td>
-                <td>
-                  <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 border ${getStatusStyle(row.status)}`}>
-                    {row.status}
-                  </span>
-                </td>
-                <td className="text-[#6B7280]">{row.assigned_analyst}</td>
-                <td className="font-mono text-[#6B7280]">{row.recent_transactions}</td>
-                <td className="text-right">
-                  <button 
-                    className="text-[11px] font-bold text-[#E1000F] hover:text-[#b8000c] hover:underline inline-flex items-center gap-1 transition-colors tracking-wide"
-                    onClick={() => navigate(`/investigation/${row.id}`)}
-                  >
-                    INVESTIGATE <ArrowRight className="h-3 w-3" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            <StateView 
+              isLoading={isLoading} 
+              isError={isError} 
+              error={error} 
+              isEmpty={!queue?.length}
+              loadingComponent={
+                <tr>
+                  <td colSpan={8} className="p-0"><TableSkeleton /></td>
+                </tr>
+              }
+              emptyComponent={
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-[#9CA3AF] text-[13px]">No items in queue.</td>
+                </tr>
+              }
+            >
+              {queue?.map((row) => (
+                <tr key={row.id}>
+                  <td className="font-mono font-semibold text-[#1E1E1E]">{row.id}</td>
+                  <td className="font-semibold text-[#1E1E1E]">{row.customer}</td>
+                  <td><RiskBadge score={row.riskScore} /></td>
+                  <td><PriorityBadge priority={row.priority} /></td>
+                  <td><StatusBadge status={row.status} /></td>
+                  <td className="text-[#6B7280]">{row.assignedTo}</td>
+                  <td className="font-mono text-[#6B7280]">{row.lastUpdated}</td>
+                  <td className="text-right">
+                    <button 
+                      className="text-[11px] font-bold text-[#E1000F] hover:text-[#b8000c] hover:underline inline-flex items-center gap-1 transition-colors tracking-wide"
+                      onClick={() => navigate(`/investigation/${row.id}`)}
+                    >
+                      INVESTIGATE <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </StateView>
           </tbody>
         </table>
       </div>
