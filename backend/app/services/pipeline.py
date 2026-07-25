@@ -12,6 +12,8 @@ from app.ml.anomaly_detection import AnomalyDetection
 from app.ml.confidence_calculator import ConfidenceCalculator
 from app.ml.feature_selector import FeatureSelector
 from app.ml.model_registry import ModelRegistry
+from app.ml.hybrid_risk_engine import HybridRiskEngine
+from app.models.pipeline_context import PipelineContext
 from app.models.pipeline_result import PipelineResult
 from app.services.cache_manager import CacheManager
 from app.services.feature_engineering import FeatureEngineering
@@ -26,7 +28,7 @@ from app.utils.timer import reset_timings, time_stage
 logger = get_logger(__name__)
 
 @dataclass
-class PipelineContext:
+class PipelineRunContext:
     """Lightweight metadata class tracking the state of a single pipeline run."""
     dataset_name: str
     dataset_hash: str
@@ -48,7 +50,7 @@ class AMLPipeline:
         self.config = config or PipelineConfig()
         self.preprocessor = AMLPreprocessor()
         self.feature_store = FeatureStore(self.config.feature_store_dir)
-        self.context: Optional[PipelineContext] = None
+        self.context: Optional[PipelineRunContext] = None
 
     @time_stage("Total Pipeline Run")
     def run(self, filepath: str) -> PipelineResult:
@@ -73,7 +75,7 @@ class AMLPipeline:
         PipelineEvents.on_pipeline_started(dataset_name)
         
         # Build Context
-        self.context = PipelineContext(
+        self.context = PipelineRunContext(
             dataset_name=dataset_name,
             dataset_hash=dataset_hash,
             pipeline_version=PIPELINE_VERSION,
@@ -136,6 +138,19 @@ class AMLPipeline:
                 flagged_anoms_count = int((anomaly_df["prediction"] == -1).sum())
                 PipelineEvents.on_anomaly_detection_completed(flagged_anoms_count)
                 
+                # Run Hybrid Risk Engine
+                with PipelineProfiler.profile("Hybrid Risk"):
+                    eval_context = PipelineContext(
+                        customer_features=customer_features,
+                        rule_results=rule_analysis,
+                        ml_results=anomaly_analysis,
+                        pipeline_version=PIPELINE_VERSION,
+                        dataset_info={"name": dataset_name, "hash": dataset_hash}
+                    )
+                    hybrid_engine = HybridRiskEngine()
+                    hybrid_analysis = hybrid_engine.evaluate(eval_context)
+                    hybrid_df = HybridRiskEngine.to_dataframe(hybrid_analysis)
+                
                 elapsed = time.perf_counter() - start_time
                 self.context.execution_time = elapsed
                 report = self.preprocessor.generate_report(elapsed)
@@ -150,10 +165,12 @@ class AMLPipeline:
                     rule_dataframe=rule_df,
                     anomaly_analysis=anomaly_analysis,
                     anomaly_dataframe=anomaly_df,
+                    hybrid_risk_analysis=hybrid_analysis,
+                    hybrid_risk_dataframe=hybrid_df,
                     report=report,
                     execution_time=elapsed,
                     pipeline_version=PIPELINE_VERSION,
-                    model_versions={"isolation_forest": "1.0", "rule_engine": "1.0"},
+                    model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0"},
                     metadata={
                         "dataset_name": dataset_name,
                         "dataset_hash": dataset_hash,
@@ -258,6 +275,19 @@ class AMLPipeline:
         flagged_anoms_count = int((anomaly_df["prediction"] == -1).sum())
         PipelineEvents.on_anomaly_detection_completed(flagged_anoms_count)
 
+        # 18. Run Hybrid Risk Engine
+        with PipelineProfiler.profile("Hybrid Risk"):
+            eval_context = PipelineContext(
+                customer_features=customer_features,
+                rule_results=rule_analysis,
+                ml_results=anomaly_analysis,
+                pipeline_version=PIPELINE_VERSION,
+                dataset_info={"name": dataset_name, "hash": dataset_hash}
+            )
+            hybrid_engine = HybridRiskEngine()
+            hybrid_analysis = hybrid_engine.evaluate(eval_context)
+            hybrid_df = HybridRiskEngine.to_dataframe(hybrid_analysis)
+
         logger.info("Pipeline Completed")
         
         PipelineEvents.on_pipeline_finished(elapsed)
@@ -269,10 +299,12 @@ class AMLPipeline:
             rule_dataframe=rule_df,
             anomaly_analysis=anomaly_analysis,
             anomaly_dataframe=anomaly_df,
+            hybrid_risk_analysis=hybrid_analysis,
+            hybrid_risk_dataframe=hybrid_df,
             report=report,
             execution_time=elapsed,
             pipeline_version=PIPELINE_VERSION,
-            model_versions={"isolation_forest": "1.0", "rule_engine": "1.0"},
+            model_versions={"isolation_forest": "1.0", "rule_engine": "1.0", "hybrid_risk_engine": "1.0"},
             metadata={
                 "dataset_name": dataset_name,
                 "dataset_hash": dataset_hash,

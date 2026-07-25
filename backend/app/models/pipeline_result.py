@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List
 import pandas as pd
 from app.models.analysis_result import AnalysisResult
+from app.models.hybrid_risk_result import HybridRiskResult
 from app.services.preprocessing import PreprocessingReport
 
 @dataclass
@@ -16,6 +17,8 @@ class PipelineResult:
     anomaly_analysis: List[AnalysisResult]
     anomaly_dataframe: pd.DataFrame
     report: PreprocessingReport
+    hybrid_risk_analysis: List[HybridRiskResult] = field(default_factory=list)
+    hybrid_risk_dataframe: pd.DataFrame = field(default_factory=pd.DataFrame)
     execution_time: float = 0.0
     pipeline_version: str = "1.0.0"
     model_versions: Dict[str, str] = field(default_factory=dict)

@@ -41,3 +41,36 @@ SEVERITY_THRESHOLDS: dict = {
     "HIGH": 0.6,
     "CRITICAL": 0.75
 }
+
+# Hybrid Risk Engine configuration options
+HYBRID_WEIGHTS: dict = {
+    "rule_engine": 0.60,
+    "isolation_forest": 0.30,
+    "behavioural": 0.10
+}
+
+HYBRID_SEVERITY_THRESHOLDS: dict = {
+    "LOW": 0.25,
+    "MEDIUM": 0.35,
+    "HIGH": 0.50,
+    "CRITICAL": 0.75
+}
+
+# Configurable recommendation rules matching scores to actions
+HYBRID_RECOMMENDATION_RULES: list = [
+    {"min_score": 0.75, "recommendation": "Immediate Investigation"},
+    {"min_score": 0.50, "recommendation": "File SAR Recommendation"},
+    {"min_score": 0.35, "recommendation": "Escalate Investigation"},
+    {"min_score": 0.25, "recommendation": "Manual Review"},
+    {"min_score": 0.00, "recommendation": "Continue Monitoring"}
+]
+
+# Configurable behavioural indicators and their bounds/weights
+BEHAVIORAL_INDICATORS: dict = {
+    "velocity_score": {"max": 10.0, "weight": 0.25},
+    "structuring_score": {"max": 10.0, "weight": 0.25},
+    "cash_out_ratio": {"max": 1.0, "weight": 0.20},
+    "recipient_diversity": {"max": 15.0, "weight": 0.15},
+    "sender_diversity": {"max": 5.0, "weight": 0.15}
+}
+
