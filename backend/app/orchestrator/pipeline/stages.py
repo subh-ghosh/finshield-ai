@@ -80,3 +80,18 @@ class EvidenceAggregationStage(BaseStage):
         if context.isolation_forest_score > 0.7:
             context.evidence.append("High ML anomaly detected in behavioral features.")
         context.add_timeline_event("Evidence Aggregated", "Gathered ML and Rule evidence.")
+
+class EvidenceGapDetectorStage(BaseStage):
+    @property
+    def name(self) -> str:
+        return "Evidence Gap & Compliance Detector"
+
+    async def execute(self, context: InvestigationContext, pipeline_res: PipelineResult) -> None:
+        from app.services.evidence_gap_detector import EvidenceGapDetector
+        detector = EvidenceGapDetector()
+        gap_assessment = detector.evaluate(context)
+        context.add_timeline_event(
+            "Compliance Evaluated",
+            f"Completeness Score: {gap_assessment.completeness_score}%. SAR Ready: {gap_assessment.sar_filing_ready}"
+        )
+

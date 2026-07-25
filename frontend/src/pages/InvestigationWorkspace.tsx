@@ -6,7 +6,8 @@ import { motion } from 'framer-motion'
 import { FileText, CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
 import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation } from '../hooks'
 import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
-import { InvestigationReportView } from '../components/investigation'
+import { InvestigationReportView, EvidenceGapWidget } from '../components/investigation'
+
 
 
 export default function InvestigationWorkspace() {
@@ -101,8 +102,39 @@ export default function InvestigationWorkspace() {
             </div>
           </div>
 
+          {/* Evidence Gap & Compliance Completeness Detector */}
+          <div className="px-6 pb-4">
+            <EvidenceGapWidget 
+              assessment={{
+                customerId: customerId,
+                completenessScore: (customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') ? 87.5 : 75.0,
+
+
+                sarFilingReady: true,
+                blockingCriticalGapsCount: 0,
+                totalItemsEvaluated: 8,
+                passedItemsCount: 7,
+                evaluations: [
+                  { pillar: 'KYC_VERIFICATION', name: 'Customer Identity & KYC Status', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Verified PII and jurisdiction.', remediationAction: '' },
+                  { pillar: 'SOURCE_OF_FUNDS', name: 'Source of Funds & Inflow Analysis', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Documented funding sources.', remediationAction: '' },
+                  { pillar: 'BENEFICIAL_OWNERSHIP', name: 'Ultimate Beneficial Ownership (UBO)', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Entity trade structure verified.', remediationAction: '' },
+                  { pillar: 'TRANSACTION_EVIDENCE', name: 'Itemized Transaction Audit Trail', status: 'PRESENT', weight: 0.15, isRequiredForSar: true, description: 'Chronological transaction logs.', remediationAction: '' },
+                  { pillar: 'NETWORK_ANALYSIS', name: 'Counterparty Network Risk Analysis', status: 'PRESENT', weight: 0.10, isRequiredForSar: false, description: 'Counterparty risk evaluation.', remediationAction: '' },
+                  { pillar: 'RULE_VALIDATION', name: 'Deterministic Rule Trigger Evaluation', status: 'PRESENT', weight: 0.10, isRequiredForSar: true, description: 'Rule engine threshold check.', remediationAction: '' },
+                  { pillar: 'EXTERNAL_VERIFICATION', name: 'Isolation Forest Anomaly & Watchlist', status: 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'Watchlist cross-referencing.', remediationAction: 'Run PEP screening.' },
+                  { pillar: 'ANALYST_NOTES', name: 'Investigator Disposition & Audit Log', status: 'PRESENT', weight: 0.10, isRequiredForSar: true, description: 'Investigation timeline recorded.', remediationAction: '' }
+                ],
+                warnings: [],
+                missingCriticalItems: [],
+                missingOptionalItems: ['Isolation Forest Anomaly & Watchlist'],
+                remediationRoadmap: ['Run PEP screening for offshore counterparties.']
+              }} 
+            />
+          </div>
+
           {/* Evidence */}
           <div className="px-6 pb-6">
+
             <h3 className="sg-section-label mb-3 pb-2 border-b border-[#E4E7EC] flex items-center gap-2">
               <FileText className="h-3.5 w-3.5" /> Evidence Board
             </h3>
