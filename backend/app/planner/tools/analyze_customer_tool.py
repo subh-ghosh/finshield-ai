@@ -29,4 +29,6 @@ class AnalyzeCustomerTool(BaseTool):
         Returns:
             ExplanationResponseV1 as dict.
         """
+        if customer_id.startswith("CUST-"):
+            customer_id = customer_id.replace("CUST-", "C_")
         return await client.analyze_customer(customer_id)
