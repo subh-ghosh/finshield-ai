@@ -33,10 +33,10 @@ class PipelineConfig:
     use_cache: bool = True
     
     # System directory paths
-    reports_dir: str = "reports"
-    rejected_dir: str = "reports/rejected"
-    cache_dir: str = ".cache"
-    feature_store_dir: str = ".feature_store"
+    reports_dir: str = "data/reports"
+    rejected_dir: str = "data/reports/rejected"
+    cache_dir: str = "data/cache"
+    feature_store_dir: str = "data/feature_store"
 
     def __post_init__(self) -> None:
         """Performs simple type validations on config fields."""

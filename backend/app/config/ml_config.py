@@ -13,8 +13,8 @@ N_JOBS: int = -1
 SCALER_TYPE: str = "standard"  # Support "standard" scaling (via StandardScaler)
 
 # Model serialization paths
-MODEL_PATH: str = ".cache/models/isolation_forest.pkl"
-MODEL_SAVE_DIR: str = ".cache/models"
+MODEL_PATH: str = "data/models/isolation_forest.pkl"
+MODEL_SAVE_DIR: str = "data/models"
 
 # Features selected for anomaly detection (numerical, behavioral metrics only)
 FEATURE_COLUMNS: list = [
