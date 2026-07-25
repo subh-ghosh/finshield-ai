@@ -21,7 +21,8 @@ class DecisionEngine:
         self.thresholds = load_thresholds(config_path)
 
     def evaluate(self, context: InvestigationContext) -> dict:
-        score = context.hybrid_risk_score
+        raw_score = context.hybrid_risk_score
+        score = raw_score * 100 if raw_score <= 1.0 else raw_score
         
         recommendation = "CLEAR"
         risk_level = "LOW"

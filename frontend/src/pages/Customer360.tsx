@@ -1,16 +1,16 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Building2, Globe, Calendar, Briefcase, ExternalLink, ArrowLeft, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useCustomerDetails } from '../hooks'
 import { StateView } from '../components/shared'
 
 // Quick-access sample customers
 const SAMPLE_CUSTOMERS = [
-  { id: 'CUST-8392', name: 'Acme Corp Ltd' },
-  { id: 'CUST-1042', name: 'Global Traders Inc' },
-  { id: 'CUST-4491', name: 'TechVentures LLC' },
-  { id: 'CUST-9921', name: 'Nexus Dynamics' },
-  { id: 'CUST-3371', name: 'Pacific Holdings' },
+  { id: 'C_1', name: 'Acme Corp Ltd' },
+  { id: 'C_2', name: 'Global Traders Inc' },
+  { id: 'C_3', name: 'TechVentures LLC' },
+  { id: 'C_4', name: 'Nexus Dynamics' },
+  { id: 'C_5', name: 'Pacific Holdings' },
 ]
 
 export default function Customer360() {
@@ -23,36 +23,36 @@ export default function Customer360() {
   if (!id) {
     return (
       <div className="p-7 max-w-2xl mx-auto">
-        <h1 className="text-[18px] font-bold text-[#1E1E1E] mb-1">Customer 360 View</h1>
-        <p className="text-[12px] text-[#9CA3AF] mb-6">Search for a customer or select from recent investigations</p>
+        <h1 className="text-[18px] font-bold text-brand-black mb-1">Customer 360 View</h1>
+        <p className="text-[12px] text-brand-gray mb-6">Search for a customer or select from recent investigations</p>
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gray" />
           <input
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && searchInput.trim()) navigate(`/customer/${searchInput.trim()}`) }}
-            placeholder="Enter Customer ID (e.g. CUST-8392) and press Enter..."
-            className="w-full pl-11 pr-4 py-3 bg-white border border-[#E4E7EC] text-[13px] text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#E1000F]/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
+            placeholder="Enter Customer ID (e.g. C_1) and press Enter..."
+            className="w-full pl-11 pr-4 py-3 bg-white border border-[#E4E7EC] text-[13px] text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
           />
         </div>
 
         {/* Quick access */}
-        <h3 className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">Recent Investigations</h3>
+        <h3 className="text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-3">Recent Investigations</h3>
         <div className="space-y-2">
           {SAMPLE_CUSTOMERS.map(c => (
             <button
               key={c.id}
               onClick={() => navigate(`/customer/${c.id}`)}
-              className="w-full flex items-center justify-between p-4 bg-white border border-[#E4E7EC] hover:border-[#E1000F]/30 hover:bg-[#FAFBFF] transition-all text-left group"
+              className="w-full flex items-center justify-between p-4 bg-white border border-[#E4E7EC] hover:border-brand-red/30 hover:bg-[#FAFBFF] transition-all text-left group"
             >
               <div>
-                <div className="text-[13px] font-semibold text-[#1E1E1E]">{c.name}</div>
-                <div className="text-[11px] font-mono text-[#9CA3AF] mt-0.5">{c.id}</div>
+                <div className="text-[13px] font-semibold text-brand-black">{c.name}</div>
+                <div className="text-[11px] font-mono text-brand-gray mt-0.5">{c.id}</div>
               </div>
-              <ExternalLink className="h-4 w-4 text-[#9CA3AF] group-hover:text-[#E1000F] transition-colors" />
+              <ExternalLink className="h-4 w-4 text-brand-gray group-hover:text-brand-red transition-colors" />
             </button>
           ))}
         </div>
@@ -66,7 +66,7 @@ export default function Customer360() {
       <div className="mb-4">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B7280] hover:text-[#1E1E1E] transition-colors"
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B7280] hover:text-brand-black transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </button>
@@ -80,11 +80,11 @@ export default function Customer360() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-lg font-bold text-black">{customer.name}</h1>
-                  <span className="text-[11px] font-bold bg-[#E1000F] text-white px-2 py-0.5">RISK: {customer.historical_risk?.toUpperCase()}</span>
+                  <span className="text-[11px] font-bold bg-brand-red text-white px-2 py-0.5">RISK: {customer.historical_risk?.toUpperCase()}</span>
                 </div>
                 <p className="text-[12px] text-gray-500 mt-1">Entity ID: {customer.id} • {customer.industry} • {customer.jurisdiction}</p>
               </div>
-              <Link to={`/investigation/${id}`} className="text-[12px] font-semibold text-[#E1000F] hover:underline inline-flex items-center gap-1">
+              <Link to={`/investigation/${id}`} className="text-[12px] font-semibold text-brand-red hover:underline inline-flex items-center gap-1">
                 OPEN INVESTIGATION <ExternalLink className="h-3 w-3" />
               </Link>
             </div>
@@ -120,7 +120,7 @@ export default function Customer360() {
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-[11px] text-gray-400 uppercase tracking-wide">Risk Score</span>
-                    <span className="text-[16px] font-bold text-[#E1000F]">{customer.risk_score}</span>
+                    <span className="text-[16px] font-bold text-brand-red">{customer.risk_score}</span>
                   </div>
                 </div>
               </div>
@@ -132,18 +132,18 @@ export default function Customer360() {
                   <h3 className="text-[11px] font-bold tracking-wider uppercase text-gray-500 mb-4 pb-2 border-b border-gray-200">Network Connections</h3>
                   <div className="space-y-2">
                     {customer.connections.map(conn => (
-                      <div key={conn.id} className="flex items-center justify-between py-2.5 px-3 bg-[#f9f9f9] border border-gray-100 hover:border-[#E1000F]/20 transition-colors group">
+                      <div key={conn.id} className="flex items-center justify-between py-2.5 px-3 bg-[#f9f9f9] border border-gray-100 hover:border-brand-red/20 transition-colors group">
                         <div>
                           <div className="text-[13px] font-medium text-black">{conn.name}</div>
                           <div className="text-[11px] text-gray-400">{conn.role} • {conn.id}</div>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className={`text-[11px] font-bold px-2 py-0.5 ${
-                            conn.risk === 'High' ? 'bg-[#E1000F] text-white' : 'bg-gray-200 text-gray-600'
+                            conn.risk === 'High' ? 'bg-brand-red text-white' : 'bg-gray-200 text-gray-600'
                           }`}>
                             {conn.risk.toUpperCase()}
                           </span>
-                          <Link to={`/customer/${conn.id}`} className="text-[#9CA3AF] hover:text-[#E1000F] transition-colors opacity-0 group-hover:opacity-100">
+                          <Link to={`/customer/${conn.id}`} className="text-brand-gray hover:text-brand-red transition-colors opacity-0 group-hover:opacity-100">
                             <ExternalLink className="h-3.5 w-3.5" />
                           </Link>
                         </div>

@@ -125,7 +125,7 @@ def get_pipeline_result() -> PipelineResult:
 
                         detector = AnomalyDetection()
                         anomaly_analysis = detector.run(customer_features)
-                        anomaly_df = pd.DataFrame()
+                        anomaly_df = AnomalyDetection.to_dataframe(anomaly_analysis)
 
                         eval_context = PipelineContext(
                             customer_features=customer_features,

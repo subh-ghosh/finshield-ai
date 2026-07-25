@@ -20,36 +20,36 @@ export function DeveloperSection({ result }: { result: PlannerResult }) {
       {isExpanded && (
         <div className="p-4 border-t border-[#E4E7EC] space-y-4 font-mono text-[11px]">
           <div>
-            <span className="text-[#9CA3AF] block mb-1">Correlation ID</span>
-            <span className="text-[#1E1E1E] break-all bg-white px-2 py-1 border border-[#E4E7EC] rounded-sm">
+            <span className="text-brand-gray block mb-1">Correlation ID</span>
+            <span className="text-brand-black break-all bg-white px-2 py-1 border border-[#E4E7EC] rounded-sm">
               {result.correlation_id}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[#9CA3AF] block mb-1">Planner Status</span>
-              <span className="text-[#1E1E1E]">{result.planner_status}</span>
+              <span className="text-brand-gray block mb-1">Planner Status</span>
+              <span className="text-brand-black">{result.planner_status}</span>
             </div>
             <div>
-              <span className="text-[#9CA3AF] block mb-1">Execution Time</span>
-              <span className="text-[#1E1E1E]">{result.execution_time_ms.toFixed(2)} ms</span>
+              <span className="text-brand-gray block mb-1">Execution Time</span>
+              <span className="text-brand-black">{result.execution_time_ms.toFixed(2)} ms</span>
             </div>
             <div>
-              <span className="text-[#9CA3AF] block mb-1">API Calls</span>
-              <span className="text-[#1E1E1E]">{result.api_calls}</span>
+              <span className="text-brand-gray block mb-1">API Calls</span>
+              <span className="text-brand-black">{result.api_calls}</span>
             </div>
           </div>
 
           <div>
-            <span className="text-[#9CA3AF] block mb-2">Tool Calls</span>
+            <span className="text-brand-gray block mb-2">Tool Calls</span>
             <div className="flex flex-wrap gap-2">
               {result.tool_calls.map((tool, i) => (
-                <span key={i} className="px-2 py-1 bg-[#1E1E1E] text-white rounded-sm text-[10px]">
+                <span key={i} className="px-2 py-1 bg-brand-black text-white rounded-sm text-[10px]">
                   {tool}
                 </span>
               ))}
-              {result.tool_calls.length === 0 && <span className="text-[#9CA3AF]">None</span>}
+              {result.tool_calls.length === 0 && <span className="text-brand-gray">None</span>}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Activity, AlertTriangle, Users, FileCheck, TrendingUp, TrendingDown, ArrowUpRight, Clock, RefreshCw } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Area, AreaChart } from 'recharts'
 import { useDashboardData } from '../hooks'
@@ -12,28 +12,35 @@ export default function Dashboard() {
     setLastUpdated(new Date())
   }, [data])
   
-  const stats = data?.metrics;
+  const stats = data;
   const riskDistribution = data?.riskDistribution;
-  const anomalyTrend = data?.anomalyTrend;
-
-  const statCards = [
-    { label: 'Active Investigations', value: stats?.activeInvestigations || 0, change: '+12%', trend: 'up', icon: Activity, color: '#E1000F' },
-    { label: 'High Risk Entities', value: stats?.highRiskEntities || 0, change: '+4 today', trend: 'up', icon: AlertTriangle, color: '#EF4444' },
-    { label: 'New Alerts', value: stats?.newAlerts || 0, change: 'Immediate triage', trend: 'neutral', icon: Users, color: '#F59E0B' },
-    { label: 'Pending Reviews', value: stats?.pendingReviews || 0, change: '-5 from yesterday', trend: 'down', icon: FileCheck, color: '#10B981' },
+  const anomalyTrend = [
+    { time: '00:00', score: 12 },
+    { time: '04:00', score: 8 },
+    { time: '08:00', score: 35 },
+    { time: '12:00', score: 42 },
+    { time: '16:00', score: 38 },
+    { time: '20:00', score: 15 }
   ];
+
+  const statCards = useMemo(() => [
+    { label: 'Active Investigations', value: stats?.activeInvestigations || 0, change: '+12%', trend: 'up', icon: Activity, color: '#E1000F' },
+    { label: 'High Risk Entities', value: stats?.highRiskAlerts || 0, change: '+4 today', trend: 'up', icon: AlertTriangle, color: '#EF4444' },
+    { label: 'New Alerts', value: stats?.alerts?.length || 0, change: 'Immediate triage', trend: 'neutral', icon: Users, color: '#F59E0B' },
+    { label: 'Pending Reviews', value: stats?.pendingReviews || 0, change: '-5 from yesterday', trend: 'down', icon: FileCheck, color: '#10B981' },
+  ], [stats]);
 
   return (
     <div className="p-7 space-y-6">
       {/* Status bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Clock className="h-3.5 w-3.5 text-[#9CA3AF]" />
-          <span className="text-[11px] text-[#9CA3AF]">
+          <Clock className="h-3.5 w-3.5 text-brand-gray" />
+          <span className="text-[11px] text-brand-gray">
             Last updated: {lastUpdated.toLocaleTimeString()} · Auto-refresh: 30s
           </span>
           {isFetching && (
-            <span className="text-[10px] font-bold text-[#E1000F] animate-pulse">REFRESHING...</span>
+            <span className="text-[10px] font-bold text-brand-red animate-pulse">REFRESHING...</span>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -71,12 +78,12 @@ export default function Dashboard() {
                   <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
                 </div>
               </div>
-              <div className="text-[36px] font-bold text-[#1E1E1E] leading-none tracking-tight">{stat.value}</div>
+              <div className="text-[36px] font-bold text-brand-black leading-none tracking-tight">{stat.value}</div>
               <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#F0F1F3]">
-                {stat.trend === 'up' && <TrendingUp className="h-3 w-3 text-[#E1000F]" />}
+                {stat.trend === 'up' && <TrendingUp className="h-3 w-3 text-brand-red" />}
                 {stat.trend === 'down' && <TrendingDown className="h-3 w-3 text-[#10B981]" />}
                 {stat.trend === 'neutral' && <ArrowUpRight className="h-3 w-3 text-[#F59E0B]" />}
-                <span className="text-[11px] text-[#9CA3AF]">{stat.change}</span>
+                <span className="text-[11px] text-brand-gray">{stat.change}</span>
               </div>
             </div>
           ))}
@@ -88,8 +95,8 @@ export default function Dashboard() {
           <div className="sg-panel p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-[13px] font-bold text-[#1E1E1E]">Risk Distribution</h3>
-                <p className="text-[11px] text-[#9CA3AF] mt-0.5">Entity risk breakdown – current period</p>
+                <h3 className="text-[13px] font-bold text-brand-black">Risk Distribution</h3>
+                <p className="text-[11px] text-brand-gray mt-0.5">Entity risk breakdown – current period</p>
               </div>
               <span className="sg-section-label">Current Period</span>
             </div>
@@ -117,11 +124,11 @@ export default function Dashboard() {
           <div className="sg-panel p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-[13px] font-bold text-[#1E1E1E]">Isolation Forest Anomaly Trend</h3>
-                <p className="text-[11px] text-[#9CA3AF] mt-0.5">24-hour anomaly detection feed</p>
+                <h3 className="text-[13px] font-bold text-brand-black">Isolation Forest Anomaly Trend</h3>
+                <p className="text-[11px] text-brand-gray mt-0.5">24-hour anomaly detection feed</p>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#E1000F]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#E1000F] animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-brand-red">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse" />
                 Live Feed
               </span>
             </div>

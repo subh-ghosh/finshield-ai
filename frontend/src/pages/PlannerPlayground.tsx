@@ -105,11 +105,11 @@ export default function PlannerPlayground() {
       {/* Toolbar */}
       <div className="h-11 bg-white border-b border-[#E4E7EC] flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Terminal className="h-3.5 w-3.5 text-[#E1000F]" />
+          <Terminal className="h-3.5 w-3.5 text-brand-red" />
           <span className="text-[12px] font-bold tracking-wider uppercase text-[#6B7280]">AI Investigation Console</span>
         </div>
         <div className="flex gap-2 items-center">
-          <span className="text-[10px] font-mono text-[#9CA3AF] bg-[#F3F4F6] px-2 py-0.5 rounded border border-[#E4E7EC]">
+          <span className="text-[10px] font-mono text-brand-gray bg-[#F3F4F6] px-2 py-0.5 rounded border border-[#E4E7EC]">
             Engine: Deterministic v2.0 + LLM Report
           </span>
           <button
@@ -132,18 +132,18 @@ export default function PlannerPlayground() {
         {history.length === 0 && (
           <div className="text-center mt-16">
             <div className="w-14 h-14 rounded-full bg-white border border-[#E4E7EC] flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <Terminal className="h-6 w-6 text-[#9CA3AF]" />
+              <Terminal className="h-6 w-6 text-brand-gray" />
             </div>
             <div className="text-[13px] font-semibold text-[#6B7280] font-sans">System Ready</div>
-            <div className="text-[12px] text-[#9CA3AF] font-sans mt-1">
+            <div className="text-[12px] text-brand-gray font-sans mt-1">
               Type a customer ID or investigation request below
             </div>
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {['Investigate C_1', 'Run AML check on CUST-8392', 'Analyze customer C_500'].map(s => (
+              {['Investigate C_1', 'Run AML check on C_2', 'Analyze customer C_500'].map(s => (
                 <button
                   key={s}
                   onClick={() => setInput(s)}
-                  className="text-[11px] font-sans border border-[#E4E7EC] px-3 py-1.5 bg-white text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#1E1E1E] hover:border-[#E1000F]/30 transition-all rounded-sm"
+                  className="text-[11px] font-sans border border-[#E4E7EC] px-3 py-1.5 bg-white text-[#6B7280] hover:bg-[#F9FAFB] hover:text-brand-black hover:border-brand-red/30 transition-all rounded-sm"
                 >
                   {s}
                 </button>
@@ -156,14 +156,14 @@ export default function PlannerPlayground() {
           <div key={i} className={`flex flex-col ${msg.type === 'user' ? 'items-end' : 'items-start'}`}>
             {msg.type === 'user' ? (
               <div className="max-w-[85%] p-3 shadow-sm bg-[#161A22] text-[#22C55E]">
-                <div><span className="text-[#E1000F] font-bold">&gt;</span> {msg.content}</div>
+                <div><span className="text-brand-red font-bold">&gt;</span> {msg.content}</div>
               </div>
             ) : (
               <div className="max-w-[90%] w-full bg-white border border-[#E4E7EC] shadow-sm">
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-2 border-b border-[#F3F4F6] bg-[#FAFBFC]">
                   <div className="flex items-center gap-2">
-                    <Activity className={`h-3 w-3 ${msg.status === 'running' ? 'animate-spin text-[#E1000F]' : msg.status === 'done' ? 'text-green-500' : 'text-red-400'}`} />
+                    <Activity className={`h-3 w-3 ${msg.status === 'running' ? 'animate-spin text-brand-red' : msg.status === 'done' ? 'text-green-500' : 'text-red-400'}`} />
                     <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest font-sans">
                       {msg.status === 'running' ? 'Executing Investigation...' : msg.status === 'error' ? 'Investigation Failed' : 'Investigation Complete'}
                     </span>
@@ -186,9 +186,9 @@ export default function PlannerPlayground() {
                 {/* Execution trace */}
                 {(msg.steps?.length > 0 || msg.status === 'running') && (
                   <div className="px-4 py-3 border-b border-[#F3F4F6] space-y-1.5">
-                    <div className="text-[10px] font-bold text-[#E1000F] uppercase tracking-[0.15em] mb-2">++ Execution Trace ++</div>
+                    <div className="text-[10px] font-bold text-brand-red uppercase tracking-[0.15em] mb-2">++ Execution Trace ++</div>
                     {msg.status === 'running' && msg.steps?.length === 0 && (
-                      <div className="text-[11px] text-[#9CA3AF] flex items-center gap-1.5">
+                      <div className="text-[11px] text-brand-gray flex items-center gap-1.5">
                         <Activity className="h-3 w-3 animate-spin" /> Running pipeline stages...
                       </div>
                     )}
@@ -207,16 +207,16 @@ export default function PlannerPlayground() {
                     {/* Key metrics */}
                     <div className="grid grid-cols-3 gap-3">
                       <div className="text-center p-3 bg-[#FAFBFC] border border-[#E4E7EC]">
-                        <div className="text-[10px] uppercase tracking-widest text-[#9CA3AF] mb-1">Recommendation</div>
+                        <div className="text-[10px] uppercase tracking-widest text-brand-gray mb-1">Recommendation</div>
                         <RecommendationBadge rec={msg.result.recommendation} />
                       </div>
                       <div className="text-center p-3 bg-[#FAFBFC] border border-[#E4E7EC]">
-                        <div className="text-[10px] uppercase tracking-widest text-[#9CA3AF] mb-1">Confidence</div>
-                        <div className="text-[16px] font-bold text-[#1E1E1E]">{(parseFloat(msg.result.confidence) * 100).toFixed(0)}%</div>
+                        <div className="text-[10px] uppercase tracking-widest text-brand-gray mb-1">Confidence</div>
+                        <div className="text-[16px] font-bold text-brand-black">{(parseFloat(msg.result.confidence) * 100).toFixed(0)}%</div>
                       </div>
                       <div className="text-center p-3 bg-[#FAFBFC] border border-[#E4E7EC]">
-                        <div className="text-[10px] uppercase tracking-widest text-[#9CA3AF] mb-1">Exec Time</div>
-                        <div className="text-[14px] font-bold text-[#1E1E1E]">{msg.result.execution_time_ms?.toFixed(1)}ms</div>
+                        <div className="text-[10px] uppercase tracking-widest text-brand-gray mb-1">Exec Time</div>
+                        <div className="text-[14px] font-bold text-brand-black">{msg.result.execution_time_ms?.toFixed(1)}ms</div>
                       </div>
                     </div>
 
@@ -228,9 +228,9 @@ export default function PlannerPlayground() {
                         </div>
                         <div className="bg-[#FAFBFC] border border-[#E4E7EC] p-3 max-h-64 overflow-y-auto">
                           <div className="prose prose-sm max-w-none
-                            prose-headings:text-[#1E1E1E] prose-headings:font-bold prose-headings:text-[13px]
+                            prose-headings:text-brand-black prose-headings:font-bold prose-headings:text-[13px]
                             prose-p:text-[12px] prose-p:text-[#374151] prose-p:leading-relaxed prose-p:my-1
-                            prose-strong:text-[#1E1E1E] prose-strong:font-bold
+                            prose-strong:text-brand-black prose-strong:font-bold
                             prose-ul:my-1 prose-li:text-[12px] prose-li:text-[#374151]
                             prose-table:text-[11px] prose-td:py-1 prose-th:py-1
                           ">
@@ -247,8 +247,8 @@ export default function PlannerPlayground() {
         ))}
 
         {isProcessing && history[history.length - 1]?.status === 'running' && (
-          <div className="flex items-center gap-2 text-[12px] text-[#9CA3AF] bg-white border border-[#E4E7EC] p-3 w-fit font-sans shadow-sm">
-            <Activity className="h-3.5 w-3.5 animate-spin text-[#E1000F]" /> Deterministic engine processing...
+          <div className="flex items-center gap-2 text-[12px] text-brand-gray bg-white border border-[#E4E7EC] p-3 w-fit font-sans shadow-sm">
+            <Activity className="h-3.5 w-3.5 animate-spin text-brand-red" /> Deterministic engine processing...
           </div>
         )}
         <div ref={endRef} />
@@ -257,18 +257,18 @@ export default function PlannerPlayground() {
       {/* Input */}
       <div className="p-4 bg-white border-t border-[#E4E7EC] flex-shrink-0">
         <div className="relative flex items-center max-w-4xl mx-auto">
-          <span className="absolute left-4 font-mono text-[#E1000F] font-bold text-[14px]">&gt;</span>
+          <span className="absolute left-4 font-mono text-brand-red font-bold text-[14px]">&gt;</span>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="e.g. Investigate CUST-8392  or  Run AML check on C_500"
-            className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-10 pr-24 py-3 text-[13px] font-mono focus:outline-none focus:border-[#E1000F]/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-[#9CA3AF] transition-all"
+            placeholder="e.g. Investigate C_1  or  Run AML check on C_500"
+            className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-10 pr-24 py-3 text-[13px] font-mono focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all"
             disabled={isProcessing}
           />
           <button
-            className="absolute right-2 bg-[#E1000F] hover:bg-[#c5000d] text-white text-[11px] font-bold px-4 py-1.5 tracking-wider transition-colors disabled:opacity-30 shadow-sm"
+            className="absolute right-2 bg-brand-red hover:bg-[#c5000d] text-white text-[11px] font-bold px-4 py-1.5 tracking-wider transition-colors disabled:opacity-30 shadow-sm"
             onClick={handleSend}
             disabled={isProcessing || !input.trim()}
           >
@@ -284,10 +284,10 @@ export default function PlannerPlayground() {
           <div className="relative bg-white w-[560px] max-h-[80vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E4E7EC] sticky top-0 bg-white">
               <div className="flex items-center gap-2">
-                <Database className="h-4 w-4 text-[#E1000F]" />
-                <h2 className="text-[13px] font-bold text-[#1E1E1E] tracking-wide">FinShield Tool Registry</h2>
+                <Database className="h-4 w-4 text-brand-red" />
+                <h2 className="text-[13px] font-bold text-brand-black tracking-wide">FinShield Tool Registry</h2>
               </div>
-              <button onClick={() => setShowToolRegistry(false)}><X className="h-4 w-4 text-[#9CA3AF]" /></button>
+              <button onClick={() => setShowToolRegistry(false)}><X className="h-4 w-4 text-brand-gray" /></button>
             </div>
             <div className="p-6 space-y-3">
               {[
@@ -299,15 +299,15 @@ export default function PlannerPlayground() {
                 { name: 'make_decision', desc: 'Deterministically maps composite risk score to a recommendation: CLEAR / MANUAL_REVIEW / ESCALATE / FILE_SAR.', input: 'risk_score: float', output: 'Recommendation: str' },
                 { name: 'generate_report', desc: 'Generates a structured AML investigation report. Uses Gemini 2.0 Flash if API key is set, else deterministic markdown.', input: 'investigation_result: dict', output: 'Report: str (Markdown)' },
               ].map((tool, i) => (
-                <div key={i} className="border border-[#E4E7EC] p-4 hover:border-[#E1000F]/20 transition-colors">
+                <div key={i} className="border border-[#E4E7EC] p-4 hover:border-brand-red/20 transition-colors">
                   <div className="flex items-start justify-between">
-                    <code className="text-[12px] font-bold text-[#E1000F] font-mono">{tool.name}</code>
+                    <code className="text-[12px] font-bold text-brand-red font-mono">{tool.name}</code>
                     <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 font-bold">ACTIVE</span>
                   </div>
                   <p className="text-[12px] text-[#374151] mt-1 leading-snug">{tool.desc}</p>
                   <div className="flex gap-4 mt-2">
-                    <span className="text-[10px] text-[#9CA3AF]">IN: <code className="text-[#6B7280]">{tool.input}</code></span>
-                    <span className="text-[10px] text-[#9CA3AF]">OUT: <code className="text-[#6B7280]">{tool.output}</code></span>
+                    <span className="text-[10px] text-brand-gray">IN: <code className="text-[#6B7280]">{tool.input}</code></span>
+                    <span className="text-[10px] text-brand-gray">OUT: <code className="text-[#6B7280]">{tool.output}</code></span>
                   </div>
                 </div>
               ))}

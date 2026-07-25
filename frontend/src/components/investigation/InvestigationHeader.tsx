@@ -8,7 +8,7 @@ export function InvestigationHeader({ result }: { result: PlannerResult }) {
         <span className="text-[12px] font-bold tracking-wider uppercase text-[#6B7280]">
           Enterprise Investigation
         </span>
-        <span className="px-2 py-0.5 bg-[#1E1E1E] text-white text-[10px] font-bold tracking-widest rounded-sm">
+        <span className="px-2 py-0.5 bg-brand-black text-white text-[10px] font-bold tracking-widest rounded-sm">
           {result.customer_id}
         </span>
       </div>

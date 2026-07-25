@@ -1,19 +1,27 @@
-import { useMutation } from '@tanstack/react-query';
-import { plannerService } from '../services';
-import type { PlannerResult } from '../types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { UseCases } from '../core/container';
+import type { InvestigationResult } from '../domain/entities/InvestigationResult';
+import { queryKeys } from '../core/constants/queryKeys';
 
 export function usePlannerInvestigation() {
+  const queryClient = useQueryClient();
+
   const {
     mutateAsync: investigate,
     data,
     isPending,
     error,
     reset,
-  } = useMutation<PlannerResult, Error, string>({
+  } = useMutation<InvestigationResult, Error, string>({
     mutationFn: async (customerId: string) => {
-      const result = await plannerService.runInvestigation(customerId);
-      return result as PlannerResult;
+      return await UseCases.runInvestigation.execute(customerId);
     },
+    onSuccess: (result, customerId) => {
+      // Phase 10: Cache Strategy - invalidate queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.queue.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.investigation.detail(customerId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.metrics });
+    }
   });
 
   return {

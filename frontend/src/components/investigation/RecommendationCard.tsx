@@ -12,12 +12,12 @@ export function RecommendationCard({ result }: { result: PlannerResult }) {
             <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#6B7280]">AI Recommendation</span>
             <span className="sg-badge sg-badge-neutral">{result.confidence} Confidence</span>
           </div>
-          <div className={`text-[20px] font-bold ${isHighRisk ? 'text-[#E1000F]' : 'text-[#1E1E1E]'}`}>
+          <div className={`text-[20px] font-bold ${isHighRisk ? 'text-brand-red' : 'text-brand-black'}`}>
             {result.recommendation}
           </div>
         </div>
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isHighRisk ? 'bg-[#E1000F]/10' : 'bg-[#E4E7EC]'}`}>
-          {isHighRisk ? <AlertTriangle className="h-6 w-6 text-[#E1000F]" /> : <Target className="h-6 w-6 text-[#6B7280]" />}
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isHighRisk ? 'bg-brand-red/10' : 'bg-[#E4E7EC]'}`}>
+          {isHighRisk ? <AlertTriangle className="h-6 w-6 text-brand-red" /> : <Target className="h-6 w-6 text-[#6B7280]" />}
         </div>
       </div>
     </div>

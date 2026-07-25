@@ -42,16 +42,16 @@ export default function InvestigationQueue() {
         <div className="flex items-center gap-3">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-brand-gray" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search by entity name or ID..."
-              className="pl-9 h-9 w-[280px] bg-white border border-[#E4E7EC] px-3 py-2 text-[13px] text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#E1000F]/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
+              className="pl-9 h-9 w-[280px] bg-white border border-[#E4E7EC] px-3 py-2 text-[13px] text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1E1E1E]">
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-gray hover:text-brand-black">
                 <X className="h-3 w-3" />
               </button>
             )}
@@ -63,7 +63,7 @@ export default function InvestigationQueue() {
               onClick={() => setShowFilterMenu(v => !v)}
               className={`h-9 px-4 bg-white border text-[12px] font-medium flex items-center gap-1.5 transition-colors ${
                 priorityFilter !== 'All'
-                  ? 'border-[#E1000F]/40 text-[#E1000F] bg-[#FEF2F2]'
+                  ? 'border-brand-red/40 text-brand-red bg-[#FEF2F2]'
                   : 'border-[#E4E7EC] text-[#6B7280] hover:bg-[#F9FAFB]'
               }`}
             >
@@ -77,7 +77,7 @@ export default function InvestigationQueue() {
                     key={p}
                     onClick={() => { setPriorityFilter(p); setShowFilterMenu(false) }}
                     className={`block w-full text-left px-4 py-2.5 text-[12px] hover:bg-[#F9FAFB] transition-colors ${
-                      p === priorityFilter ? 'font-bold text-[#E1000F]' : 'text-[#374151]'
+                      p === priorityFilter ? 'font-bold text-brand-red' : 'text-[#374151]'
                     }`}
                   >
                     {p}
@@ -90,7 +90,7 @@ export default function InvestigationQueue() {
           {/* Refresh */}
           <button
             onClick={() => refetch()}
-            className="h-9 px-3 bg-white border border-[#E4E7EC] text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#1E1E1E] transition-colors"
+            className="h-9 px-3 bg-white border border-[#E4E7EC] text-[#6B7280] hover:bg-[#F9FAFB] hover:text-brand-black transition-colors"
             title="Refresh queue"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -98,7 +98,7 @@ export default function InvestigationQueue() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-[11px] text-[#9CA3AF] font-medium">{filteredQueue.length} alerts</span>
+          <span className="text-[11px] text-brand-gray font-medium">{filteredQueue.length} alerts</span>
           <button
             onClick={handleExport}
             disabled={filteredQueue.length === 0}
@@ -112,7 +112,7 @@ export default function InvestigationQueue() {
       {/* Active Filters Badge */}
       {(searchQuery || priorityFilter !== 'All') && (
         <div className="flex items-center gap-2 text-[11px]">
-          <span className="text-[#9CA3AF]">Active filters:</span>
+          <span className="text-brand-gray">Active filters:</span>
           {searchQuery && (
             <span className="inline-flex items-center gap-1 bg-[#F3F4F6] border border-[#E4E7EC] px-2 py-0.5 text-[#374151]">
               Search: "{searchQuery}"
@@ -120,12 +120,12 @@ export default function InvestigationQueue() {
             </span>
           )}
           {priorityFilter !== 'All' && (
-            <span className="inline-flex items-center gap-1 bg-[#FEF2F2] border border-[#FECACA] px-2 py-0.5 text-[#E1000F]">
+            <span className="inline-flex items-center gap-1 bg-[#FEF2F2] border border-[#FECACA] px-2 py-0.5 text-brand-red">
               Priority: {priorityFilter}
               <button onClick={() => setPriorityFilter('All')}><X className="h-2.5 w-2.5" /></button>
             </span>
           )}
-          <button onClick={() => { setSearchQuery(''); setPriorityFilter('All') }} className="text-[#9CA3AF] hover:text-[#E1000F]">
+          <button onClick={() => { setSearchQuery(''); setPriorityFilter('All') }} className="text-brand-gray hover:text-brand-red">
             Clear all
           </button>
         </div>
@@ -159,18 +159,25 @@ export default function InvestigationQueue() {
               }
               emptyComponent={
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-[#9CA3AF] text-[13px]">
+                  <td colSpan={8} className="text-center py-12 text-brand-gray text-[13px]">
                     {searchQuery || priorityFilter !== 'All' ? 'No results match your filters.' : 'No items in queue.'}
+                  </td>
+                </tr>
+              }
+              errorComponent={
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-brand-red text-[13px]">
+                    Failed to load queue data.
                   </td>
                 </tr>
               }
             >
               {filteredQueue.map((row) => (
                 <tr key={row.id}>
-                  <td className="font-mono font-semibold text-[#1E1E1E]">{row.id}</td>
-                  <td className="font-semibold text-[#1E1E1E]">
+                  <td className="font-mono font-semibold text-brand-black">{row.id}</td>
+                  <td className="font-semibold text-brand-black">
                     <div>{row.customer}</div>
-                    <Link to={`/customer/${row.id}`} className="text-[10px] text-[#9CA3AF] hover:text-[#E1000F] inline-flex items-center gap-0.5 transition-colors mt-0.5">
+                    <Link to={`/customer/${row.id}`} className="text-[10px] text-brand-gray hover:text-brand-red inline-flex items-center gap-0.5 transition-colors mt-0.5">
                       <UserSquare2 className="h-2.5 w-2.5" /> View Profile
                     </Link>
                   </td>
@@ -181,7 +188,7 @@ export default function InvestigationQueue() {
                   <td className="font-mono text-[#6B7280]">{row.lastUpdated}</td>
                   <td className="text-right">
                     <button
-                      className="text-[11px] font-bold text-[#E1000F] hover:text-[#b8000c] hover:underline inline-flex items-center gap-1 transition-colors tracking-wide"
+                      className="text-[11px] font-bold text-brand-red hover:text-[#b8000c] hover:underline inline-flex items-center gap-1 transition-colors tracking-wide"
                       onClick={() => navigate(`/investigation/${row.id}`)}
                     >
                       INVESTIGATE <ArrowRight className="h-3 w-3" />

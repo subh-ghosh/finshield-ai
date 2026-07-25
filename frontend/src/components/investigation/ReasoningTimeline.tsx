@@ -14,7 +14,7 @@ export function ReasoningTimeline({ steps }: { steps: string[] }) {
             <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-white border-2 border-[#10B981] flex items-center justify-center text-[10px] font-bold text-[#10B981] z-10 shadow-sm">
               {i + 1}
             </div>
-            <div className="text-[12px] text-[#1E1E1E] leading-relaxed ml-3 pt-0.5">
+            <div className="text-[12px] text-brand-black leading-relaxed ml-3 pt-0.5">
               {step}
             </div>
           </div>

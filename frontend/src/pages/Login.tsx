@@ -10,7 +10,7 @@ export default function Login() {
         {/* SG Logo */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 relative">
-            <div className="absolute top-0 left-0 w-6 h-6 bg-[#E1000F]"></div>
+            <div className="absolute top-0 left-0 w-6 h-6 bg-brand-red"></div>
             <div className="absolute top-0 right-0 w-6 h-6 bg-black"></div>
             <div className="absolute bottom-0 left-0 w-6 h-6 bg-black"></div>
             <div className="absolute bottom-0 right-0 w-6 h-6 bg-white border border-gray-300"></div>
@@ -52,7 +52,7 @@ export default function Login() {
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 mb-10">
             <div className="w-10 h-10 relative">
-              <div className="absolute top-0 left-0 w-5 h-5 bg-[#E1000F]"></div>
+              <div className="absolute top-0 left-0 w-5 h-5 bg-brand-red"></div>
               <div className="absolute top-0 right-0 w-5 h-5 bg-black"></div>
               <div className="absolute bottom-0 left-0 w-5 h-5 bg-black"></div>
               <div className="absolute bottom-0 right-0 w-5 h-5 bg-white border border-gray-300"></div>
@@ -92,7 +92,7 @@ export default function Login() {
 
           <button 
             onClick={() => navigate('/dashboard')}
-            className="w-full mt-8 bg-[#E1000F] hover:bg-[#c5000d] text-white font-semibold py-3.5 text-sm tracking-wide transition-colors shadow-sm"
+            className="w-full mt-8 bg-brand-red hover:bg-[#c5000d] text-white font-semibold py-3.5 text-sm tracking-wide transition-colors shadow-sm"
           >
             Sign in
           </button>

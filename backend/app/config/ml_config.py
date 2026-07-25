@@ -44,9 +44,9 @@ SEVERITY_THRESHOLDS: dict = {
 
 # Hybrid Risk Engine configuration options
 HYBRID_WEIGHTS: dict = {
-    "rule_engine": 0.60,
-    "isolation_forest": 0.30,
-    "behavioural": 0.10
+    "rule_engine": 0.35,
+    "isolation_forest": 0.35,
+    "behavioural": 0.30
 }
 
 HYBRID_SEVERITY_THRESHOLDS: dict = {
@@ -67,10 +67,10 @@ HYBRID_RECOMMENDATION_RULES: list = [
 
 # Configurable behavioural indicators and their bounds/weights
 BEHAVIORAL_INDICATORS: dict = {
+    "maximum_amount": {"max": 250000.0, "weight": 0.35},
     "velocity_score": {"max": 10.0, "weight": 0.25},
     "structuring_score": {"max": 10.0, "weight": 0.25},
-    "cash_out_ratio": {"max": 1.0, "weight": 0.20},
-    "recipient_diversity": {"max": 15.0, "weight": 0.15},
-    "sender_diversity": {"max": 5.0, "weight": 0.15}
+    "cash_out_ratio": {"max": 1.0, "weight": 0.15}
 }
+
 

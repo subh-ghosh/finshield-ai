@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { queueService } from '../services';
+import { UseCases } from '../core/container';
+import { queryKeys } from '../core/constants/queryKeys';
+import type { QueueItem } from '../domain/entities/QueueItem';
 
 export function useInvestigationQueue() {
-  return useQuery({
-    queryKey: ['investigationQueue'],
-    queryFn: () => queueService.getInvestigationQueue(),
+  return useQuery<QueueItem[]>({
+    queryKey: queryKeys.queue.all,
+    queryFn: () => UseCases.getQueue.execute(),
+    refetchOnWindowFocus: true,
   });
 }

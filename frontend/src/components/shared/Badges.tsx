@@ -8,7 +8,7 @@ export function RiskBadge({ score }: { score: number }) {
 export function StatusBadge({ status }: { status: string }) {
   let style = 'bg-[#F9FAFB] text-[#6B7280] border-[#E5E7EB]';
   
-  if (status === 'Open') style = 'bg-[#FEF2F2] text-[#E1000F] border-[#FECACA]';
+  if (status === 'Open') style = 'bg-[#FEF2F2] text-brand-red border-[#FECACA]';
   else if (status === 'In Progress') style = 'bg-[#FEF9C3] text-[#92400E] border-[#FDE68A]';
   else if (status === 'Pending Review') style = 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]';
 
@@ -21,7 +21,7 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function PriorityBadge({ priority }: { priority: string }) {
   let color = 'text-[#6B7280]';
-  if (priority === 'Critical') color = 'text-[#E1000F]';
+  if (priority === 'Critical') color = 'text-brand-red';
   else if (priority === 'High') color = 'text-[#F59E0B]';
 
   return (
