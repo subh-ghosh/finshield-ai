@@ -1,12 +1,9 @@
-import { useParams } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Building2, Globe, Calendar, Link as LinkIcon, Briefcase } from 'lucide-react'
+import { useParams, Link } from 'react-router-dom'
+import { Building2, Globe, Calendar, Briefcase, ExternalLink } from 'lucide-react'
 
 export default function Customer360() {
   const { id } = useParams()
 
-  // Static mock for the hackathon
   const customer = {
     id,
     name: "Acme Corp Ltd",
@@ -27,105 +24,89 @@ export default function Customer360() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Customer 360</h1>
-          <p className="text-muted-foreground mt-1">Holistic view of {customer.name} and its network.</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold text-black">{customer.name}</h1>
+            <span className="text-[11px] font-bold bg-[#E1000F] text-white px-2 py-0.5">RISK: {customer.risk_tier.toUpperCase()}</span>
+          </div>
+          <p className="text-[12px] text-gray-500 mt-1">Entity ID: {customer.id} · {customer.industry} · {customer.jurisdiction}</p>
         </div>
-        <Badge variant="destructive" className="text-sm px-4 py-1">Risk Tier: {customer.risk_tier}</Badge>
+        <Link to={`/investigation/${id}`} className="text-[12px] font-semibold text-[#E1000F] hover:underline inline-flex items-center gap-1">
+          OPEN INVESTIGATION <ExternalLink className="h-3 w-3" />
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="glass-panel col-span-1">
-          <CardHeader>
-            <CardTitle>Profile Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Entity Name</p>
-                <p className="font-medium">{customer.name}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Profile Card */}
+        <div className="bg-white border border-[#e3e3e3] p-5">
+          <h3 className="text-[11px] font-bold tracking-wider uppercase text-gray-500 mb-4 pb-2 border-b border-gray-200">Profile Details</h3>
+          <div className="space-y-4">
+            {[
+              { icon: Building2, label: 'Entity Name', val: customer.name },
+              { icon: Briefcase, label: 'Industry', val: customer.industry },
+              { icon: Globe, label: 'Jurisdiction', val: customer.jurisdiction },
+              { icon: Calendar, label: 'Onboarded', val: customer.onboarded },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <item.icon className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="text-[11px] text-gray-400 uppercase tracking-wide">{item.label}</div>
+                  <div className="text-[13px] font-medium text-black">{item.val}</div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Briefcase className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Industry</p>
-                <p className="font-medium">{customer.industry}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Jurisdiction</p>
-                <p className="font-medium">{customer.jurisdiction}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Onboarded</p>
-                <p className="font-medium">{customer.onboarded}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </div>
 
-        <div className="col-span-1 md:col-span-2 space-y-6">
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle>Network Connections</CardTitle>
-              <CardDescription>Known related entities and their risk tiers</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {customer.connections.map(conn => (
-                  <div key={conn.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-secondary/20">
-                    <div className="flex items-center gap-3">
-                      <LinkIcon className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-sm">{conn.name}</p>
-                        <p className="text-xs text-muted-foreground">{conn.role} ({conn.id})</p>
-                      </div>
-                    </div>
-                    <Badge variant={conn.risk === 'High' ? 'destructive' : 'secondary'}>{conn.risk}</Badge>
+        {/* Right side */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Connections */}
+          <div className="bg-white border border-[#e3e3e3] p-5">
+            <h3 className="text-[11px] font-bold tracking-wider uppercase text-gray-500 mb-4 pb-2 border-b border-gray-200">Network Connections</h3>
+            <div className="space-y-2">
+              {customer.connections.map(conn => (
+                <div key={conn.id} className="flex items-center justify-between py-2.5 px-3 bg-[#f9f9f9] border border-gray-100">
+                  <div>
+                    <div className="text-[13px] font-medium text-black">{conn.name}</div>
+                    <div className="text-[11px] text-gray-400">{conn.role} · {conn.id}</div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <span className={`text-[11px] font-bold px-2 py-0.5 ${
+                    conn.risk === 'High' ? 'bg-[#E1000F] text-white' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {conn.risk.toUpperCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full overflow-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b border-border/50 text-muted-foreground">
-                    <tr>
-                      <th className="pb-3 text-left font-medium">Date</th>
-                      <th className="pb-3 text-left font-medium">Type</th>
-                      <th className="pb-3 text-left font-medium">Counterparty</th>
-                      <th className="pb-3 text-right font-medium">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="[&_tr:last-child]:border-0">
-                    {customer.recent_transactions.map((tx, idx) => (
-                      <tr key={idx} className="border-b border-border/30">
-                        <td className="py-3">{tx.date}</td>
-                        <td className="py-3">{tx.type}</td>
-                        <td className="py-3">{tx.party}</td>
-                        <td className="py-3 text-right font-mono font-medium">{tx.amount}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Transactions */}
+          <div className="bg-white border border-[#e3e3e3] p-5">
+            <h3 className="text-[11px] font-bold tracking-wider uppercase text-gray-500 mb-4 pb-2 border-b border-gray-200">Recent Transactions</h3>
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Date</th>
+                  <th className="text-left pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Type</th>
+                  <th className="text-left pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Counterparty</th>
+                  <th className="text-right pb-2 text-[11px] font-bold tracking-wider uppercase text-gray-400">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customer.recent_transactions.map((tx, idx) => (
+                  <tr key={idx} className="border-b border-gray-50 hover:bg-[#fafafa]">
+                    <td className="py-2.5 text-gray-600">{tx.date}</td>
+                    <td className="py-2.5 text-black">{tx.type}</td>
+                    <td className="py-2.5 text-black">{tx.party}</td>
+                    <td className="py-2.5 text-right font-mono font-semibold text-black">{tx.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

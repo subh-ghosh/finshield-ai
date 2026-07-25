@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Activity, Send, Terminal, Database, Code2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-
 
 export default function PlannerPlayground() {
   const [input, setInput] = useState('')
@@ -17,8 +14,6 @@ export default function PlannerPlayground() {
     setHistory(prev => [...prev, { type: 'user', content: userMsg }])
     setInput('')
     setIsProcessing(true)
-
-    // Add a temporary agent message for streaming
     setHistory(prev => [...prev, { type: 'agent', content: '', steps: [] }])
 
     try {
@@ -27,11 +22,9 @@ export default function PlannerPlayground() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg, customer_id: 'PLAYGROUND', thread_id: 'thread_1' })
       })
-
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
       let done = false
-
       while (reader && !done) {
         const { value, done: doneReading } = await reader.read()
         done = doneReading
@@ -45,150 +38,99 @@ export default function PlannerPlayground() {
               try {
                 const data = JSON.parse(dataStr)
                 if (data.type === 'status') {
-                  setHistory(prev => {
-                    const newHist = [...prev]
-                    const lastMsg = newHist[newHist.length - 1]
-                    if (lastMsg.type === 'agent') {
-                      lastMsg.steps = [...(lastMsg.steps || []), { tool: data.content, result: 'Running...' }]
-                    }
-                    return newHist
-                  })
+                  setHistory(prev => { const n = [...prev]; const l = n[n.length-1]; if (l.type === 'agent') l.steps = [...(l.steps||[]), {tool: data.content, result: 'Running...'}]; return n })
                 } else if (data.type === 'final') {
-                  setHistory(prev => {
-                    const newHist = [...prev]
-                    const lastMsg = newHist[newHist.length - 1]
-                    if (lastMsg.type === 'agent') {
-                      lastMsg.content = data.response
-                      lastMsg.steps = data.intermediate_steps
-                    }
-                    return newHist
-                  })
+                  setHistory(prev => { const n = [...prev]; const l = n[n.length-1]; if (l.type === 'agent') { l.content = data.response; l.steps = data.intermediate_steps; } return n })
                 } else if (data.type === 'error') {
-                  setHistory(prev => {
-                    const newHist = [...prev]
-                    newHist[newHist.length - 1].content = data.content
-                    return newHist
-                  })
+                  setHistory(prev => { const n = [...prev]; n[n.length-1].content = data.content; return n })
                 }
-              } catch {
-                // Ignore parse errors
-              }
+              } catch {}
             }
           }
         }
       }
     } catch {
-      setHistory(prev => {
-        const newHist = [...prev]
-        newHist[newHist.length - 1].content = "Error connecting to AI backend."
-        return newHist
-      })
-    } finally {
-      setIsProcessing(false)
-    }
+      setHistory(prev => { const n = [...prev]; n[n.length-1].content = "Error connecting to AI backend."; return n })
+    } finally { setIsProcessing(false) }
   }
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [history, isProcessing])
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [history, isProcessing])
 
   return (
-    <div className="p-8 max-w-5xl mx-auto h-[calc(100vh-4rem)] flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Planner Playground</h1>
-          <p className="text-muted-foreground mt-1">Directly interact with the LangGraph orchestration engine.</p>
+    <div className="flex flex-col h-[calc(100vh-55px)]">
+      {/* Toolbar */}
+      <div className="h-11 bg-white border-b border-[#E4E7EC] flex items-center justify-between px-6 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Terminal className="h-3.5 w-3.5 text-[#E1000F]" />
+          <span className="text-[12px] font-bold tracking-wider uppercase text-[#6B7280]">Execution Console</span>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline"><Database className="mr-2 h-4 w-4" /> Tool Registry</Button>
-          <Button variant="outline"><Code2 className="mr-2 h-4 w-4" /> View State</Button>
+          <button className="text-[11px] border border-[#E4E7EC] px-3 py-1 bg-white text-[#6B7280] hover:bg-[#F9FAFB] flex items-center gap-1.5 transition-colors shadow-sm">
+            <Database className="h-3 w-3" /> Tool Registry
+          </button>
+          <button className="text-[11px] border border-[#E4E7EC] px-3 py-1 bg-white text-[#6B7280] hover:bg-[#F9FAFB] flex items-center gap-1.5 transition-colors shadow-sm">
+            <Code2 className="h-3 w-3" /> View State
+          </button>
         </div>
       </div>
 
-      <Card className="glass-panel flex-1 flex flex-col min-h-0 border-primary/20 shadow-lg shadow-primary/5">
-        <CardHeader className="bg-secondary/30 border-b border-border/50">
-          <CardTitle className="flex items-center gap-2">
-            <Terminal className="h-5 w-5 text-primary" />
-            Execution Console
-          </CardTitle>
-          <CardDescription>Monitor how the agent reasons, selects tools, and synthesizes output.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-6 space-y-6 bg-background/50 font-mono text-sm">
-          {history.length === 0 && (
-            <div className="text-center mt-10 text-muted-foreground">
-              <Activity className="h-10 w-10 mx-auto mb-4 opacity-50" />
-              <p>System Ready. Waiting for input query...</p>
+      {/* Console */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 sg-page-bg font-mono text-[13px]">
+        {history.length === 0 && (
+          <div className="text-center mt-16">
+            <div className="w-14 h-14 rounded-full bg-white border border-[#E4E7EC] flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <Terminal className="h-6 w-6 text-[#9CA3AF]" />
             </div>
-          )}
-
-          {history.map((msg, i) => (
-            <div key={i} className={`flex flex-col ${msg.type === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`max-w-[90%] p-4 rounded-md ${msg.type === 'user' ? 'bg-primary/20 text-primary-foreground border border-primary/30' : 'bg-card border border-border/80'}`}>
-                {msg.type === 'user' ? (
-                  <div>&gt; {msg.content}</div>
-                ) : (
-                  <div className="space-y-4">
-                    {msg.steps && msg.steps.length > 0 && (
-                      <div className="space-y-2 border-l-2 border-primary/50 pl-4 py-2 my-2 bg-secondary/20 rounded-r-md">
-                        <div className="text-xs font-bold text-primary mb-2">++ PLANNER EXECUTION TRACE ++</div>
-                        <AnimatePresence>
-                          {msg.steps.map((step: any, idx: number) => (
-                            <motion.div 
-                              key={idx}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.15 }}
-                              className="text-xs"
-                            >
-                              <span className="text-muted-foreground">[{idx + 1}]</span> 
-                              {step.tool ? (
-                                <span> Invoking Tool: <span className="text-yellow-400">{step.tool}</span>(args: {JSON.stringify(step.args)})</span>
-                              ) : (
-                                <span> Tool Result: <span className="text-green-400">"{step.result}"</span></span>
-                              )}
-                            </motion.div>
-                          ))}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    <div className="text-foreground whitespace-pre-wrap">{msg.content}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          
-          {isProcessing && (
-            <div className="flex items-center gap-3 text-muted-foreground bg-card p-4 rounded-md border border-border/50 max-w-xs">
-              <Activity className="h-4 w-4 animate-spin text-primary" />
-              <span>Agent reasoning in progress...</span>
-            </div>
-          )}
-          <div ref={endRef} />
-        </CardContent>
-        <div className="p-4 bg-secondary/30 border-t border-border/50">
-          <div className="relative flex items-center max-w-4xl mx-auto">
-            <span className="absolute left-4 font-mono text-primary font-bold">&gt;</span>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="e.g. Run a full investigation on CUST-8392"
-              className="w-full bg-background border border-border/80 rounded-md pl-10 pr-12 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-              disabled={isProcessing}
-            />
-            <Button 
-              size="sm" 
-              className="absolute right-2"
-              onClick={handleSend}
-              disabled={isProcessing || !input.trim()}
-            >
-              EXEC <Send className="ml-2 h-3 w-3" />
-            </Button>
+            <div className="text-[13px] font-semibold text-[#6B7280] font-sans">System Ready</div>
+            <div className="text-[12px] text-[#9CA3AF] font-sans mt-1">Waiting for input query...</div>
           </div>
+        )}
+
+        {history.map((msg, i) => (
+          <div key={i} className={`flex flex-col ${msg.type === 'user' ? 'items-end' : 'items-start'}`}>
+            <div className={`max-w-[85%] p-3 shadow-sm ${
+              msg.type === 'user' ? 'bg-[#161A22] text-[#22C55E]' : 'bg-white border border-[#E4E7EC] text-[#1E1E1E]'
+            }`}>
+              {msg.type === 'user' ? (
+                <div><span className="text-[#E1000F] font-bold">&gt;</span> {msg.content}</div>
+              ) : (
+                <div className="space-y-3">
+                  {msg.steps && msg.steps.length > 0 && (
+                    <div className="space-y-1.5 border-l-2 border-[#E1000F] pl-3 py-1 bg-[#FAFBFC]">
+                      <div className="text-[10px] font-bold text-[#E1000F] uppercase tracking-[0.15em]">++ Execution Trace ++</div>
+                      {msg.steps.map((step: any, idx: number) => (
+                        <div key={idx} className="text-[11px] text-[#6B7280]">
+                          <span className="text-[#9CA3AF]">[{idx + 1}]</span>{' '}
+                          {step.tool ? (<span>Tool: <span className="text-[#E1000F] font-bold">{step.tool}</span></span>) : (<span>Result: <span className="text-[#10B981] font-bold">"{step.result}"</span></span>)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="text-[#1E1E1E] whitespace-pre-wrap font-sans text-[13px]">{msg.content}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        
+        {isProcessing && (
+          <div className="flex items-center gap-2 text-[12px] text-[#9CA3AF] bg-white border border-[#E4E7EC] p-3 w-fit font-sans shadow-sm">
+            <Activity className="h-3.5 w-3.5 animate-spin text-[#E1000F]" /> Agent reasoning in progress...
+          </div>
+        )}
+        <div ref={endRef} />
+      </div>
+
+      {/* Input */}
+      <div className="p-4 bg-white border-t border-[#E4E7EC] flex-shrink-0">
+        <div className="relative flex items-center max-w-4xl mx-auto">
+          <span className="absolute left-4 font-mono text-[#E1000F] font-bold text-[14px]">&gt;</span>
+          <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} placeholder="e.g. Run a full investigation on CUST-8392" className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-10 pr-24 py-3 text-[13px] font-mono focus:outline-none focus:border-[#E1000F]/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-[#9CA3AF] transition-all" disabled={isProcessing} />
+          <button className="absolute right-2 bg-[#E1000F] hover:bg-[#c5000d] text-white text-[11px] font-bold px-4 py-1.5 tracking-wider transition-colors disabled:opacity-30 shadow-sm" onClick={handleSend} disabled={isProcessing || !input.trim()}>
+            EXEC <Send className="inline h-3 w-3 ml-1" />
+          </button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

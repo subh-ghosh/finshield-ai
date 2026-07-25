@@ -1,15 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Activity, AlertTriangle, Users, FileCheck } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Cell } from 'recharts'
-import { motion } from 'framer-motion'
+import { Activity, AlertTriangle, Users, FileCheck, TrendingUp, TrendingDown, ArrowUpRight, Clock } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Cell, Area, AreaChart } from 'recharts'
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ['stats'],
     queryFn: async () => {
-      // In a real app we'd fetch from api, here we'll mock if API is down
       try {
         const res = await api.get('/investigations/dashboard/stats')
         return res.data
@@ -32,10 +29,10 @@ export default function Dashboard() {
         return res.data
       } catch {
         return [
-          { name: "Low", value: 450, fill: "#3b82f6" },
-          { name: "Medium", value: 320, fill: "#eab308" },
-          { name: "High", value: 150, fill: "#f97316" },
-          { name: "Critical", value: 38, fill: "#ef4444" }
+          { name: "Low", value: 450, fill: "#94A3B8" },
+          { name: "Medium", value: 320, fill: "#F59E0B" },
+          { name: "High", value: 150, fill: "#EF4444" },
+          { name: "Critical", value: 38, fill: "#E1000F" }
         ]
       }
     }
@@ -60,123 +57,111 @@ export default function Dashboard() {
     }
   })
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  }
+  const statCards = [
+    { label: 'Active Investigations', value: stats?.active_investigations || 0, change: '+12%', trend: 'up', icon: Activity, color: '#E1000F' },
+    { label: 'High Risk Entities', value: stats?.high_risk_customers || 0, change: '+4 today', trend: 'up', icon: AlertTriangle, color: '#EF4444' },
+    { label: 'New Alerts', value: stats?.new_alerts || 0, change: 'Immediate triage', trend: 'neutral', icon: Users, color: '#F59E0B' },
+    { label: 'Pending Reviews', value: stats?.pending_reviews || 0, change: '-5 from yesterday', trend: 'down', icon: FileCheck, color: '#10B981' },
+  ]
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Overview</h1>
-        <p className="text-muted-foreground">Monitor platform activity and risk distribution.</p>
+    <div className="p-7 space-y-6">
+      {/* Status bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Clock className="h-3.5 w-3.5 text-[#9CA3AF]" />
+          <span className="text-[11px] text-[#9CA3AF]">Last updated: {new Date().toLocaleTimeString()} · Auto-refresh: 30s</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#10B981]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+            All Systems Operational
+          </span>
+        </div>
       </div>
 
-      <motion.div 
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-      >
-        <motion.div variants={item}>
-          <Card className="glass-panel">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Investigations</CardTitle>
-              <Activity className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats?.active_investigations || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">+12% from last month</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-        <motion.div variants={item}>
-          <Card className="glass-panel">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">High Risk Entities</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats?.high_risk_customers || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">+4 new today</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-        <motion.div variants={item}>
-          <Card className="glass-panel">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Alerts</CardTitle>
-              <Users className="h-4 w-4 text-orange-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats?.new_alerts || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Requiring immediate triage</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-        <motion.div variants={item}>
-          <Card className="glass-panel">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-              <FileCheck className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats?.pending_reviews || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">-5 from yesterday</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        {statCards.map((stat, i) => (
+          <div key={i} className="sg-stat-card group cursor-default">
+            <div className="flex items-center justify-between mb-4">
+              <span className="sg-section-label">{stat.label}</span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: `${stat.color}10` }}>
+                <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
+              </div>
+            </div>
+            <div className="text-[36px] font-bold text-[#1E1E1E] leading-none tracking-tight">{stat.value}</div>
+            <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#F0F1F3]">
+              {stat.trend === 'up' && <TrendingUp className="h-3 w-3 text-[#E1000F]" />}
+              {stat.trend === 'down' && <TrendingDown className="h-3 w-3 text-[#10B981]" />}
+              {stat.trend === 'neutral' && <ArrowUpRight className="h-3 w-3 text-[#F59E0B]" />}
+              <span className="text-[11px] text-[#9CA3AF]">{stat.change}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div variants={item} initial="hidden" animate="show" transition={{ delay: 0.4 }}>
-          <Card className="glass-panel col-span-1">
-            <CardHeader>
-              <CardTitle>Risk Distribution</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={riskDistribution}>
-                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
-                  <Tooltip cursor={{fill: 'rgba(255, 255, 255, 0.05)'}} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {riskDistribution?.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
+      {/* Charts */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        {/* Risk Distribution */}
+        <div className="sg-panel p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-[13px] font-bold text-[#1E1E1E]">Risk Distribution</h3>
+              <p className="text-[11px] text-[#9CA3AF] mt-0.5">Entity risk breakdown — current period</p>
+            </div>
+            <span className="sg-section-label">Current Period</span>
+          </div>
+          <div className="h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={riskDistribution} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0F1F3" vertical={false} />
+                <XAxis dataKey="name" stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={{ stroke: '#E4E7EC' }} />
+                <YAxis stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  cursor={{fill: 'rgba(0,0,0,0.02)'}} 
+                  contentStyle={{ background: '#fff', border: '1px solid #E4E7EC', borderRadius: 0, fontSize: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} 
+                />
+                <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                  {riskDistribution?.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-        <motion.div variants={item} initial="hidden" animate="show" transition={{ delay: 0.5 }}>
-          <Card className="glass-panel col-span-1">
-            <CardHeader>
-              <CardTitle>Isolation Forest Anomaly Trend (24h)</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={anomalyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                  <XAxis dataKey="time" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }} />
-                  <Line type="monotone" dataKey="anomalies" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6" }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Anomaly Trend */}
+        <div className="sg-panel p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-[13px] font-bold text-[#1E1E1E]">Isolation Forest Anomaly Trend</h3>
+              <p className="text-[11px] text-[#9CA3AF] mt-0.5">24-hour anomaly detection feed</p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#E1000F]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E1000F] animate-pulse" />
+              Live Feed
+            </span>
+          </div>
+          <div className="h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={anomalyTrend}>
+                <defs>
+                  <linearGradient id="anomalyGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E1000F" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#E1000F" stopOpacity={0.01}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0F1F3" vertical={false} />
+                <XAxis dataKey="time" stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={{ stroke: '#E4E7EC' }} />
+                <YAxis stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E4E7EC', borderRadius: 0, fontSize: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+                <Area type="monotone" dataKey="anomalies" stroke="#E1000F" strokeWidth={2} fill="url(#anomalyGradient)" dot={{ r: 3, fill: "#E1000F", strokeWidth: 0 }} activeDot={{ r: 5, fill: "#E1000F", stroke: "#fff", strokeWidth: 2 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   )
