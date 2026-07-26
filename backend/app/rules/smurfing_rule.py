@@ -6,13 +6,13 @@ from app.models.rule_evaluation import RuleEvaluation
 from app.rules.base_rule import BaseRule
 
 class SmurfingRule(BaseRule):
-    """Flags suspected smurfing patterns involving multiple related accounts."""
+    """Flags suspected smurfing patterns by combining high structuring ratio with high velocity."""
 
     def __init__(self):
         super().__init__(
             rule_id="RULE_SMURFING",
             rule_name="Smurfing",
-            description="Customer initiated multi-source account smurfing activity.",
+            description="Customer exhibited high combined velocity and transaction structuring (Smurfing).",
             threshold=SMURFING_THRESHOLD,
             score=SMURFING_SCORE
         )

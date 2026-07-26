@@ -1,15 +1,15 @@
 """Configuration constants for AML rule thresholds and contributing risk scores."""
 
-# 1. High Velocity Rule Config
-HIGH_VELOCITY_THRESHOLD: float = 5.0
+# 1. High Velocity Rule Config (Z-Score > 2.5)
+HIGH_VELOCITY_THRESHOLD: float = 2.5
 HIGH_VELOCITY_SCORE: int = 15
 
-# 2. Structuring Rule Config
-STRUCTURING_THRESHOLD: float = 5.0
+# 2. Structuring Rule Config (Ratio)
+STRUCTURING_THRESHOLD: float = 0.5
 STRUCTURING_SCORE: int = 25
 
-# 3. Smurfing Rule Config
-SMURFING_THRESHOLD: float = 5.0
+# 3. Smurfing Rule Config (Structuring * Velocity)
+SMURFING_THRESHOLD: float = 0.25
 SMURFING_SCORE: int = 20
 
 # 4. Round Amount Rule Config

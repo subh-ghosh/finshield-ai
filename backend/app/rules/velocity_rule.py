@@ -6,13 +6,13 @@ from app.models.rule_evaluation import RuleEvaluation
 from app.rules.base_rule import BaseRule
 
 class VelocityRule(BaseRule):
-    """Flags customers executing transaction volumes at a suspicious velocity."""
+    """Flags customers executing transactions > 2.5 standard deviations above their mean velocity."""
 
     def __init__(self):
         super().__init__(
             rule_id="RULE_VELOCITY",
             rule_name="High Velocity",
-            description="Customer executed unusually high transaction velocity.",
+            description="Customer executed unusually high transaction velocity based on statistical Z-Score.",
             threshold=HIGH_VELOCITY_THRESHOLD,
             score=HIGH_VELOCITY_SCORE
         )

@@ -10,6 +10,7 @@ pandas
 python-multipart
 python-jose[cryptography]
 passlib[bcrypt]
+networkx==3.2.1
 
 psycopg2-binary
 pgvector

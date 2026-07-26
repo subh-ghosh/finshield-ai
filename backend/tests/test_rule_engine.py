@@ -25,8 +25,8 @@ def clean_test_customer():
     """Generates customer features that trigger zero rules."""
     return pd.Series({
         "customer_id": "C_CLEAN",
-        "velocity_score": 1.0,
-        "structuring_score": 2.0,
+        "velocity_score": 0.1,
+        "structuring_score": 0.1,
         "smurfing_score": 0.0,
         "round_amount_ratio": 0.1,
         "cash_out_ratio": 0.2,
@@ -172,5 +172,9 @@ def test_pipeline_integration(tmp_dir):
     assert len(analysis) == 2
     
     c1_res = [res for res in analysis if res.customer_id == "C1"][0]
-    assert c1_res.total_rule_score == LARGE_TRANSACTION_SCORE
-    assert c1_res.triggered_rules[0].rule_id == "RULE_LARGE_TRANSACTION"
+    # The transaction of 25000.0 is a round amount (mod 100 == 0), so RULE_ROUND_AMOUNT (score 10) triggers as well.
+    expected_score = LARGE_TRANSACTION_SCORE + 10
+    assert c1_res.total_rule_score == expected_score
+    triggered_ids = [tr.rule_id for tr in c1_res.triggered_rules]
+    assert "RULE_LARGE_TRANSACTION" in triggered_ids
+    assert "RULE_ROUND_AMOUNT" in triggered_ids
