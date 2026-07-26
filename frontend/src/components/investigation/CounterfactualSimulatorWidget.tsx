@@ -100,7 +100,6 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
             title={`Baseline Risk: ${initialScore}`}
           >
             <div className="absolute -top-3.5 left-0 text-[12px] font-bold text-black select-none">▼</div>
-            <div className="absolute top-0 bottom-0 left-[5px] w-[1px] bg-black/50" />
             <div className="absolute -bottom-3.5 left-0 text-[12px] font-bold text-black select-none">▲</div>
           </div>
 
@@ -111,9 +110,9 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
             title={`Simulated Risk: ${simulatedScore}`}
           >
             <div className="absolute -top-4 left-0 text-[14px] font-extrabold text-[#D97706] drop-shadow-sm select-none">▼</div>
-            <div className="absolute top-0 bottom-0 left-[6px] w-[1.5px] bg-[#D97706]" />
             <div className="absolute -bottom-4 left-0 text-[14px] font-extrabold text-[#D97706] drop-shadow-sm select-none">▲</div>
           </div>
+
 
         </div>
 
