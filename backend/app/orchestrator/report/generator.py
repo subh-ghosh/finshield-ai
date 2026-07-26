@@ -113,55 +113,6 @@ class ReportGenerator:
 
     async def generate(self, result: InvestigationResult) -> str:
         """
-        Attempt LLM-based narrative. Falls back to rich deterministic report.
-        Per system design: LLMs are ONLY used for natural language presentation.
-        The recommendation and risk scores are already locked in before this runs.
+        Generates a rich deterministic markdown report without relying on LLMs.
         """
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        
-        if api_key:
-            try:
-                from langchain_google_genai import ChatGoogleGenerativeAI
-                from langchain_core.prompts import ChatPromptTemplate
-
-                prompt_template = """You are a Senior AML Investigator writing an Executive Summary for a financial crime investigation.
-
-STRICT RULES:
-1. Do NOT infer additional facts beyond what is provided.
-2. Only summarize the supplied evidence.
-3. NEVER modify the recommendation - use it exactly as given.
-4. Never invent transactions, customers, or risk scores.
-5. Format as professional Markdown.
-
-Structure your report as:
-- Executive Summary (2-3 sentences)
-- Risk Assessment (use the exact scores provided)
-- Key Evidence
-- Recommendation & Next Steps
-
-INPUT DATA:
-{data}"""
-
-                llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.1, google_api_key=api_key)
-                prompt = ChatPromptTemplate.from_messages([("system", prompt_template)])
-
-                data_str = json.dumps({
-                    "customer_id": result.customer_id,
-                    "recommendation": result.recommendation,
-                    "risk_score": result.risk_score,
-                    "risk_level": result.risk_level,
-                    "rule_hits": result.rule_hits,
-                    "ml_results": result.ml_results,
-                    "evidence_summary": result.evidence_summary,
-                    "decision_reasons": result.decision_reasons
-                }, indent=2)
-
-                chain = prompt | llm
-                response = await chain.ainvoke({"data": data_str})
-                return response.content
-            except Exception as e:
-                # LLM failed — fall through to deterministic
-                pass
-
-        # Always-available deterministic report
         return _build_deterministic_report(result)
