@@ -93,25 +93,28 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
           <div className="w-[20%] bg-[#EF4444] border-r border-white/40">ESCALATE (65-84)</div>
           <div className="w-[15%] bg-[#991B1B]">SAR (85+)</div>
 
-          {/* Baseline Risk Pointer Pin Cursor */}
+          {/* Baseline Risk Pointer Pin Cursor (Upper ▼ & Lower ▲) */}
           <div 
-            className="absolute top-0 bottom-0 -ml-1 w-2 bg-black z-10 transition-all duration-300 shadow-xl cursor-pointer group"
+            className="absolute top-0 bottom-0 -ml-[5px] z-10 transition-all duration-300 pointer-events-none"
             style={{ left: `${Math.min(99, Math.max(0, initialScore))}%` }}
             title={`Baseline Risk: ${initialScore}`}
           >
-            <div className="absolute -top-2 -left-1 text-[10px] text-black">▼</div>
-            <div className="absolute -bottom-2 -left-1 text-[10px] text-black">▲</div>
+            <div className="absolute -top-3.5 left-0 text-[12px] font-bold text-black select-none">▼</div>
+            <div className="absolute top-0 bottom-0 left-[5px] w-[1px] bg-black/50" />
+            <div className="absolute -bottom-3.5 left-0 text-[12px] font-bold text-black select-none">▲</div>
           </div>
 
-          {/* Simulated Risk Pointer Pin Cursor */}
+          {/* Simulated Risk Pointer Pin Cursor (Upper ▼ & Lower ▲) */}
           <div 
-            className="absolute top-0 bottom-0 -ml-1.5 w-3 bg-[#FACC15] border border-black z-20 transition-all duration-500 ease-out shadow-2xl animate-pulse cursor-pointer group"
+            className="absolute top-0 bottom-0 -ml-[6px] z-20 transition-all duration-500 ease-out pointer-events-none animate-pulse"
             style={{ left: `${Math.min(99, Math.max(0, simulatedScore))}%` }}
             title={`Simulated Risk: ${simulatedScore}`}
           >
-            <div className="absolute -top-2.5 -left-1.5 text-[11px] text-[#991B1B] font-bold">▼</div>
-            <div className="absolute -bottom-2.5 -left-1.5 text-[11px] text-[#991B1B] font-bold">▲</div>
+            <div className="absolute -top-4 left-0 text-[14px] font-extrabold text-[#D97706] drop-shadow-sm select-none">▼</div>
+            <div className="absolute top-0 bottom-0 left-[6px] w-[1.5px] bg-[#D97706]" />
+            <div className="absolute -bottom-4 left-0 text-[14px] font-extrabold text-[#D97706] drop-shadow-sm select-none">▲</div>
           </div>
+
         </div>
 
         <div className="flex justify-between text-[9px] font-mono text-[#6B7280] pt-1">
