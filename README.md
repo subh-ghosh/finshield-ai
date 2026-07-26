@@ -1,4 +1,4 @@
-﻿# FinShield AI
+# FinShield AI
 **An Agentic AI-powered Anti-Money Laundering (AML) Investigation Platform**
 
 ---
@@ -210,12 +210,25 @@ Click **"Run Investigation"** on any customer to trigger the 9-agent swarm with:
 - AI rule suggestions | Case lifecycle management | Knowledge graph
 
 ### Key API Endpoints
+
+**Core Agent Tool Endpoints** (the 5 tools the agent selects from):
+| Endpoint | Method | Tool Name | Description |
+|----------|--------|-----------|-------------|
+| `/api/v1/eda/summary` | GET | `eda_analysis` | Dataset EDA: fraud rate, distributions, top risky customers |
+| `/api/v1/features/{id}` | GET | `feature_engineering` | AML feature vector: velocity, structuring score, smurfing score, cash-out ratio |
+| `/api/v1/anomaly/{id}` | GET | `anomaly_detection` | Isolation Forest score, prediction, severity, interpretation |
+| `/api/v1/anomaly/summary/top` | GET | — | Top N most anomalous customers |
+| `/api/v1/risk-classify/{id}` | GET | `risk_classification` | Hybrid risk score (0-100), category, escalation action |
+| `/api/v1/risk-classify/summary/distribution` | GET | — | Risk category distribution across all customers |
+| `/api/v1/explanation/{id}` | GET | `get_explanation` | Full Gemini-generated explanation with evidence timeline |
+
+**Investigation & Pipeline Endpoints**:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v1/analyze/customer` | POST | Analyze a single customer |
+| `/api/v1/planner/investigate` | POST | Agentic investigation: parses query, selects tools, returns structured result |
+| `/api/v1/analyze/customer` | POST | Single customer full pipeline analysis |
 | `/api/v1/analyze/batch` | POST | Batch analyze multiple customers |
-| `/api/v1/explanation/{id}` | GET | Get full explanation report |
-| `/api/v1/investigation/{id}` | POST | Run multi-agent investigation |
+| `/api/v1/customer/{id}` | GET | Customer feature profile |
 | `/api/v1/graph/ego/{id}` | GET | Knowledge graph for entity |
 | `/api/v1/rules/suggestions` | GET | AI-suggested rules |
 | `/api/v1/simulation/what-if` | POST | Counterfactual simulation |

@@ -315,26 +315,106 @@ export default function PlannerPlayground() {
             </div>
             <div className="p-6 space-y-3">
               {[
-                { name: 'load_customer', desc: 'Loads a customer entity by ID from the IBM AMLSim dataset. Supports CUST-XXXX and C_XXXX formats.', input: 'customer_id: str', output: 'CustomerProfile' },
-                { name: 'run_rule_engine', desc: 'Executes 8 deterministic AML rules against the customer transaction history. Returns triggered rules and scores.', input: 'customer_id: str', output: 'RuleResults[]' },
-                { name: 'run_isolation_forest', desc: 'Applies the pre-trained Isolation Forest model to compute ML anomaly score for the customer.', input: 'customer_id: str', output: 'AnomalyScore: float' },
-                { name: 'compute_hybrid_risk', desc: 'Fuses rule-based score (40%) + ML anomaly score (60%) into a single composite risk score 0-100.', input: 'customer_id: str', output: 'HybridRiskScore: float' },
-                { name: 'aggregate_evidence', desc: 'Collects all triggered rules, ML flags, and KYC data into a unified evidence board for the analyst.', input: 'customer_id: str', output: 'Evidence[]' },
-                { name: 'make_decision', desc: 'Deterministically maps composite risk score to a recommendation: CLEAR / MANUAL_REVIEW / ESCALATE / FILE_SAR.', input: 'risk_score: float', output: 'Recommendation: str' },
-                { name: 'generate_report', desc: 'Generates a structured AML investigation report. Uses Gemini 2.0 Flash if API key is set, else deterministic markdown.', input: 'investigation_result: dict', output: 'Report: str (Markdown)' },
+                // === 5 Core Agent Tools (required by problem statement) ===
+                {
+                  name: 'eda_analysis',
+                  badge: 'EDA Tool',
+                  desc: 'Dataset-level EDA: fraud rate, tx type distribution, top risky customers, AML pattern prevalence. Use for broad queries like "Analyse this dataset" or "Flag high-risk customers".',
+                  input: 'none (dataset-level)',
+                  output: 'total_tx, fraud_rate_pct, top_10_risky_customers, risk_distribution',
+                  endpoint: 'GET /api/v1/eda/summary'
+                },
+                {
+                  name: 'feature_engineering',
+                  badge: 'Feature Engineering',
+                  desc: 'Computes AML feature vector per customer: transaction velocity, rolling 24h sums, structuring score, smurfing score, cash-out ratio, amount deviation, network risk.',
+                  input: 'customer_id: str',
+                  output: 'velocity_features, amount_features, pattern_features, network_features',
+                  endpoint: 'GET /api/v1/features/{id}'
+                },
+                {
+                  name: 'anomaly_detection',
+                  badge: 'Anomaly Detection',
+                  desc: 'Isolation Forest ML scoring for a customer. Returns anomaly_score (0-1, higher=more suspicious), prediction (-1=flagged), severity, confidence, and natural language interpretation.',
+                  input: 'customer_id: str',
+                  output: 'anomaly_score, prediction, severity, confidence, is_anomaly, interpretation',
+                  endpoint: 'GET /api/v1/anomaly/{id}'
+                },
+                {
+                  name: 'risk_classification',
+                  badge: 'Risk Classification',
+                  desc: 'Hybrid risk classification: combines rule engine (30%) + Isolation Forest (30%) + GNN (40%) into risk_score_pct (0-100), risk_category (LOW/MEDIUM/HIGH/CRITICAL), and escalation action.',
+                  input: 'customer_id: str',
+                  output: 'risk_score_pct, risk_category, recommendation, rule_contribution, ml_contribution',
+                  endpoint: 'GET /api/v1/risk-classify/{id}'
+                },
+                {
+                  name: 'get_explanation',
+                  badge: 'Explanation',
+                  desc: 'Returns detailed Gemini-generated explanation with evidence timeline, triggered rules, and natural language rationale for each flag — tied to the original query intent.',
+                  input: 'customer_id: str',
+                  output: 'ExplanationResponseV1 (evidence_items, timeline, rule_violations, narrative)',
+                  endpoint: 'GET /api/v1/explanation/{id}'
+                },
+                // === Supporting Tools ===
+                {
+                  name: 'analyze_customer',
+                  badge: 'Full Pipeline',
+                  desc: 'End-to-end AML analysis for one customer: runs all 5 pipeline stages (load → rules → ML → hybrid risk → evidence). Best for "Is C_1 suspicious?" type queries.',
+                  input: 'customer_id: str',
+                  output: 'risk_score, recommendation, evidence_summary, triggered_rules',
+                  endpoint: 'POST /api/v1/analyze/customer'
+                },
+                {
+                  name: 'analyze_batch',
+                  badge: 'Batch',
+                  desc: 'Batch AML analysis for a list of customer IDs. Returns risk scores and recommendations for all.',
+                  input: 'customer_ids: List[str]',
+                  output: 'List[AnalysisResult]',
+                  endpoint: 'POST /api/v1/analyze/batch'
+                },
+                {
+                  name: 'get_customer_profile',
+                  badge: 'Profile',
+                  desc: 'Returns cached customer feature metrics, rule summary, and anomaly score summary. Lightweight alternative to full analysis.',
+                  input: 'customer_id: str',
+                  output: 'feature_metrics, rule_summary, anomaly_summary',
+                  endpoint: 'GET /api/v1/customer/{id}'
+                },
+                {
+                  name: 'health',
+                  badge: 'Utility',
+                  desc: 'Backend health check — verifies all services (pipeline, ML model, rules) are operational.',
+                  input: 'none',
+                  output: 'status: ok | degraded',
+                  endpoint: 'GET /api/v1/health'
+                },
+                {
+                  name: 'version',
+                  badge: 'Utility',
+                  desc: 'Returns backend API version, model versions, and pipeline configuration metadata.',
+                  input: 'none',
+                  output: 'api_version, model_versions',
+                  endpoint: 'GET /api/v1/version'
+                },
               ].map((tool, i) => (
                 <div key={i} className="border border-[#E4E7EC] p-4 hover:border-brand-red/20 transition-colors">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <code className="text-[12px] font-bold text-brand-red font-mono">{tool.name}</code>
-                    <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 font-bold">ACTIVE</span>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 font-bold">{tool.badge}</span>
+                      <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 font-bold">ACTIVE</span>
+                    </div>
                   </div>
                   <p className="text-[12px] text-[#374151] mt-1 leading-snug">{tool.desc}</p>
-                  <div className="flex gap-4 mt-2">
+                  <div className="flex flex-col gap-0.5 mt-2">
                     <span className="text-[10px] text-brand-gray">IN: <code className="text-[#6B7280]">{tool.input}</code></span>
                     <span className="text-[10px] text-brand-gray">OUT: <code className="text-[#6B7280]">{tool.output}</code></span>
+                    <span className="text-[10px] text-brand-gray font-mono">{tool.endpoint}</span>
                   </div>
                 </div>
               ))}
+
             </div>
           </div>
         </div>
