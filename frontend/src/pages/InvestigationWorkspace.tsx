@@ -1,10 +1,10 @@
-﻿import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
-import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation } from '../hooks'
+import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation, useCustomerAnomaly, useCustomerRiskClassification } from '../hooks'
 import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
 import {
   InvestigationReportView,
@@ -42,6 +42,10 @@ export default function InvestigationWorkspace() {
   const { investigate, data: enterpriseData, isPending: isEnterprisePending, error: enterpriseError } = usePlannerInvestigation()
 
   const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar' | 'lifecycle'>('risk')
+
+  // Real data from 3 new agent tool endpoints
+  const { data: anomalyData } = useCustomerAnomaly(customerId)
+  const { data: riskClassData } = useCustomerRiskClassification(customerId)
 
   useEffect(() => {
     if (mode === 'chat') {
@@ -124,13 +128,24 @@ export default function InvestigationWorkspace() {
             <h2 className="text-[18px] font-bold text-brand-black mt-3">{customer?.name}</h2>
             <p className="text-[12px] text-brand-gray mt-1">ID: {customer?.id}</p>
 
-            {/* Risk Score */}
-            <div className="mt-5 p-4 bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-between">
-              <div>
-                <div className="text-[10px] font-bold tracking-widest uppercase text-brand-gray">Composite Risk</div>
-                <div className="text-[42px] font-bold text-brand-red leading-none mt-1">{(investigation as any)?.risk_profile?.composite_score || customer?.risk_score || 0}</div>
-              </div>
-              <div className="text-right space-y-2">
+            {/* Risk Score — from /api/v1/risk-classify/{id} (real hybrid score) */}
+            <div className="mt-5 p-4 bg-[#FEF2F2] border border-[#FECACA]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-brand-gray">Hybrid Risk Score</div>
+                  <div className="text-[42px] font-bold text-brand-red leading-none mt-1">
+                    {riskClassData?.risk_score_pct ?? (investigation as any)?.risk_profile?.composite_score ?? customer?.risk_score ?? 0}
+                  </div>
+                  {riskClassData?.risk_category && (
+                    <div className={`mt-1 inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      riskClassData.risk_category === 'CRITICAL' ? 'bg-red-600 text-white' :
+                      riskClassData.risk_category === 'HIGH' ? 'bg-orange-500 text-white' :
+                      riskClassData.risk_category === 'MEDIUM' ? 'bg-yellow-400 text-black' :
+                      'bg-green-500 text-white'
+                    }`}>{riskClassData.risk_category}</div>
+                  )}
+                </div>
+                <div className="text-right space-y-2">
                 <div className="flex items-center gap-1.5 justify-end">
                   <Check className="h-3 w-3 text-[#10B981]" />
                   <span className="text-[11px] text-brand-black">KYC: {customer?.kyc_status}</span>
@@ -143,6 +158,29 @@ export default function InvestigationWorkspace() {
                   <Briefcase className="h-3 w-3 text-brand-gray" />
                   <span className="text-[11px] text-brand-black">{customer?.industry}</span>
                 </div>
+                {/* Anomaly score from /api/v1/anomaly/{id} */}
+                {anomalyData && (
+                  <div className="flex items-center gap-1.5 justify-end mt-1">
+                    <Activity className="h-3 w-3 text-brand-gray" />
+                    <span className="text-[11px] text-brand-black">
+                      ML Score: {(anomalyData.anomaly_score * 100).toFixed(0)}%
+                      {anomalyData.is_anomaly && <span className="ml-1 text-brand-red font-bold">⚑</span>}
+                    </span>
+                  </div>
+                )}
+                {/* Escalation from /api/v1/risk-classify/{id} */}
+                {riskClassData?.recommendation && (
+                  <div className="mt-2 text-right">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 ${
+                      riskClassData.recommendation === 'FILE_SAR' ? 'bg-red-100 text-red-700' :
+                      riskClassData.recommendation === 'ESCALATE' ? 'bg-orange-100 text-orange-700' :
+                      riskClassData.recommendation === 'MANUAL_REVIEW' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>{riskClassData.recommendation.replace('_', ' ')}</span>
+                  </div>
+                )}
+              </div>
+            </div>
               </div>
             </div>
           </div>

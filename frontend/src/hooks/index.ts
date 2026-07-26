@@ -8,3 +8,5 @@ export * from './useMemoryStore';
 export * from './useSimilarCases';
 
 
+
+export * from './useCustomerAnalysis';

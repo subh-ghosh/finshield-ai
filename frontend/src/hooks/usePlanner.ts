@@ -1,11 +1,11 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import type { PlannerState } from "../domain/entities/PlannerTypes";
 
 function generateAnalystChatAnswer(question: string, targetId: string, data: any, cust: any): string {
   const q = question.toLowerCase();
 
   if (q.includes('score') || q.includes('why') || q.includes('risk') || q.includes('level') || q.includes('high') || q.includes('critical')) {
-    return `### 📊 Risk Score Explanation for ${targetId}
+    return `### ðŸ“Š Risk Score Explanation for ${targetId}
 
 **Composite Risk Score:** \`${data.risk_score || cust?.risk_score || 41}/100\`
 
@@ -19,7 +19,7 @@ function generateAnalystChatAnswer(question: string, targetId: string, data: any
   }
 
   if (q.includes('rule') || q.includes('trigger') || q.includes('flag')) {
-    return `### 🚨 Triggered Rules Breakdown for ${targetId}
+    return `### ðŸš¨ Triggered Rules Breakdown for ${targetId}
 
 - **Rule: Large Transaction & Rapid Velocity**
   - **Status:** \`TRIGGERED\`
@@ -29,7 +29,7 @@ function generateAnalystChatAnswer(question: string, targetId: string, data: any
   }
 
   if (q.includes('kyc') || q.includes('profile') || q.includes('who') || q.includes('customer') || q.includes('name')) {
-    return `### 👤 Entity Details for ${targetId}
+    return `### ðŸ‘¤ Entity Details for ${targetId}
 
 - **Entity Name:** ${cust?.name || 'Chen Global Logistics'}
 - **Industry:** ${cust?.industry || 'Import / Export Trade'}
@@ -38,7 +38,7 @@ function generateAnalystChatAnswer(question: string, targetId: string, data: any
 - **Onboarding Date:** ${cust?.onboarding_date || '2021-08-06'}`;
   }
 
-  return `### 🔍 Investigation Analysis for ${targetId}
+  return `### ðŸ” Investigation Analysis for ${targetId}
 
 **Query:** "${question}"
 
@@ -72,7 +72,7 @@ export function usePlannerChat() {
         fetch(`${baseUrl}/v1/planner/investigate`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ customer_id: targetId })
+          body: JSON.stringify({ customer_id: targetId, request: message })
         }),
         fetch(`${baseUrl}/v1/customer/${targetId}`, { headers }).catch(() => null)
       ]);
@@ -109,3 +109,4 @@ export function usePlannerChat() {
     sendMessage,
   };
 }
+
