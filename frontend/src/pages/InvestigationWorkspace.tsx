@@ -77,7 +77,14 @@ export default function InvestigationWorkspace() {
           <div className="p-6 pb-2" style={{ borderTop: '3px solid #E1000F' }}>
             <div className="flex items-center justify-between mb-1">
               <span className="sg-section-label">Entity Profile</span>
-              <span className="sg-badge sg-badge-critical">Case #{id}</span>
+              <div className="flex items-center gap-2">
+                {sarConfirmed ? (
+                  <span className="sg-badge px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#10B981] text-white">Escalated (SAR)</span>
+                ) : (
+                  <span className="sg-badge px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#F59E0B] text-white">Active Monitoring</span>
+                )}
+                <span className="sg-badge sg-badge-critical">Case #{id}</span>
+              </div>
             </div>
             <h2 className="text-[18px] font-bold text-brand-black mt-3">{customer?.name}</h2>
             <p className="text-[12px] text-brand-gray mt-1">ID: {customer?.id}</p>
