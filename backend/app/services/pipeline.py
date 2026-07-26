@@ -12,6 +12,7 @@ from app.ml.anomaly_detection import AnomalyDetection
 from app.ml.confidence_calculator import ConfidenceCalculator
 from app.ml.feature_selector import FeatureSelector
 from app.ml.model_registry import ModelRegistry
+from app.ml.gnn_model import build_gnn_scores
 from app.ml.hybrid_risk_engine import HybridRiskEngine
 from app.explainability.explainability_service import ExplainabilityService
 from app.models.explainability_context import ExplainabilityContext
@@ -141,6 +142,13 @@ class AMLPipeline:
                 flagged_anoms_count = int((anomaly_df["prediction"] == -1).sum())
                 PipelineEvents.on_anomaly_detection_completed(flagged_anoms_count)
                 
+                # Run GNN Model
+                gnn_scores = {}
+                try:
+                    gnn_scores = build_gnn_scores(clean_dataframe, customer_features)
+                except Exception as e:
+                    logger.warning(f"GNN scoring failed: {e}")
+
                 # Run Hybrid Risk Engine
                 with PipelineProfiler.profile("Hybrid Risk"):
                     eval_context = PipelineContext(
@@ -148,7 +156,8 @@ class AMLPipeline:
                         rule_results=rule_analysis,
                         ml_results=anomaly_analysis,
                         pipeline_version=PIPELINE_VERSION,
-                        dataset_info={"name": dataset_name, "hash": dataset_hash}
+                        dataset_info={"name": dataset_name, "hash": dataset_hash},
+                        metadata={"gnn_scores": gnn_scores}
                     )
                     hybrid_engine = HybridRiskEngine()
                     hybrid_analysis = hybrid_engine.evaluate(eval_context)
@@ -293,6 +302,13 @@ class AMLPipeline:
         flagged_anoms_count = int((anomaly_df["prediction"] == -1).sum())
         PipelineEvents.on_anomaly_detection_completed(flagged_anoms_count)
 
+        # 17b. Run GNN Model (V2)
+        gnn_scores = {}
+        try:
+            gnn_scores = build_gnn_scores(clean_dataframe, customer_features)
+        except Exception as e:
+            logger.warning(f"GNN scoring failed: {e}")
+
         # 18. Run Hybrid Risk Engine
         with PipelineProfiler.profile("Hybrid Risk"):
             eval_context = PipelineContext(
@@ -300,7 +316,8 @@ class AMLPipeline:
                 rule_results=rule_analysis,
                 ml_results=anomaly_analysis,
                 pipeline_version=PIPELINE_VERSION,
-                dataset_info={"name": dataset_name, "hash": dataset_hash}
+                dataset_info={"name": dataset_name, "hash": dataset_hash},
+                metadata={"gnn_scores": gnn_scores}
             )
             hybrid_engine = HybridRiskEngine()
             hybrid_analysis = hybrid_engine.evaluate(eval_context)

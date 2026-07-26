@@ -122,21 +122,42 @@ class HybridRiskEngine(IHybridRiskEngine):
             # Invoke Behavioral Analyzer (accepts dictionary row seamlessly)
             beh_score, beh_breakdown, beh_factors = self.analyzer.analyze(row)
 
+            # Retrieve GNN score (A3)
+            gnn_scores = context.metadata.get("gnn_scores", {})
+            gnn_raw_score = gnn_scores.get(customer_id)
+            gnn_factors = []
+            if gnn_raw_score is not None:
+                gnn_factors.append(
+                    RiskFactor(
+                        name="GNN_RELATIONAL_RISK",
+                        score=gnn_raw_score / 100.0,
+                        severity=self._classify_severity(gnn_raw_score / 100.0),
+                        description=f"Graph Neural Network detected relational risk with score: {gnn_raw_score:.2f}",
+                        source="NETWORK_GRAPH"
+                    )
+                )
+
             # Calculate deterministic entity hash variance for feature diversity
             h = abs(hash(customer_id)) % 1000 / 1000.0
 
             if rule_score > 0:
                 # Continuous linearly scaled risk across 0.35 to 0.92 (Medium, High, Critical)
-                base_risk = (ml_score * 0.4) + (beh_score * 0.3) + (h * 0.3)
+                if gnn_raw_score is not None:
+                    # V2 logic using GNN
+                    base_risk = self.fusion_strategy.fuse(rule_score, ml_score, beh_score, gnn_score=gnn_raw_score)
+                else:
+                    base_risk = (ml_score * 0.4) + (beh_score * 0.3) + (h * 0.3)
+                
                 norm_risk = np.clip((base_risk - 0.445) / (0.772 - 0.445), 0.0, 1.0)
                 overall_score = 0.35 + (norm_risk * 0.57)
             else:
                 # Non-flagged customers span 0.05 to 0.30 (Low)
-                base_risk = (ml_score * 0.5) + (beh_score * 0.25) + (h * 0.25)
+                if gnn_raw_score is not None:
+                    base_risk = self.fusion_strategy.fuse(rule_score, ml_score, beh_score, gnn_score=gnn_raw_score)
+                else:
+                    base_risk = (ml_score * 0.5) + (beh_score * 0.25) + (h * 0.25)
+                
                 overall_score = np.clip(0.05 + (base_risk * 0.25), 0.05, 0.30)
-
-
-
 
             # Determine Severity
             severity = self._classify_severity(overall_score)
@@ -166,7 +187,8 @@ class HybridRiskEngine(IHybridRiskEngine):
             )
 
             # Combine all evidence factors
-            risk_factors = rule_factors + ml_factors + beh_factors
+            risk_factors = rule_factors + ml_factors + beh_factors + gnn_factors
+
 
             # Map to HybridRiskResult with audit properties
             results.append(

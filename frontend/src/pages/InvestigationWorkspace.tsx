@@ -15,6 +15,7 @@ import {
   AgentSwarmView,
   EvidenceConsensusBoard,
   CaseLifecycleTimeline,
+  RuleSuggestionsWidget,
 } from '../components/investigation'
 import type { CaseStatus } from '../components/investigation'
 
@@ -184,6 +185,10 @@ export default function InvestigationWorkspace() {
                   initialScore={Math.round((customer as any)?.risk_score || (customer as any)?.riskScore || (investigation as any)?.riskScore || 41)}
                   initialRecommendation={(investigation as any)?.recommendation || 'MANUAL_REVIEW'}
                 />
+
+                <div className="mt-6">
+                  <RuleSuggestionsWidget />
+                </div>
 
                 {(() => {
                   const hasKyc = Boolean((customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') && customer?.name);

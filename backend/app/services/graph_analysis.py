@@ -2,12 +2,23 @@
 
 import pandas as pd
 import networkx as nx
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from app.utils.logger import get_logger
 from app.services.graph_adapter import IGraphAdapter
 from app.models.graph_models import GraphNode, GraphEdge, CentralityMetrics
 
 logger = get_logger(__name__)
+
+# A1: Entity type detection — maps entity category to column name candidates
+ENTITY_COLUMN_MAP: Dict[str, List[str]] = {
+    "ip":       ["ip_address", "login_ip", "source_ip", "ip"],
+    "device":   ["device_id", "device_fingerprint", "device"],
+    "country":  ["country", "jurisdiction", "country_code"],
+    "merchant": ["merchant_id", "merchant_name", "merchant"],
+    "email":    ["email", "email_address"],
+    "phone":    ["phone", "phone_number", "mobile"],
+    "wallet":   ["wallet_id", "crypto_wallet", "wallet"],
+}
 
 class GraphAnalyzer:
     """Uses NetworkX to build transaction graphs and calculate network-level risk.

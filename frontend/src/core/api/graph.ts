@@ -1,8 +1,10 @@
 import { api } from '../api';
 import type { GraphResponseDTO, NetworkSummaryDTO, ApiResponse } from '../../types/graph';
 
-export const getEgoGraph = async (nodeId: string, radius: number = 1): Promise<GraphResponseDTO> => {
-    const response = await api.get<ApiResponse<GraphResponseDTO>>(`/v1/graph/ego/${nodeId}?radius=${radius}`);
+export const getEgoGraph = async (nodeId: string, radius: number = 1, entityTypes?: string): Promise<GraphResponseDTO> => {
+    let url = `/v1/graph/ego/${nodeId}?radius=${radius}`;
+    if (entityTypes) url += `&entity_types=${entityTypes}`;
+    const response = await api.get<ApiResponse<GraphResponseDTO>>(url);
     return response.data.data;
 };
 

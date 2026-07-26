@@ -9,7 +9,12 @@ interface KnowledgeGraphProps {
 }
 
 export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ customerId }) => {
-  const { data, isLoading, isError, error } = useKnowledgeGraph(customerId, 2);
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set(['customer', 'company', 'ip', 'device', 'wallet', 'email', 'phone', 'merchant', 'country']));
+  
+  // Convert selectedTypes set to comma-separated string for API
+  const entityTypesStr = Array.from(selectedTypes).join(',');
+  
+  const { data, isLoading, isError, error } = useKnowledgeGraph(customerId, 2, entityTypesStr);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -53,103 +58,129 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ customerId }) =>
 
   const handleNodeClick = useCallback((node: any) => {
     console.log('Node clicked:', node);
+    // Dynamic click-to-expand hop logic would go here
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center w-full bg-slate-900 rounded-lg border border-slate-700/50" style={{ height: 400 }}>
-        <Loader2 className="w-8 h-8 text-brand-blue animate-spin mb-4" />
-        <span className="text-slate-300 font-medium font-mono text-sm tracking-wider">MAPPING KNOWLEDGE GRAPH...</span>
-      </div>
-    );
-  }
+  const toggleType = (type: string) => {
+    const newTypes = new Set(selectedTypes);
+    if (newTypes.has(type)) {
+      newTypes.delete(type);
+    } else {
+      newTypes.add(type);
+    }
+    setSelectedTypes(newTypes);
+  };
 
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center w-full bg-slate-900 rounded-lg border border-brand-red/20" style={{ height: 400 }}>
-        <AlertCircle className="w-8 h-8 text-brand-red mb-4" />
-        <span className="text-slate-300 text-sm">{error instanceof Error ? error.message : 'Failed to load graph data'}</span>
-      </div>
-    );
-  }
-
-  if (graphData.nodes.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center w-full bg-slate-900 rounded-lg border border-slate-700/50" style={{ height: 400 }}>
-        <span className="text-slate-400 text-sm">No graph connections found for this entity.</span>
-      </div>
-    );
-  }
+  const filterOptions = ['customer', 'company', 'ip', 'device', 'wallet', 'email', 'phone', 'merchant', 'country'];
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full bg-[#0a0f18] rounded-lg border border-slate-800 overflow-hidden shadow-2xl"
-      style={{ height: 400 }}
-    >
-      <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-sm p-3 rounded-md border border-slate-700/50">
-        <h3 className="text-slate-200 text-xs font-bold mb-2 uppercase tracking-wider">Network Legend</h3>
-        <div className="flex flex-col gap-1.5 text-xs text-slate-400">
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div> Customer</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#10b981]"></div> Account</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#8b5cf6]"></div> Device / IP</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#ef4444]"></div> High Risk Node</div>
-        </div>
+    <div className="flex flex-col gap-4">
+      {/* A6: Filter Panel */}
+      <div className="flex flex-wrap gap-2 p-3 bg-slate-900 rounded-lg border border-slate-700/50">
+        <span className="text-slate-400 text-sm font-medium mr-2 flex items-center">Filters:</span>
+        {filterOptions.map(type => (
+          <button
+            key={type}
+            onClick={() => toggleType(type)}
+            className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+              selectedTypes.has(type) 
+                ? 'bg-brand-blue/20 text-brand-blue border border-brand-blue/50' 
+                : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'
+            }`}
+          >
+            {type.toUpperCase()}
+          </button>
+        ))}
       </div>
-      
-      {dimensions.width > 0 && dimensions.height > 0 && (
-        <ForceGraph2D
-          graphData={graphData}
-          width={dimensions.width}
-          height={dimensions.height}
-          nodeLabel="name"
-          nodeColor="color"
-          nodeRelSize={6}
-          linkColor={() => 'rgba(148, 163, 184, 0.2)'}
-          linkWidth={1.5}
-          linkDirectionalArrowLength={3.5}
-          linkDirectionalArrowRelPos={1}
-          onNodeClick={handleNodeClick}
-          backgroundColor="#0a0f18"
-          nodeCanvasObject={(node: any, ctx, globalScale) => {
-            const label = node.name;
-            const fontSize = 12 / globalScale;
-            ctx.font = `${fontSize}px Sans-Serif`;
 
-            ctx.fillStyle = node.color;
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, node.val * 2, 0, 2 * Math.PI, false);
-            ctx.fill();
+      <div
+        ref={containerRef}
+        className="relative w-full bg-[#0a0f18] rounded-lg border border-slate-800 overflow-hidden shadow-2xl"
+        style={{ height: 400 }}
+      >
+        <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-sm p-3 rounded-md border border-slate-700/50">
+          <h3 className="text-slate-200 text-xs font-bold mb-2 uppercase tracking-wider">Risk Legend</h3>
+          <div className="flex flex-col gap-1.5 text-xs text-slate-400">
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#10b981]"></div> Low Risk (&lt;30)</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div> Medium Risk (30-70)</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#ef4444]"></div> High Risk (&gt;70)</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#94a3b8]"></div> Unknown</div>
+          </div>
+        </div>
+        
+        {isLoading && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+            <Loader2 className="w-8 h-8 text-brand-blue animate-spin mb-4" />
+            <span className="text-slate-300 font-medium font-mono text-sm tracking-wider">MAPPING KNOWLEDGE GRAPH...</span>
+          </div>
+        )}
 
-            if (node.color === '#ef4444') {
-               ctx.shadowColor = '#ef4444';
-               ctx.shadowBlur = 10;
-            } else {
-               ctx.shadowBlur = 0;
-            }
+        {isError && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/90 border border-brand-red/20">
+            <AlertCircle className="w-8 h-8 text-brand-red mb-4" />
+            <span className="text-slate-300 text-sm">{error instanceof Error ? error.message : 'Failed to load graph data'}</span>
+          </div>
+        )}
 
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.fillText(label, node.x, node.y + (node.val * 2) + fontSize);
-          }}
-        />
-      )}
+        {!isLoading && !isError && graphData.nodes.length === 0 && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/90">
+            <span className="text-slate-400 text-sm">No graph connections found for these filters.</span>
+          </div>
+        )}
+
+        {dimensions.width > 0 && dimensions.height > 0 && graphData.nodes.length > 0 && (
+          <ForceGraph2D
+            graphData={graphData}
+            width={dimensions.width}
+            height={dimensions.height}
+            nodeLabel="name"
+            nodeColor="color"
+            nodeRelSize={6}
+            linkColor={() => 'rgba(148, 163, 184, 0.2)'}
+            linkWidth={1.5}
+            linkDirectionalArrowLength={3.5}
+            linkDirectionalArrowRelPos={1}
+            onNodeClick={handleNodeClick}
+            backgroundColor="#0a0f18"
+            nodeCanvasObject={(node: any, ctx, globalScale) => {
+              const label = node.name;
+              const fontSize = 12 / globalScale;
+              ctx.font = `${fontSize}px Sans-Serif`;
+
+              ctx.fillStyle = node.color;
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, node.val * 2, 0, 2 * Math.PI, false);
+              ctx.fill();
+
+              if (node.color === '#ef4444') {
+                 ctx.shadowColor = '#ef4444';
+                 ctx.shadowBlur = 10;
+              } else {
+                 ctx.shadowBlur = 0;
+              }
+
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+              ctx.fillText(label, node.x, node.y + (node.val * 2) + fontSize);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 };
 
 // Helper to determine node color based on type and risk score
 function getNodeColor(type: string, riskScore?: number): string {
-  if (riskScore && riskScore >= 75) return '#ef4444'; // Red for high risk
-  
-  switch (type.toUpperCase()) {
-    case 'CUSTOMER': return '#3b82f6'; // Blue
-    case 'ACCOUNT': return '#10b981'; // Green
-    case 'DEVICE':
-    case 'IP': return '#8b5cf6'; // Purple
-    case 'COMPANY': return '#f59e0b'; // Amber
-    default: return '#94a3b8'; // Slate gray
+  // A6: Risk-based coloring
+  if (riskScore !== undefined) {
+    if (riskScore >= 70) return '#ef4444'; // Red
+    if (riskScore >= 30) return '#f59e0b'; // Yellow
+    return '#10b981'; // Green
   }
+  
+  // Fallback if no risk score
+  return '#94a3b8'; // Slate
 }
 
