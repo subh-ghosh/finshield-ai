@@ -12,6 +12,15 @@ class CounterfactualSimulationRequest(BaseModel):
     velocity_multiplier: float = Field(default=1.0, ge=0.1, le=10.0, description="Velocity multiplier.")
 
 
+class ContributionItem(BaseModel):
+    category: str
+    points: float
+    percentage: float
+    reason: str
+    confidence: float = 0.95
+    subsystem: str
+
+
 class CounterfactualSimulationResult(BaseModel):
     customer_id: str
     baseline_risk_score: float = Field(..., ge=0.0, le=100.0)
@@ -24,7 +33,9 @@ class CounterfactualSimulationResult(BaseModel):
     counterfactual_narrative: str
     simulated_breakdown: Dict[str, float]
     risk_contributions: Dict[str, float] = Field(default_factory=dict)
+    detailed_contributions: List[ContributionItem] = Field(default_factory=list)
     next_threshold_target: Optional[str] = None
     next_threshold_score: Optional[float] = None
     minimum_changes_required: List[str] = Field(default_factory=list)
+
 

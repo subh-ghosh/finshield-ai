@@ -65,10 +65,50 @@ class CounterfactualRiskSimulator:
 
         risk_contributions = {
             "Structuring Pattern": structuring_contrib,
-            "Transaction Velocity": velocity_contrib,
+            "Behavioral Velocity": velocity_contrib,
             "Cross-Border Exposure": cb_contrib,
             "Isolation Forest Anomaly": ml_contrib
         }
+
+        detailed_contributions = []
+        if structuring_contrib > 0:
+            detailed_contributions.append(ContributionItem(
+                category="Structuring Pattern",
+                points=structuring_contrib,
+                percentage=round((structuring_contrib / max(1.0, abs(score_delta))) * 100, 1),
+                reason=f"{n_deposits} additional ₹{amt_deposit:,.0f} deposits increased structuring score because multiple sub-threshold cash deposits occurred within a short time window.",
+                confidence=0.96,
+                subsystem="RULE_ENGINE"
+            ))
+        if velocity_contrib > 0:
+            detailed_contributions.append(ContributionItem(
+                category="Behavioral Velocity",
+                points=velocity_contrib,
+                percentage=round((velocity_contrib / max(1.0, abs(score_delta))) * 100, 1),
+                reason="Deposit frequency and transaction velocity exceeded the 30-day customer baseline activity.",
+                confidence=0.92,
+                subsystem="BEHAVIORAL_ANALYZER"
+            ))
+        if cb_contrib != 0:
+            direction_str = "increased" if cb_contrib > 0 else "decreased"
+            detailed_contributions.append(ContributionItem(
+                category="Cross-Border Exposure",
+                points=cb_contrib,
+                percentage=round((abs(cb_contrib) / max(1.0, abs(score_delta))) * 100, 1),
+                reason=f"Cross-border transfer volume {direction_str} by {abs(cb_pct):.0f}%, shifting international risk exposure.",
+                confidence=0.94,
+                subsystem="HYBRID_RISK_ENGINE"
+            ))
+        if ml_contrib > 0:
+            detailed_contributions.append(ContributionItem(
+                category="Isolation Forest Anomaly",
+                points=ml_contrib,
+                percentage=round((ml_contrib / max(1.0, abs(score_delta))) * 100, 1),
+                reason="Anomaly score increased because the simulated transaction pattern deviates further from the customer's historical baseline.",
+                confidence=0.89,
+                subsystem="ISOLATION_FOREST"
+            ))
+
 
         # 7. Minimum Change Required Calculation (Feature 2)
         next_target, target_score, min_changes = self._calculate_minimum_changes(

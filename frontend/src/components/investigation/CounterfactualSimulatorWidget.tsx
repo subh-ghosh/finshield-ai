@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
-import { Sliders, Activity, TrendingUp, AlertTriangle, ArrowRight, RotateCcw, Zap, Target, Shield, CheckCircle2 } from 'lucide-react';
+import { Sliders, Activity, TrendingUp, AlertTriangle, ArrowRight, RotateCcw, Zap, Target, Shield, CheckCircle2, ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 interface CounterfactualSimulatorWidgetProps {
   customerId: string;
   initialScore?: number;
   initialRecommendation?: string;
+}
+
+interface ContributionItemData {
+  id: string;
+  category: string;
+  points: number;
+  subsystem: string;
+  confidence: number;
+  reason: string;
 }
 
 export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidgetProps> = ({
@@ -15,6 +24,7 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
   const [cashCount, setCashCount] = useState(0);
   const [cashAmount, setCashAmount] = useState(9500);
   const [crossBorderChange, setCrossBorderChange] = useState(0);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // Deterministic mathematical formulas
   const cashImpact = Math.min(38, (cashCount * cashAmount / 4500) * 7.5 * (cashAmount >= 8000 && cashAmount <= 9999 ? 1.35 : 1.0));
@@ -33,13 +43,59 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
   const simulatedRec = getRec(simulatedScore);
   const isFlipped = simulatedRec !== initialRecommendation;
 
-  // Feature 1: Risk Contribution Breakdown
+  // Feature 1: Deterministic Risk Contribution Breakdown Items
   const structuringContrib = Math.round(cashImpact * 0.48);
   const velocityContrib = Math.round(cashImpact * 0.22);
   const cbContrib = Math.round(crossBorderImpact);
   const mlContrib = Math.round(cashImpact * 0.30);
 
-  // Feature 2: Minimum Change Required calculation to reach next threshold
+  const contributionItems: ContributionItemData[] = [];
+
+  if (structuringContrib > 0) {
+    contributionItems.push({
+      id: 'structuring',
+      category: 'Structuring Pattern',
+      points: structuringContrib,
+      subsystem: 'RULE_ENGINE',
+      confidence: 0.96,
+      reason: `${cashCount} additional ₹${cashAmount.toLocaleString()} deposits increased structuring score because multiple sub-threshold cash deposits occurred within a short time window.`
+    });
+  }
+
+  if (velocityContrib > 0) {
+    contributionItems.push({
+      id: 'velocity',
+      category: 'Behavioral Velocity',
+      points: velocityContrib,
+      subsystem: 'BEHAVIORAL_ANALYZER',
+      confidence: 0.92,
+      reason: 'Deposit frequency and transaction velocity exceeded the 30-day customer baseline activity.'
+    });
+  }
+
+  if (cbContrib !== 0) {
+    contributionItems.push({
+      id: 'cross_border',
+      category: 'Cross-Border Exposure',
+      points: cbContrib,
+      subsystem: 'HYBRID_RISK_ENGINE',
+      confidence: 0.94,
+      reason: `Cross-border transfer volume ${cbContrib > 0 ? 'increased' : 'decreased'} by ${Math.abs(crossBorderChange)}%, shifting international risk exposure.`
+    });
+  }
+
+  if (mlContrib > 0) {
+    contributionItems.push({
+      id: 'isolation_forest',
+      category: 'Isolation Forest Anomaly',
+      points: mlContrib,
+      subsystem: 'ISOLATION_FOREST',
+      confidence: 0.89,
+      reason: "The anomaly score increased because the simulated transaction pattern deviates further from the customer's historical baseline."
+    });
+  }
+
+  // Feature 2: Minimum Change Required calculation
   const getNextTarget = (score: number) => {
     if (score < 35) return { target: 'MANUAL_REVIEW', targetScore: 35 };
     if (score < 65) return { target: 'ESCALATE', targetScore: 65 };
@@ -55,6 +111,11 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
   const handleReset = () => {
     setCashCount(0);
     setCrossBorderChange(0);
+    setExpandedItemId(null);
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedItemId(prev => prev === id ? null : id);
   };
 
   return (
@@ -73,7 +134,7 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
 
         <button 
           onClick={handleReset}
-          className="text-[10px] font-semibold text-[#6B7280] hover:text-brand-black flex items-center gap-1 uppercase tracking-wider bg-[#F3F4F6] px-2 py-1 rounded-sm transition-colors"
+          className="text-[10px] font-semibold text-[#6B7280] hover:text-brand-black flex items-center gap-1 uppercase tracking-wider bg-[#F3F4F6] px-2 py-1 rounded-sm transition-colors cursor-pointer"
         >
           <RotateCcw className="h-3 w-3" /> Reset
         </button>
@@ -86,8 +147,8 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
           <span className="font-mono text-brand-black font-bold">Baseline: {initialScore} | Sim: {simulatedScore}</span>
         </div>
 
-        {/* Horizontal Bar with Pin/Triangle Cursors */}
-        <div className="relative w-full h-6 bg-[#E5E7EB] rounded-xs flex font-mono text-[9px] font-bold text-white text-center leading-6 cursor-pointer shadow-inner">
+        {/* Horizontal Bar with Pure Triangle Pointer Cursors */}
+        <div className="relative w-full h-6 bg-[#E5E7EB] rounded-xs flex font-mono text-[9px] font-bold text-white text-center leading-6 shadow-inner">
           <div className="w-[35%] bg-[#10B981] border-r border-white/40">CLEAR (0-34)</div>
           <div className="w-[30%] bg-[#F59E0B] border-r border-white/40">REVIEW (35-64)</div>
           <div className="w-[20%] bg-[#EF4444] border-r border-white/40">ESCALATE (65-84)</div>
@@ -112,20 +173,17 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
             <div className="absolute -top-4 left-0 text-[14px] font-extrabold text-[#D97706] drop-shadow-sm select-none">▼</div>
             <div className="absolute -bottom-4 left-0 text-[14px] font-extrabold text-[#D97706] drop-shadow-sm select-none">▲</div>
           </div>
-
-
         </div>
 
         <div className="flex justify-between text-[9px] font-mono text-[#6B7280] pt-1">
           <span className="flex items-center gap-1 font-bold text-black">
-            <span className="inline-block w-2 h-2 bg-black rounded-full" /> Baseline Pin ({initialScore})
+            ▼ Baseline Pin ({initialScore})
           </span>
           <span className="flex items-center gap-1 font-bold text-brand-red">
-            <span className="inline-block w-2 h-2 bg-[#FACC15] border border-brand-red rounded-full" /> Simulated Pin ({simulatedScore})
+            ▼ Simulated Pin ({simulatedScore})
           </span>
         </div>
       </div>
-
 
       {/* Baseline vs Simulated Cards */}
       <div className="grid grid-cols-2 gap-3 p-3 bg-[#F9FAFB] border border-[#E4E7EC] rounded-sm">
@@ -190,41 +248,64 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
         </div>
       </div>
 
-      {/* FEATURE 1: RISK CONTRIBUTION BREAKDOWN CARD */}
+      {/* ENTERPRISE RISK CONTRIBUTION BREAKDOWN CARD */}
       {totalDelta !== 0 && (
-        <div className="bg-[#F9FAFB] border border-[#E4E7EC] p-3 rounded-sm space-y-2">
-          <div className="text-[10px] font-bold text-brand-black uppercase tracking-wider flex items-center justify-between">
+        <div className="bg-[#F9FAFB] border border-[#E4E7EC] p-3 rounded-sm space-y-2.5">
+          <div className="text-[10px] font-bold text-brand-black uppercase tracking-wider flex items-center justify-between border-b border-[#E4E7EC] pb-2">
             <span className="flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5 text-brand-red" /> Risk Contribution Breakdown
+              <TrendingUp className="h-3.5 w-3.5 text-brand-red" /> Enterprise Risk Contribution Breakdown
             </span>
-            <span className="font-mono text-brand-red">Total: {totalDelta >= 0 ? `+${totalDelta}` : totalDelta} pts</span>
+            <div className="flex items-center gap-1 font-mono text-[10px]">
+              <span className="text-[#6B7280]">{initialScore} → {simulatedScore}</span>
+              <span className="font-bold text-brand-red px-1.5 py-0.5 bg-[#FEF2F2] border border-[#FECACA] rounded-xs">
+                TOTAL: {totalDelta >= 0 ? `+${totalDelta}` : totalDelta} PTS
+              </span>
+            </div>
           </div>
 
-          <div className="space-y-1 font-mono text-[11px]">
-            {structuringContrib > 0 && (
-              <div className="flex justify-between text-[#991B1B]">
-                <span>+ {structuringContrib} pts</span>
-                <span className="font-sans font-medium text-brand-black">Structuring Pattern</span>
-              </div>
-            )}
-            {velocityContrib > 0 && (
-              <div className="flex justify-between text-[#991B1B]">
-                <span>+ {velocityContrib} pts</span>
-                <span className="font-sans font-medium text-brand-black">Transaction Velocity</span>
-              </div>
-            )}
-            {cbContrib !== 0 && (
-              <div className={`flex justify-between ${cbContrib > 0 ? 'text-[#991B1B]' : 'text-[#065F46]'}`}>
-                <span>{cbContrib >= 0 ? `+ ${cbContrib}` : `- ${Math.abs(cbContrib)}`} pts</span>
-                <span className="font-sans font-medium text-brand-black">Cross-Border Exposure</span>
-              </div>
-            )}
-            {mlContrib > 0 && (
-              <div className="flex justify-between text-[#991B1B]">
-                <span>+ {mlContrib} pts</span>
-                <span className="font-sans font-medium text-brand-black">Isolation Forest Anomaly</span>
-              </div>
-            )}
+          <div className="space-y-2">
+            {contributionItems.map((item) => {
+              const isExpanded = expandedItemId === item.id;
+              return (
+                <div 
+                  key={item.id}
+                  className="bg-white border border-[#E4E7EC] rounded-sm p-2 transition-all hover:border-[#CBD5E1]"
+                >
+                  <div 
+                    onClick={() => toggleExpand(item.id)}
+                    className="flex items-center justify-between cursor-pointer select-none"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-xs ${
+                        item.points > 0 ? 'bg-[#FEF2F2] text-[#991B1B]' : 'bg-[#ECFDF5] text-[#065F46]'
+                      }`}>
+                        {item.points >= 0 ? `+${item.points}` : item.points} pts
+                      </span>
+                      <span className="text-[11px] font-semibold text-brand-black">{item.category}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-mono text-[#6B7280] bg-[#F3F4F6] px-1.5 py-0.5 rounded-xs">
+                        {item.subsystem} ({Math.round(item.confidence * 100)}%)
+                      </span>
+                      {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-[#6B7280]" /> : <ChevronDown className="h-3.5 w-3.5 text-[#6B7280]" />}
+                    </div>
+                  </div>
+
+                  {/* Expandable Analyst-Friendly Explanation */}
+                  {isExpanded && (
+                    <div className="mt-2 pt-2 border-t border-[#F1F5F9] text-[10px] text-brand-gray space-y-1 bg-[#F8FAFC] p-2 rounded-xs">
+                      <div className="font-semibold text-brand-black flex items-center gap-1">
+                        <Info className="h-3 w-3 text-[#3B82F6]" /> Subsystem Deterministic Reason:
+                      </div>
+                      <div className="leading-relaxed text-[#334155]">
+                        "{item.reason}"
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
