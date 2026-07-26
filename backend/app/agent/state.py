@@ -40,6 +40,14 @@ def merge_dict(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
     return a
 
 
+class AgentMemoryEntry(TypedDict):
+    agent_name: str
+    customer_id: str
+    timestamp: str
+    findings_summary: str
+    risk_contribution: float  # 0.0 - 1.0
+
+
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
     customer_id: str
@@ -59,3 +67,10 @@ class AgentState(TypedDict):
 
     # Tracing
     planner_timeline: Annotated[List[ActionLog], merge_list]
+
+    # NEW: Per-agent memory
+    agent_memories: Annotated[List[AgentMemoryEntry], merge_list]
+    
+    # NEW: Investigation lifecycle
+    case_status: str  # OPEN, MONITORING, ESCALATED, CLOSED
+    investigation_id: str

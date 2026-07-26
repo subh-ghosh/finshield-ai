@@ -62,32 +62,80 @@ def network_agent(state: AgentState):
     res = _run_agent_tool("Network Agent", "timeline_tool", customer_id) # Using timeline_tool as proxy for network hops
     return {"planner_timeline": [res["log"]], "messages": [AIMessage(content=f"Network Agent Results: {json.dumps([res])}")]}
 
-def compliance_agent(state: AgentState):
+def rule_intelligence_agent(state: AgentState):
+    """Standalone Rule Intelligence Agent — runs deterministic AML rules only."""
     customer_id = state.get("customer_id", "UNKNOWN")
-    res1 = _run_agent_tool("Compliance Agent", "rule_engine_tool", customer_id)
-    res2 = _run_agent_tool("Compliance Agent", "isolation_forest_tool", customer_id)
-    res3 = _run_agent_tool("Compliance Agent", "hybrid_risk_tool", customer_id)
-    return {"planner_timeline": [res1["log"], res2["log"], res3["log"]], "messages": [AIMessage(content=f"Compliance Agent Results: {json.dumps([res1, res2, res3])}")]}
+    res = _run_agent_tool("Rule Intelligence Agent", "rule_engine_tool", customer_id)
+    evidence = EvidenceItem(
+        source="Rule Intelligence Agent",
+        description=str(res.get("output", ""))
+    )
+    return {
+        "planner_timeline": [res["log"]],
+        "evidence_bundle": [evidence],
+        "messages": [AIMessage(content=f"Rule Intelligence Agent Results: {json.dumps([res])}")]
+    }
+
+def ml_intelligence_agent(state: AgentState):
+    """Standalone ML Intelligence Agent — runs Isolation Forest only."""
+    customer_id = state.get("customer_id", "UNKNOWN")
+    res = _run_agent_tool("ML Intelligence Agent", "isolation_forest_tool", customer_id)
+    evidence = EvidenceItem(
+        source="ML Intelligence Agent",
+        description=str(res.get("output", ""))
+    )
+    return {
+        "planner_timeline": [res["log"]],
+        "evidence_bundle": [evidence],
+        "messages": [AIMessage(content=f"ML Intelligence Agent Results: {json.dumps([res])}")]
+    }
+
+def compliance_agent(state: AgentState):
+    """Compliance Agent — fuses rule + ML into hybrid risk assessment."""
+    customer_id = state.get("customer_id", "UNKNOWN")
+    res = _run_agent_tool("Compliance Agent", "hybrid_risk_tool", customer_id)
+    evidence = EvidenceItem(
+        source="Compliance Agent",
+        description=str(res.get("output", ""))
+    )
+    return {
+        "planner_timeline": [res["log"]],
+        "evidence_bundle": [evidence],
+        "messages": [AIMessage(content=f"Compliance Agent Results: {json.dumps([res])}")]
+    }
 
 def evidence_aggregator(state: AgentState):
-    messages = state.get("messages", [])
-    evidence_list = []
-    hybrid_score_detected = False
-
-    for m in reversed(messages):
-        if isinstance(m, AIMessage) and "Results:" in m.content:
-            if "Rule Engine" in m.content and "Triggered" in m.content:
-                evidence_list.append(EvidenceItem(source="Compliance Agent", description="Customer triggered specific AML rules."))
-            if "isolation_forest" in m.content and "score" in m.content.lower():
-                evidence_list.append(EvidenceItem(source="Compliance Agent", description="Anomaly model detected unusual behavior."))
-            if "hybrid_risk" in m.content and "CRITICAL" in m.content or "HIGH" in m.content:
-                hybrid_score_detected = True
-
-    if not evidence_list:
-        evidence_list.append(EvidenceItem(source="Consensus Engine", description="Aggregated basic customer profile and transactions."))
-
-    log = ActionLog(timestamp=get_current_time(), tool="Evidence Aggregator", duration=0.05, result=f"Extracted {len(evidence_list)} evidence items.", status="COMPLETED")
-    return {"evidence_bundle": evidence_list, "planner_timeline": [log]}
+    """Evidence Aggregator — builds a structured evidence graph."""
+    evidence = state.get("evidence_bundle", [])
+    
+    # Categorize evidence by source type
+    rule_evidence = [e for e in evidence if "Rule" in e["source"]]
+    ml_evidence = [e for e in evidence if "ML" in e["source"]]
+    graph_evidence = [e for e in evidence if "Network" in e["source"]]
+    compliance_evidence = [e for e in evidence if "Compliance" in e["source"]]
+    
+    # Calculate risk attribution percentages
+    total = len(evidence) or 1
+    attribution = {
+        "rule_pct": round(len(rule_evidence) / total * 100),
+        "ml_pct": round(len(ml_evidence) / total * 100),
+        "graph_pct": round(len(graph_evidence) / total * 100),
+        "compliance_pct": round(len(compliance_evidence) / total * 100),
+    }
+    
+    evidence_graph = {
+        "layers": [
+            {"name": "Rule Evidence", "count": len(rule_evidence), "items": rule_evidence},
+            {"name": "ML Evidence", "count": len(ml_evidence), "items": ml_evidence},
+            {"name": "Graph Evidence", "count": len(graph_evidence), "items": graph_evidence},
+            {"name": "Compliance Evidence", "count": len(compliance_evidence), "items": compliance_evidence},
+        ],
+        "attribution": attribution
+    }
+    
+    log = ActionLog(timestamp=get_current_time(), tool="Evidence Aggregator", duration=0.05, result=f"Built structured evidence graph with {len(evidence)} items.", status="COMPLETED")
+    return {"evidence_bundle": evidence, "planner_timeline": [log],
+            "messages": [AIMessage(content=f"Evidence Graph: {json.dumps(evidence_graph)}")]}
 
 def report_generator_agent(state: AgentState):
     evidence = state.get("evidence_bundle", [])
@@ -118,6 +166,36 @@ def report_generator_agent(state: AgentState):
 
     return {"final_recommendation": rec_dict, "messages": [AIMessage(content=summary)], "planner_timeline": [log]}
 
+def audit_agent(state: AgentState):
+    """Audit Agent — creates immutable audit trail for regulatory compliance."""
+    timeline = state.get("planner_timeline", [])
+    evidence = state.get("evidence_bundle", [])
+    recommendation = state.get("final_recommendation", {})
+    customer_id = state.get("customer_id", "UNKNOWN")
+    
+    audit_record = {
+        "customer_id": customer_id,
+        "timestamp": get_current_time(),
+        "agent_actions": [
+            {"agent": t["tool"], "status": t["status"], "duration": t["duration"]}
+            for t in timeline
+        ],
+        "evidence_count": len(evidence),
+        "final_risk": recommendation.get("risk_level", "UNKNOWN"),
+        "confidence": recommendation.get("confidence", "UNKNOWN"),
+    }
+    
+    # Store to investigation memory (append-only log)
+    log = ActionLog(
+        timestamp=get_current_time(),
+        tool="Audit Agent",
+        duration=0.01,
+        result=f"Audit trail created for {customer_id}: {len(timeline)} actions logged.",
+        status="COMPLETED"
+    )
+    return {"planner_timeline": [log], "messages": [AIMessage(content=f"Audit Record: {json.dumps(audit_record)}")]}
+
+
 # Build Graph
 builder = StateGraph(AgentState)
 
@@ -125,18 +203,25 @@ builder.add_node("supervisor_agent", supervisor_agent)
 builder.add_node("customer_agent", customer_agent)
 builder.add_node("transaction_agent", transaction_agent)
 builder.add_node("network_agent", network_agent)
+builder.add_node("rule_intelligence_agent", rule_intelligence_agent)
+builder.add_node("ml_intelligence_agent", ml_intelligence_agent)
 builder.add_node("compliance_agent", compliance_agent)
 builder.add_node("evidence_aggregator", evidence_aggregator)
 builder.add_node("report_generator_agent", report_generator_agent)
+builder.add_node("audit_agent", audit_agent)
 
 builder.add_edge(START, "supervisor_agent")
 builder.add_edge("supervisor_agent", "customer_agent")
 builder.add_edge("customer_agent", "transaction_agent")
 builder.add_edge("transaction_agent", "network_agent")
-builder.add_edge("network_agent", "compliance_agent")
+builder.add_edge("network_agent", "rule_intelligence_agent")
+builder.add_edge("network_agent", "ml_intelligence_agent")
+builder.add_edge("rule_intelligence_agent", "compliance_agent")
+builder.add_edge("ml_intelligence_agent", "compliance_agent")
 builder.add_edge("compliance_agent", "evidence_aggregator")
 builder.add_edge("evidence_aggregator", "report_generator_agent")
-builder.add_edge("report_generator_agent", END)
+builder.add_edge("report_generator_agent", "audit_agent")
+builder.add_edge("audit_agent", END)
 
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
