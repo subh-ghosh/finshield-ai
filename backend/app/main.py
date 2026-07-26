@@ -15,10 +15,14 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
+import os
 # Setup CORS for React Dashboard and external clients
+allowed_origins_str = os.environ.get("ALLOWED_ORIGINS", "*")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")] if allowed_origins_str != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,8 +34,11 @@ app.add_middleware(RequestLoggingMiddleware)
 # Register Exception Handlers
 register_exception_handlers(app)
 
+from fastapi import Depends
+from app.api.v1.middleware.auth import verify_api_key
+
 # Include Central API Router (prefixing /api)
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api", dependencies=[Depends(verify_api_key)])
 
 
 @app.get("/health", tags=["System Operations"])

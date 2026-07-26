@@ -83,6 +83,27 @@ def get_pipeline_result() -> PipelineResult:
     global _pipeline_result_cache
     if _pipeline_result_cache is None:
         pipeline = get_pipeline()
+        
+        # Check if running in production with database configured
+        db_url = os.environ.get("DATABASE_URL")
+        if db_url:
+            logger.info("DATABASE_URL detected. Dumping transactions from PostgreSQL...")
+            try:
+                import pandas as pd
+                from sqlalchemy import create_engine
+                engine = create_engine(db_url)
+                df = pd.read_sql("SELECT * FROM transactions", engine)
+                
+                # Save to temp csv for pipeline
+                temp_csv = os.path.join(pipeline.config.cache_dir, "postgres_dump.csv")
+                os.makedirs(pipeline.config.cache_dir, exist_ok=True)
+                df.to_csv(temp_csv, index=False)
+                logger.info(f"Successfully dumped PostgreSQL data to {temp_csv}. Running pipeline...")
+                _pipeline_result_cache = pipeline.run(temp_csv)
+                return _pipeline_result_cache
+            except Exception as e:
+                logger.error(f"Failed to load from PostgreSQL, falling back to local files: {e}")
+
         dataset_path = _resolve_dataset_path()
 
         if not os.path.exists(dataset_path):

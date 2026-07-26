@@ -63,13 +63,18 @@ export function usePlannerChat() {
     const targetId = match ? match[1].toUpperCase() : (entityId || 'C_4201');
 
     try {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const apiKey = import.meta.env.VITE_API_KEY;
+      const headers: any = { 'Content-Type': 'application/json' };
+      if (apiKey) headers['X-API-Key'] = apiKey;
+
       const [invRes, custRes] = await Promise.all([
-        fetch('http://localhost:8000/api/v1/planner/investigate', {
+        fetch(`${baseUrl}/v1/planner/investigate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ customer_id: targetId })
         }),
-        fetch(`http://localhost:8000/api/v1/customer/${targetId}`).catch(() => null)
+        fetch(`${baseUrl}/v1/customer/${targetId}`, { headers }).catch(() => null)
       ]);
 
       const data = await invRes.json();
