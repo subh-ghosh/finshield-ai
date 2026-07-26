@@ -1,4 +1,4 @@
-export function TableSkeleton() {
+﻿export function TableSkeleton() {
   return (
     <div className="animate-pulse">
       {[1, 2, 3, 4, 5].map((i) => (
@@ -17,7 +17,7 @@ export function TableSkeleton() {
 
 export function CardSkeleton() {
   return (
-    <div className="sg-stat-card animate-pulse">
+    <div className="fs-stat-card animate-pulse">
       <div className="flex items-center justify-between mb-4">
         <div className="h-3 bg-gray-200 w-24"></div>
         <div className="w-8 h-8 rounded-full bg-gray-100"></div>
@@ -29,3 +29,4 @@ export function CardSkeleton() {
     </div>
   );
 }
+

@@ -1,11 +1,11 @@
-import { Network } from 'lucide-react';
+﻿import { Network } from 'lucide-react';
 
 export function ReasoningTimeline({ steps }: { steps: string[] }) {
   if (!steps || steps.length === 0) return null;
 
   return (
     <div className="border border-[#E4E7EC] p-5 bg-white">
-      <h3 className="sg-section-label mb-5 flex items-center gap-2">
+      <h3 className="fs-section-label mb-5 flex items-center gap-2">
         <Network className="h-3.5 w-3.5" /> Reasoning Timeline
       </h3>
       <div className="relative pl-3 space-y-5 before:absolute before:inset-y-0 before:left-[11px] before:w-[2px] before:bg-[#F0F1F3]">
@@ -23,3 +23,4 @@ export function ReasoningTimeline({ steps }: { steps: string[] }) {
     </div>
   );
 }
+

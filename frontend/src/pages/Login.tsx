@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+﻿import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -16,8 +16,8 @@ export default function Login() {
             <div className="absolute bottom-0 right-0 w-6 h-6 bg-white border border-gray-300"></div>
           </div>
           <div className="leading-tight">
-            <div className="text-[15px] font-bold tracking-[0.08em] text-black">SOCIETE</div>
-            <div className="text-[15px] font-bold tracking-[0.08em] text-black">GENERALE</div>
+            <div className="text-[15px] font-bold tracking-[0.08em] text-black">FINSHIELD</div>
+            <div className="text-[15px] font-bold tracking-[0.08em] text-black">AI</div>
           </div>
         </div>
 
@@ -35,7 +35,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-xs text-gray-500">
-          © Societe Generale Group {new Date().getFullYear()}
+          Â© FINSHIELD AI Group {new Date().getFullYear()}
         </div>
       </div>
 
@@ -43,9 +43,9 @@ export default function Login() {
       <div className="w-full lg:w-[55%] flex items-center justify-center bg-white p-8 relative">
         {/* Top utility bar */}
         <div className="absolute top-6 right-8 flex items-center gap-4 text-sm text-gray-500">
-          <span className="cursor-pointer hover:text-black">ⓘ</span>
-          <span className="cursor-pointer hover:text-black">⊞</span>
-          <span className="cursor-pointer hover:text-black">🌐 EN ▾</span>
+          <span className="cursor-pointer hover:text-black">â“˜</span>
+          <span className="cursor-pointer hover:text-black">âŠž</span>
+          <span className="cursor-pointer hover:text-black">ðŸŒ EN â–¾</span>
         </div>
 
         <div className="w-full max-w-[440px]">
@@ -58,8 +58,8 @@ export default function Login() {
               <div className="absolute bottom-0 right-0 w-5 h-5 bg-white border border-gray-300"></div>
             </div>
             <div className="leading-tight">
-              <div className="text-xs font-bold tracking-[0.08em]">SOCIETE</div>
-              <div className="text-xs font-bold tracking-[0.08em]">GENERALE</div>
+              <div className="text-xs font-bold tracking-[0.08em]">FINSHIELD</div>
+              <div className="text-xs font-bold tracking-[0.08em]">AI</div>
             </div>
           </div>
 
@@ -72,7 +72,7 @@ export default function Login() {
               type="email" 
               placeholder="Email" 
               className="w-full bg-[#e8e8e8] px-4 py-3.5 text-sm text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E1000F]/30 border-none"
-              defaultValue="analyst@societegenerale.com"
+              defaultValue="analyst@FINSHIELDAI.com"
             />
             <input 
               type="password" 
@@ -106,3 +106,4 @@ export default function Login() {
     </div>
   )
 }
+

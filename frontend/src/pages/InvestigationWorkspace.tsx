@@ -1,4 +1,4 @@
-import ReactMarkdown from 'react-markdown'
+﻿import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
@@ -38,7 +38,7 @@ export default function InvestigationWorkspace() {
   // Legacy Chat Mode
   const { is_running, events, current_step, final_answer, error: plannerError, sendMessage } = usePlannerChat()
 
-  // Enterprise Investigation Mode — returns real planner_timeline + evidence_graph
+  // Enterprise Investigation Mode â€” returns real planner_timeline + evidence_graph
   const { investigate, data: enterpriseData, isPending: isEnterprisePending, error: enterpriseError } = usePlannerInvestigation()
 
   const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar' | 'lifecycle'>('risk')
@@ -66,10 +66,10 @@ export default function InvestigationWorkspace() {
     setShowSarModal(true)
   }
 
-  // ── Data wiring: prefer enterprise run result, fall back to investigation cache ──
+  // â”€â”€ Data wiring: prefer enterprise run result, fall back to investigation cache â”€â”€
   const isLoading = isCustLoading || isInvLoading
 
-  // S6: real agent timeline — prefer the live enterprise run result over cached
+  // S6: real agent timeline â€” prefer the live enterprise run result over cached
   const agentTimeline = enterpriseData?.planner_timeline ?? investigation?.planner_timeline ?? []
   const isSwarmRunning = isEnterprisePending
 
@@ -98,7 +98,7 @@ export default function InvestigationWorkspace() {
           {/* Entity Header */}
           <div className="p-6 pb-2" style={{ borderTop: '3px solid #E1000F' }}>
             <div className="flex items-center justify-between mb-1">
-              <span className="sg-section-label">Entity Profile</span>
+              <span className="fs-section-label">Entity Profile</span>
               <div className="flex items-center gap-2">
                 {/* S8: Dynamic lifecycle status badge */}
                 {sarConfirmed || lifecycleStatus === 'ESCALATED' ? (
@@ -118,7 +118,7 @@ export default function InvestigationWorkspace() {
                     OPEN
                   </span>
                 )}
-                <span className="sg-badge sg-badge-critical">Case #{id}</span>
+                <span className="fs-badge fs-badge-critical">Case #{id}</span>
               </div>
             </div>
             <h2 className="text-[18px] font-bold text-brand-black mt-3">{customer?.name}</h2>
@@ -244,7 +244,7 @@ export default function InvestigationWorkspace() {
               </div>
             )}
 
-            {/* S7: Evidence tab — now uses REAL evidence graph from API */}
+            {/* S7: Evidence tab â€” now uses REAL evidence graph from API */}
             {leftTab === 'evidence' && (
               <div className="p-6">
                 <EvidenceConsensusBoard
@@ -254,7 +254,7 @@ export default function InvestigationWorkspace() {
               </div>
             )}
 
-            {/* S8: Lifecycle tab — full CaseLifecycleTimeline component */}
+            {/* S8: Lifecycle tab â€” full CaseLifecycleTimeline component */}
             {leftTab === 'lifecycle' && (
               <div className="p-6">
                 <CaseLifecycleTimeline
@@ -284,7 +284,7 @@ export default function InvestigationWorkspace() {
               }`}
             >
               <CheckCircle2 className="h-4 w-4" />
-              {sarConfirmed ? 'SAR FILED ✓' : 'FINALIZE SAR RECOMMENDATION'}
+              {sarConfirmed ? 'SAR FILED âœ“' : 'FINALIZE SAR RECOMMENDATION'}
             </button>
           </div>
         </StateView>
@@ -334,9 +334,9 @@ export default function InvestigationWorkspace() {
             </div>
           </div>
         ) : (
-          // S6: Agent Swarm mode — passes real planner_timeline from API
+          // S6: Agent Swarm mode â€” passes real planner_timeline from API
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 sg-page-bg">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 fs-page-bg">
               <AgentSwarmView
                 timeline={agentTimeline}
                 events={events}
@@ -384,7 +384,7 @@ export default function InvestigationWorkspace() {
                 <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
                 <h3 className="text-[13px] font-bold text-brand-black uppercase tracking-wider">SAR Recommendation Finalized</h3>
               </div>
-              <button onClick={() => setShowSarModal(false)} className="text-gray-400 hover:text-black font-bold text-[14px]">✕</button>
+              <button onClick={() => setShowSarModal(false)} className="text-gray-400 hover:text-black font-bold text-[14px]">âœ•</button>
             </div>
 
             <div className="space-y-3 text-[12px] text-brand-black">
@@ -414,3 +414,6 @@ export default function InvestigationWorkspace() {
     </div>
   )
 }
+
+
+

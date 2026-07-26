@@ -1,4 +1,4 @@
-"""Planner node: parses user intent and seeds the initial tool execution plan."""
+﻿"""Planner node: parses user intent and seeds the initial tool execution plan."""
 
 import time
 from typing import Any, Dict, List, Optional
@@ -46,7 +46,7 @@ class IntentPlan(BaseModel):
     )
     country_filter: Optional[str] = Field(
         default=None,
-        description="Country/jurisdiction filter (ISO-3166 code, e.g. 'SG'). Null if not specified."
+        description="Country/jurisdiction filter (ISO-3166 code, e.g. 'US', 'DE', 'GB'). Null if not specified."
     )
     transaction_type_filter: Optional[str] = Field(
         default=None,
@@ -187,3 +187,4 @@ async def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
         }],
         **extra_state,
     }
+

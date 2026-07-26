@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,400&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    /* SG Enterprise Design System — Refined */
-    --background: 216 20% 96%;       /* #F2F4F7 bluish grey like SG corporate */
+    /* SG Enterprise Design System â€” Refined */
+    --background: 216 20% 96%;       /* #F2F4F7 bluish grey like FinShield corporate */
     --foreground: 0 0% 12%;          /* #1E1E1E */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 12%;
@@ -50,79 +50,79 @@
     line-height: 1.5;
   }
 
-  /* ── SG Premium Components ── */
+  /* â”€â”€ SG Premium Components â”€â”€ */
 
-  .sg-page-bg {
+  .fs-page-bg {
     background: #F2F4F7;
   }
 
   /* Stat card with red top accent */
-  .sg-stat-card {
+  .fs-stat-card {
     @apply bg-white p-6;
     border: 1px solid #E4E7EC;
     border-top: 3px solid #E1000F;
     transition: box-shadow 0.2s ease;
   }
-  .sg-stat-card:hover {
+  .fs-stat-card:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
 
   /* White panel */
-  .sg-panel {
+  .fs-panel {
     @apply bg-white;
     border: 1px solid #E4E7EC;
   }
 
   /* Section header label */
-  .sg-section-label {
+  .fs-section-label {
     @apply text-xs font-semibold tracking-widest uppercase;
     color: #6B7280;
     letter-spacing: 0.1em;
   }
 
   /* Table */
-  .sg-table {
+  .fs-table {
     @apply w-full;
     font-size: 13px;
   }
-  .sg-table thead th {
+  .fs-table thead th {
     @apply text-left py-3 px-5 font-bold tracking-widest uppercase;
     font-size: 11px;
     color: #6B7280;
     border-bottom: 2px solid #E4E7EC;
     background: #FAFBFC;
   }
-  .sg-table thead th:last-child {
+  .fs-table thead th:last-child {
     @apply text-right;
   }
-  .sg-table tbody td {
+  .fs-table tbody td {
     @apply py-3.5 px-5;
     color: #1E1E1E;
   }
-  .sg-table tbody tr {
+  .fs-table tbody tr {
     border-bottom: 1px solid #F0F1F3;
     transition: background 0.15s ease;
   }
-  .sg-table tbody tr:hover {
+  .fs-table tbody tr:hover {
     background: #F8F9FB;
   }
-  .sg-table tbody tr:nth-child(even) {
+  .fs-table tbody tr:nth-child(even) {
     background: #FAFBFC;
   }
-  .sg-table tbody tr:nth-child(even):hover {
+  .fs-table tbody tr:nth-child(even):hover {
     background: #F3F5F7;
   }
 
   /* Risk badges */
-  .sg-badge {
+  .fs-badge {
     @apply inline-flex items-center px-2.5 py-0.5 font-bold;
     font-size: 10px;
     letter-spacing: 0.05em;
   }
-  .sg-badge-critical { background: #E1000F; color: white; }
-  .sg-badge-high { background: #F59E0B; color: white; }
-  .sg-badge-medium { background: #6B7280; color: white; }
-  .sg-badge-low { background: #D1D5DB; color: #374151; }
+  .fs-badge-critical { background: #E1000F; color: white; }
+  .fs-badge-high { background: #F59E0B; color: white; }
+  .fs-badge-medium { background: #6B7280; color: white; }
+  .fs-badge-low { background: #D1D5DB; color: #374151; }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
@@ -130,3 +130,5 @@
   ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 }
+
+

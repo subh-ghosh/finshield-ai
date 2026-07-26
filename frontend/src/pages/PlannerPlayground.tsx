@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -8,7 +8,7 @@ function extractCustomerId(message: string): string {
   // Match C_NNN, CUST-NNN patterns
   const match = message.match(/\b(C_\d+|CUST-\d+)\b/i)
   if (match) return match[1].toUpperCase()
-  // Dataset-level queries â€” no customer ID
+  // Dataset-level queries Ã¢â‚¬â€ no customer ID
   return 'UNKNOWN'
 }
 
@@ -128,7 +128,7 @@ export default function PlannerPlayground() {
       </div>
 
       {/* Console */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 sg-page-bg font-mono text-[13px]">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 fs-page-bg font-mono text-[13px]">
         {history.length === 0 && (
           <div className="text-center mt-16">
             <div className="w-14 h-14 rounded-full bg-white border border-[#E4E7EC] flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -210,7 +210,7 @@ export default function PlannerPlayground() {
 
                 {/* Result */}
                 {msg.result &                  <div className="p-4 space-y-3 font-sans">
-                    {/* Intent Parsing Summary — shows what the agent extracted */}
+                    {/* Intent Parsing Summary â€” shows what the agent extracted */}
                     {(msg.result.filters_extracted && Object.keys(msg.result.filters_extracted).length > 0) && (
                       <div className="bg-blue-50 border border-blue-200 rounded p-3">
                         <div className="text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -243,7 +243,7 @@ export default function PlannerPlayground() {
                       </div>
                     </div>
 
-                    {/* Report — rendered as Markdown */}
+                    {/* Report â€” rendered as Markdown */}
                     {msg.result.final_report && (
                       <div className="mt-2">
                         <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -351,7 +351,7 @@ export default function PlannerPlayground() {
                 {
                   name: 'get_explanation',
                   badge: 'Explanation',
-                  desc: 'Returns detailed Gemini-generated explanation with evidence timeline, triggered rules, and natural language rationale for each flag — tied to the original query intent.',
+                  desc: 'Returns detailed Gemini-generated explanation with evidence timeline, triggered rules, and natural language rationale for each flag â€” tied to the original query intent.',
                   input: 'customer_id: str',
                   output: 'ExplanationResponseV1 (evidence_items, timeline, rule_violations, narrative)',
                   endpoint: 'GET /api/v1/explanation/{id}'
@@ -360,7 +360,7 @@ export default function PlannerPlayground() {
                 {
                   name: 'analyze_customer',
                   badge: 'Full Pipeline',
-                  desc: 'End-to-end AML analysis for one customer: runs all 5 pipeline stages (load → rules → ML → hybrid risk → evidence). Best for "Is C_1 suspicious?" type queries.',
+                  desc: 'End-to-end AML analysis for one customer: runs all 5 pipeline stages (load â†’ rules â†’ ML â†’ hybrid risk â†’ evidence). Best for "Is C_1 suspicious?" type queries.',
                   input: 'customer_id: str',
                   output: 'risk_score, recommendation, evidence_summary, triggered_rules',
                   endpoint: 'POST /api/v1/analyze/customer'
@@ -384,7 +384,7 @@ export default function PlannerPlayground() {
                 {
                   name: 'health',
                   badge: 'Utility',
-                  desc: 'Backend health check — verifies all services (pipeline, ML model, rules) are operational.',
+                  desc: 'Backend health check â€” verifies all services (pipeline, ML model, rules) are operational.',
                   input: 'none',
                   output: 'status: ok | degraded',
                   endpoint: 'GET /api/v1/health'
@@ -453,3 +453,6 @@ export default function PlannerPlayground() {
     </div>
   )
 }
+
+
+

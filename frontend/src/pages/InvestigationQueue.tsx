@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import { ArrowRight, Filter, Search, Download, RefreshCw, X, UserSquare2 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useInvestigationQueue } from '../hooks'
@@ -132,8 +132,8 @@ export default function InvestigationQueue() {
       )}
 
       {/* Table */}
-      <div className="sg-panel overflow-hidden">
-        <table className="sg-table">
+      <div className="fs-panel overflow-hidden">
+        <table className="fs-table">
           <thead>
             <tr>
               <th>ID</th>
@@ -203,3 +203,4 @@ export default function InvestigationQueue() {
     </div>
   )
 }
+

@@ -1,4 +1,4 @@
-import type { PlannerResult } from '../../types/planner';
+﻿import type { PlannerResult } from '../../types/planner';
 import { Target, AlertTriangle } from 'lucide-react';
 
 export function RecommendationCard({ result }: { result: PlannerResult }) {
@@ -10,7 +10,7 @@ export function RecommendationCard({ result }: { result: PlannerResult }) {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#6B7280]">AI Recommendation</span>
-            <span className="sg-badge sg-badge-neutral">{result.confidence} Confidence</span>
+            <span className="fs-badge fs-badge-neutral">{result.confidence} Confidence</span>
           </div>
           <div className={`text-[20px] font-bold ${isHighRisk ? 'text-brand-red' : 'text-brand-black'}`}>
             {result.recommendation}
@@ -23,3 +23,6 @@ export function RecommendationCard({ result }: { result: PlannerResult }) {
     </div>
   );
 }
+
+
+

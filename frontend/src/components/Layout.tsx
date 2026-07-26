@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+﻿import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell, X, ChevronRight, UserSquare2 } from 'lucide-react'
 
@@ -27,7 +27,7 @@ export function Layout() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      {/* ── Sidebar ── */}
+      {/* â”€â”€ Sidebar â”€â”€ */}
       <div className="w-[240px] bg-[#161A22] text-white flex flex-col flex-shrink-0 shadow-xl">
         {/* Logo */}
         <div className="px-6 pt-6 pb-5">
@@ -39,8 +39,8 @@ export function Layout() {
               <div className="absolute bottom-0 right-0 w-[18px] h-[18px] bg-[#161A22] border border-white/20"></div>
             </div>
             <div className="leading-none">
-              <div className="text-[11px] font-bold tracking-[0.15em] text-white/95">SOCIETE</div>
-              <div className="text-[11px] font-bold tracking-[0.15em] text-white/95">GENERALE</div>
+              <div className="text-[11px] font-bold tracking-[0.15em] text-white/95">FINSHIELD</div>
+              <div className="text-[11px] font-bold tracking-[0.15em] text-white/95">AI</div>
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-white/10">
@@ -82,7 +82,7 @@ export function Layout() {
             <Settings className="h-4 w-4" /> Settings
           </button>
           <button
-            onClick={() => alert('FinShield AI Support\n\nFor technical issues contact:\nfinshield-support@societegenerale.com\nPhone: +33 1 42 14 20 00')}
+            onClick={() => alert('FinShield AI Support\n\nFor technical issues contact:\nfinshield-support@FINSHIELDAI.com\nPhone: +1 800 FINSHIELD')}
             className="flex items-center gap-3 px-4 py-2 text-[12px] text-white/40 hover:text-white/70 transition-colors w-full"
           >
             <HelpCircle className="h-4 w-4" /> Support
@@ -106,7 +106,7 @@ export function Layout() {
         </div>
       </div>
 
-      {/* ── Main ── */}
+      {/* â”€â”€ Main â”€â”€ */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Red accent stripe */}
         <div className="h-[3px] bg-brand-red flex-shrink-0" />
@@ -162,13 +162,13 @@ export function Layout() {
             <div className="flex items-center gap-2 text-[12px] text-[#6B7280]">
               <span>EN</span>
               <span className="text-[#E4E7EC]">|</span>
-              <span className="font-semibold text-brand-black">Societe Generale</span>
+              <span className="font-semibold text-brand-black">FINSHIELD AI</span>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto sg-page-bg">
+        <main className="flex-1 overflow-y-auto fs-page-bg">
           <Outlet />
         </main>
       </div>
@@ -188,7 +188,7 @@ export function Layout() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Theme</span>
-                    <span className="text-[12px] font-semibold text-brand-black bg-[#F3F4F6] px-3 py-1">Light (SG Corporate)</span>
+                    <span className="text-[12px] font-semibold text-brand-black bg-[#F3F4F6] px-3 py-1">Light (FinShield Corporate)</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Language</span>
@@ -201,7 +201,7 @@ export function Layout() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Backend API</span>
-                    <span className="text-[12px] font-mono text-[#10B981]">http://localhost:8000 ✓</span>
+                    <span className="text-[12px] font-mono text-[#10B981]">http://localhost:8000 âœ“</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Investigation Engine</span>
@@ -217,7 +217,7 @@ export function Layout() {
                 <h3 className="text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-3">Session</h3>
                 <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                   <span className="text-[13px] text-[#374151]">Analyst</span>
-                  <span className="text-[12px] font-semibold text-brand-black">analyst@societegenerale.com</span>
+                  <span className="text-[12px] font-semibold text-brand-black">analyst@FINSHIELDAI.com</span>
                 </div>
               </div>
             </div>
@@ -235,3 +235,5 @@ export function Layout() {
     </div>
   )
 }
+
+

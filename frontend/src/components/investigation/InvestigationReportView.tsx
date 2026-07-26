@@ -1,4 +1,4 @@
-import type { PlannerResult } from '../../types/planner';
+﻿import type { PlannerResult } from '../../types/planner';
 import { LoadingInvestigation } from './LoadingInvestigation';
 import { InvestigationHeader } from './InvestigationHeader';
 import { RecommendationCard } from './RecommendationCard';
@@ -80,7 +80,7 @@ export function InvestigationReportView({ result, isPending, error, onRetry }: P
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
             <div className="border border-[#E4E7EC] p-5">
-              <h3 className="sg-section-label mb-4 pb-2 border-b border-[#E4E7EC]">Final Investigation Report</h3>
+              <h3 className="fs-section-label mb-4 pb-2 border-b border-[#E4E7EC]">Final Investigation Report</h3>
               <div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-brand-black prose-p:text-brand-black prose-p:leading-relaxed text-[13px]">
                 {result.final_report ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.final_report}</ReactMarkdown>
@@ -100,3 +100,4 @@ export function InvestigationReportView({ result, isPending, error, onRetry }: P
     </div>
   );
 }
+
