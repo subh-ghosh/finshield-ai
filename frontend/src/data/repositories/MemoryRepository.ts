@@ -1,4 +1,5 @@
-import { apiClient } from '../../core/api';
+import { api } from '../../core/api';
+
 import type { StoreMemoryRequest, InvestigationMemoryRecord, MemorySearchResult, MemoryStatistics } from '../../domain/entities/InvestigationMemory';
 import type { InvestigationMemoryRecordDTO, MemorySearchResultDTO, MemoryStatisticsDTO } from '../dtos/InvestigationMemoryDTO';
 import { InvestigationMemoryMapper } from '../mappers/InvestigationMemoryMapper';
@@ -30,7 +31,8 @@ export class MemoryRepository {
       case_typology: request.caseTypology || 'UNKNOWN_TYPOLOGY',
     };
 
-    const res = await apiClient.post<InvestigationMemoryRecordDTO>('/v1/memory/store', payload);
+    const res = await api.post<InvestigationMemoryRecordDTO>('/v1/memory/store', payload);
+
     return InvestigationMemoryMapper.toDomainRecord(res.data);
   }
 
@@ -44,7 +46,7 @@ export class MemoryRepository {
     maxRiskScore?: number;
     limit?: number;
   }): Promise<MemorySearchResult[]> {
-    const res = await apiClient.get<MemorySearchResultDTO[]>('/v1/memory/search', {
+    const res = await api.get<MemorySearchResultDTO[]>('/v1/memory/search', {
       params: {
         query_text: params.queryText,
         customer_id: params.customerId,
@@ -61,13 +63,14 @@ export class MemoryRepository {
   }
 
   async getStatistics(): Promise<MemoryStatistics> {
-    const res = await apiClient.get<MemoryStatisticsDTO>('/v1/memory/statistics');
+    const res = await api.get<MemoryStatisticsDTO>('/v1/memory/statistics');
     return InvestigationMemoryMapper.toDomainStatistics(res.data);
   }
 
   async getMemoryByCustomer(customerId: string): Promise<InvestigationMemoryRecord[]> {
     const cleanId = customerId.replace('CUST-', 'C_');
-    const res = await apiClient.get<InvestigationMemoryRecordDTO[]>(`/v1/memory/customer/${cleanId}`);
+    const res = await api.get<InvestigationMemoryRecordDTO[]>(`/v1/memory/customer/${cleanId}`);
+
     return res.data.map(dto => InvestigationMemoryMapper.toDomainRecord(dto));
   }
 }

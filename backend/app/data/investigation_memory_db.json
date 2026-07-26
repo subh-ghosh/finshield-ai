@@ -11,6 +11,7 @@
     "risk_score": 79.0,
     "final_decision": "ESCALATE",
     "disposition": "CASE_CLOSED",
+    "case_outcome": "CLOSED",
     "case_typology": "UNKNOWN_TYPOLOGY",
     "triggered_rules": [
       "RULE_STRUCTURING"
@@ -26,6 +27,7 @@
     "sar_narrative": null,
     "analyst_notes": null,
     "investigation_duration_sec": 0.0,
+    "timeline": [],
     "feature_vector": {
       "risk_score": 79.0,
       "rule_score": 0.25,
@@ -53,6 +55,7 @@
         1.0
       ]
     },
+    "narrative_embedding": [],
     "semantic_embedding": [
       0.0,
       0.0,
@@ -89,6 +92,172 @@
     ],
     "version": 1,
     "timestamp": 1785025463.3713357,
+    "is_deleted": false
+  },
+  "MEM-17C601C6": {
+    "memory_id": "MEM-17C601C6",
+    "case_id": "CASE-101",
+    "customer_id": "C_4284",
+    "customer_name": "Unknown",
+    "customer_type": "INDIVIDUAL",
+    "industry": "General",
+    "jurisdiction": "Domestic",
+    "investigation_date": "2026-07-26",
+    "risk_score": 81.0,
+    "final_decision": "FILE_SAR",
+    "disposition": "CASE_CLOSED",
+    "case_outcome": "CLOSED",
+    "case_typology": "STRUCTURING",
+    "triggered_rules": [
+      "RULE_STRUCTURING"
+    ],
+    "behavioral_features": {
+      "structuring_indicator": 0.85
+    },
+    "isolation_forest_score": 0.0,
+    "hybrid_risk_score": 0.0,
+    "network_metrics": {},
+    "evidence_summary": [],
+    "compliance_completeness_score": 100.0,
+    "missing_evidence_pillars": [],
+    "investigation_summary": "Sub-threshold cash deposits detected across 3 days.",
+    "sar_narrative": null,
+    "analyst_notes": null,
+    "investigation_duration_sec": 0.0,
+    "timeline": [
+      {
+        "timestamp": 1785025723.5230868,
+        "event_type": "ALERT_CREATED",
+        "actor": "SYSTEM",
+        "description": "AML Alert Generated",
+        "source": "RULE_ENGINE"
+      },
+      {
+        "timestamp": 1785025723.5230868,
+        "event_type": "RULE_VALIDATION",
+        "actor": "RULE_ENGINE",
+        "description": "Rules triggered: ['RULE_STRUCTURING']",
+        "source": "RULE_ENGINE"
+      },
+      {
+        "timestamp": 1785025723.5230868,
+        "event_type": "HYBRID_RISK_EVALUATED",
+        "actor": "HYBRID_RISK_ENGINE",
+        "description": "Risk score computed as 81.0",
+        "source": "HYBRID_RISK_ENGINE"
+      },
+      {
+        "timestamp": 1785025723.5230868,
+        "event_type": "DECISION_GENERATED",
+        "actor": "DECISION_ENGINE",
+        "description": "Final recommendation: FILE_SAR",
+        "source": "DECISION_ENGINE"
+      },
+      {
+        "timestamp": 1785025723.5230868,
+        "event_type": "CASE_CLOSED",
+        "actor": "ANALYST",
+        "description": "Case dispositioned & archived into memory",
+        "source": "INVESTIGATION_WORKSPACE"
+      }
+    ],
+    "feature_vector": {
+      "risk_score": 81.0,
+      "rule_score": 0.25,
+      "ml_anomaly_score": 0.0,
+      "structuring_score": 0.85,
+      "velocity_score": 0.2,
+      "cash_ratio": 0.0,
+      "cross_border_ratio": 0.0,
+      "dense_vector": [
+        0.81,
+        0.25,
+        0.0,
+        0.85,
+        0.2,
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        0.46,
+        0.94,
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    "narrative_embedding": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.22589947954463444,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.3258693754309612,
+      0.6508512538919918,
+      0.0,
+      0.0,
+      0.0,
+      0.4740953544294896,
+      -0.1407999016645584,
+      0.4178279588593227,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "semantic_embedding": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.22589947954463444,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.3258693754309612,
+      0.6508512538919918,
+      0.0,
+      0.0,
+      0.0,
+      0.4740953544294896,
+      -0.1407999016645584,
+      0.4178279588593227,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "version": 1,
+    "timestamp": 1785025723.5240796,
     "is_deleted": false
   }
 }
