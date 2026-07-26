@@ -8,7 +8,7 @@ export const api = axios.create({
     'Content-Type': 'application/json',
     ...(import.meta.env.VITE_API_KEY ? { 'X-API-Key': import.meta.env.VITE_API_KEY } : {})
   },
-  timeout: 15000,
+  timeout: 60000,
 });
 
 api.interceptors.response.use(

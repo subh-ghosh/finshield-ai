@@ -1,127 +1,155 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { useKnowledgeGraph } from '../../hooks/useKnowledgeGraph';
+import type { GraphNodeDTO, GraphEdgeDTO } from '../../types/graph';
+import { Loader2, AlertCircle } from 'lucide-react';
 
-export function KnowledgeGraph({ customerId }: { customerId: string }) {
-  const fgRef = useRef<any>();
-  const [data, setData] = useState({ nodes: [], links: [] });
-  const [width, setWidth] = useState(800);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface KnowledgeGraphProps {
+  customerId: string;
+}
+
+export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ customerId }) => {
+  const { data, isLoading, isError, error } = useKnowledgeGraph(customerId, 2);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+  // Measure container dimensions on mount and resize
   useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    
-    fetch(`http://localhost:8000/api/v1/graph/${customerId}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Graph data not available');
-        return res.json();
-      })
-      .then(json => {
-        if (isMounted) {
-          setData(json);
-          setLoading(false);
-        }
-      })
-      .catch(err => {
-        if (isMounted) {
-          console.error(err);
-          setError('Failed to load knowledge graph.');
-          setLoading(false);
-        }
-      });
-      
-    return () => { isMounted = false; };
-  }, [customerId]);
-
-  useEffect(() => {
+    const measure = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDimensions({ width: rect.width, height: rect.height });
+      }
+    };
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
     if (containerRef.current) {
-      setWidth(containerRef.current.clientWidth);
-      const resizeObserver = new ResizeObserver(entries => {
-        for (let entry of entries) {
-          setWidth(entry.contentRect.width);
-        }
-      });
       resizeObserver.observe(containerRef.current);
-      return () => resizeObserver.disconnect();
     }
+    return () => resizeObserver.disconnect();
   }, []);
 
-  useEffect(() => {
-    // Force graph to center after data load
-    if (!loading && data.nodes.length > 0) {
-      setTimeout(() => {
-        if (fgRef.current) {
-          fgRef.current.d3Force('charge').strength(-400);
-          fgRef.current.zoomToFit(400, 50);
-        }
-      }, 500);
-    }
-  }, [data, loading]);
+  // Map backend DTOs to ForceGraph expected node/link format
+  const graphData = useMemo(() => {
+    if (!data) return { nodes: [], links: [] };
+
+    return {
+      nodes: data.nodes.map((n: GraphNodeDTO) => ({
+        id: n.id,
+        name: n.label,
+        type: n.type,
+        val: n.type === 'CUSTOMER' ? 2 : 1,
+        color: getNodeColor(n.type, n.metadata?.risk_score),
+        ...n.metadata
+      })),
+      links: data.edges.map((e: GraphEdgeDTO) => ({
+        source: e.source,
+        target: e.target,
+        label: e.relationship,
+        value: e.weight || 1
+      }))
+    };
+  }, [data]);
+
+  const handleNodeClick = useCallback((node: any) => {
+    console.log('Node clicked:', node);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full bg-slate-900 rounded-lg border border-slate-700/50" style={{ height: 400 }}>
+        <Loader2 className="w-8 h-8 text-brand-blue animate-spin mb-4" />
+        <span className="text-slate-300 font-medium font-mono text-sm tracking-wider">MAPPING KNOWLEDGE GRAPH...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full bg-slate-900 rounded-lg border border-brand-red/20" style={{ height: 400 }}>
+        <AlertCircle className="w-8 h-8 text-brand-red mb-4" />
+        <span className="text-slate-300 text-sm">{error instanceof Error ? error.message : 'Failed to load graph data'}</span>
+      </div>
+    );
+  }
+
+  if (graphData.nodes.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full bg-slate-900 rounded-lg border border-slate-700/50" style={{ height: 400 }}>
+        <span className="text-slate-400 text-sm">No graph connections found for this entity.</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full h-full flex flex-col bg-white border border-[#E4E7EC] shadow-sm mt-6">
-      <div className="px-4 py-3 border-b border-[#E4E7EC] flex items-center justify-between bg-[#F9FAFB]">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-          <h3 className="text-[13px] font-bold text-brand-black uppercase tracking-wider">Living Knowledge Graph</h3>
-        </div>
-        <div className="text-[11px] text-[#6B7280]">
-          Showing 2-hop network for {customerId}
+    <div
+      ref={containerRef}
+      className="relative w-full bg-[#0a0f18] rounded-lg border border-slate-800 overflow-hidden shadow-2xl"
+      style={{ height: 400 }}
+    >
+      <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-sm p-3 rounded-md border border-slate-700/50">
+        <h3 className="text-slate-200 text-xs font-bold mb-2 uppercase tracking-wider">Network Legend</h3>
+        <div className="flex flex-col gap-1.5 text-xs text-slate-400">
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div> Customer</div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#10b981]"></div> Account</div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#8b5cf6]"></div> Device / IP</div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#ef4444]"></div> High Risk Node</div>
         </div>
       </div>
-      <div className="flex-1 relative" style={{ height: '400px' }} ref={containerRef}>
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10 text-[11px] font-bold text-brand-gray tracking-wider uppercase">
-            Loading Knowledge Graph...
-          </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10 text-[11px] font-bold text-brand-red tracking-wider uppercase">
-            {error}
-          </div>
-        )}
-        {!loading && !error && data.nodes.length > 0 && (
-          <ForceGraph2D
-          ref={fgRef}
-          width={width}
-          height={400}
-          graphData={data}
+      
+      {dimensions.width > 0 && dimensions.height > 0 && (
+        <ForceGraph2D
+          graphData={graphData}
+          width={dimensions.width}
+          height={dimensions.height}
           nodeLabel="name"
-          nodeColor={(node: any) => {
-            switch(node.group) {
-              case 'customer': return '#E1000F'; // Red
-              case 'company': return '#1F2937'; // Dark Gray
-              case 'person': return '#3B82F6'; // Blue
-              case 'ip': return '#10B981'; // Green
-              case 'phone': return '#F59E0B'; // Yellow
-              default: return '#9CA3AF';
-            }
-          }}
+          nodeColor="color"
           nodeRelSize={6}
-          linkColor={() => '#E4E7EC'}
-          linkWidth={2}
+          linkColor={() => 'rgba(148, 163, 184, 0.2)'}
+          linkWidth={1.5}
           linkDirectionalArrowLength={3.5}
           linkDirectionalArrowRelPos={1}
-          onNodeClick={(node: any) => {
-            // Center on clicked node
-            if (fgRef.current) {
-              fgRef.current.centerAt(node.x, node.y, 1000);
-              fgRef.current.zoom(2, 2000);
+          onNodeClick={handleNodeClick}
+          backgroundColor="#0a0f18"
+          nodeCanvasObject={(node: any, ctx, globalScale) => {
+            const label = node.name;
+            const fontSize = 12 / globalScale;
+            ctx.font = `${fontSize}px Sans-Serif`;
+
+            ctx.fillStyle = node.color;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.val * 2, 0, 2 * Math.PI, false);
+            ctx.fill();
+
+            if (node.color === '#ef4444') {
+               ctx.shadowColor = '#ef4444';
+               ctx.shadowBlur = 10;
+            } else {
+               ctx.shadowBlur = 0;
             }
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillText(label, node.x, node.y + (node.val * 2) + fontSize);
           }}
         />
-        )}
-        
-        {/* Legend */}
-        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 border border-[#E4E7EC] shadow-sm text-[10px] uppercase font-bold tracking-wider space-y-2 pointer-events-none">
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#E1000F]" /> Target Customer</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#1F2937]" /> Connected Entity</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#3B82F6]" /> Director / UBO</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#10B981]" /> Digital Fingerprint</div>
-        </div>
-      </div>
+      )}
     </div>
   );
+};
+
+// Helper to determine node color based on type and risk score
+function getNodeColor(type: string, riskScore?: number): string {
+  if (riskScore && riskScore >= 75) return '#ef4444'; // Red for high risk
+  
+  switch (type.toUpperCase()) {
+    case 'CUSTOMER': return '#3b82f6'; // Blue
+    case 'ACCOUNT': return '#10b981'; // Green
+    case 'DEVICE':
+    case 'IP': return '#8b5cf6'; // Purple
+    case 'COMPANY': return '#f59e0b'; // Amber
+    default: return '#94a3b8'; // Slate gray
+  }
 }
+
