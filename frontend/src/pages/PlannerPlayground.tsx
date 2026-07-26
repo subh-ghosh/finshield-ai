@@ -83,7 +83,7 @@ export default function PlannerPlayground() {
         setLastResult(data)
         return n
       })
-    } catch (err: any) {
+    } catch {
       setHistory(prev => {
         const n = [...prev]
         const last = n[n.length - 1]

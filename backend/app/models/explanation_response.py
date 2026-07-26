@@ -24,6 +24,26 @@ class ExplanationResponseV1:
 
     def __post_init__(self) -> None:
         """Enforces mandatory fields validation and schema constraints."""
+        import numpy as np
+        def _clean_numpy(obj):
+            if isinstance(obj, dict):
+                return {k: _clean_numpy(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [_clean_numpy(v) for v in obj]
+            elif isinstance(obj, np.bool_):
+                return bool(obj)
+            elif isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return _clean_numpy(obj.tolist())
+            return obj
+
+        self.risk_breakdown = _clean_numpy(self.risk_breakdown)
+        self.explanation = _clean_numpy(self.explanation)
+        self.metadata = _clean_numpy(self.metadata)
+        self.metrics = _clean_numpy(self.metrics)
         if not self.response_id:
             raise ValueError("ExplanationResponseV1 validation failed: response_id is missing or empty.")
         if not self.customer_id:

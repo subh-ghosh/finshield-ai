@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sliders, Activity, TrendingUp, AlertTriangle, ArrowRight, RotateCcw, Zap, Target, Shield, CheckCircle2, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Sliders, TrendingUp, RotateCcw, Zap, Target, CheckCircle2, ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 interface CounterfactualSimulatorWidgetProps {
   customerId: string;
@@ -17,13 +17,12 @@ interface ContributionItemData {
 }
 
 export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidgetProps> = ({
-  customerId,
   initialScore = 41,
   initialRecommendation = 'MANUAL_REVIEW'
 }) => {
   const [cashCount, setCashCount] = useState(0);
-  const [cashAmount, setCashAmount] = useState(9500);
-  const [crossBorderChange, setCrossBorderChange] = useState(0);
+  const [cashAmount] = useState(9500);
+  const [crossBorderChange] = useState(0);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // Deterministic mathematical formulas

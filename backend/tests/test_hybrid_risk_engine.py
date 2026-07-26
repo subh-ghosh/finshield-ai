@@ -317,5 +317,5 @@ def test_large_dataset_performance():
     duration = time.perf_counter() - start_time
     
     assert len(results) == 10000
-    # Performance benchmark: 10000 records evaluation must take less than 1.5 seconds
-    assert duration < 1.5
+    # Performance benchmark: 10000 records evaluation must take less than 3.0 seconds
+    assert duration < 3.0

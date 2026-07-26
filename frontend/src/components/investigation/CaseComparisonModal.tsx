@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Scale, CheckCircle2, AlertTriangle, ArrowRight, Shield, Activity, Clock, FileText } from 'lucide-react';
+import { X, Scale, CheckCircle2, AlertTriangle, Activity, FileText } from 'lucide-react';
 import { useCaseComparison } from '../../hooks/useSimilarCases';
 
 interface CaseComparisonModalProps {

@@ -2,6 +2,7 @@
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+import numpy as np
 from app.api.v1.dependencies import get_explainability_service, get_pipeline_result
 from app.api.v1.schemas.requests import CustomerAnalysisRequest, BatchAnalysisRequest
 from app.api.v1.schemas.responses import ErrorResponse
@@ -10,6 +11,21 @@ from app.models.explainability_context import ExplainabilityContext
 from app.models.evidence_bundle import EvidenceBundle
 from app.models.explanation_response import ExplanationResponseV1
 from app.models.pipeline_result import PipelineResult
+
+def _convert_numpy_types(obj):
+    if isinstance(obj, dict):
+        return {k: _convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_numpy_types(v) for v in obj]
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return _convert_numpy_types(obj.tolist())
+    return obj
 
 router = APIRouter(prefix="/analyze", tags=["Risk Analysis"])
 
@@ -46,7 +62,7 @@ def analyze_customer(
     # Locate raw feature record
     features_df = pipeline_res.customer_features
     match_row = features_df[features_df["customer_id"].astype(str) == customer_id]
-    raw_feat = match_row.iloc[0].to_dict() if len(match_row) > 0 else {}
+    raw_feat = _convert_numpy_types(match_row.iloc[0].to_dict() if len(match_row) > 0 else {})
 
     exp_context = ExplainabilityContext(
         hybrid_result=h_res,
@@ -93,7 +109,7 @@ def analyze_batch(
             missing_ids.append(cid)
             continue
             
-        raw_feat = features_dict_map.get(cid, {})
+        raw_feat = _convert_numpy_types(features_dict_map.get(cid, {}))
         exp_context = ExplainabilityContext(
             hybrid_result=h_res,
             evidence_bundle=EvidenceBundle(),

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, CheckCircle2, AlertTriangle, Info, ArrowRight, Lock, Check } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Info, Lock, Check } from 'lucide-react';
 import type { EvidenceGapAssessment } from '../../domain/entities/EvidenceGap';
 
 interface EvidenceGapWidgetProps {

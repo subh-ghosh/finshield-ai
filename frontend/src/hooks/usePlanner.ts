@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PlannerEvent, PlannerState } from "../domain/entities/PlannerTypes";
+import type { PlannerState } from "../domain/entities/PlannerTypes";
 
 function generateAnalystChatAnswer(question: string, targetId: string, data: any, cust: any): string {
   const q = question.toLowerCase();

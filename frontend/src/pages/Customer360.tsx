@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Building2, Globe, Calendar, Briefcase, ExternalLink, ArrowLeft, Search } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useCustomerDetails } from '../hooks'
 import { StateView } from '../components/shared'
 

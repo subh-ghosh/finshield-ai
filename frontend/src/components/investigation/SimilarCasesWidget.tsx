@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Shield, Scale, ChevronDown, ChevronUp, Clock, CheckCircle2, AlertTriangle, ArrowRight, Zap, Info } from 'lucide-react';
+import { History, Scale, ChevronDown, ChevronUp, Clock, Zap, Info } from 'lucide-react';
 import { useSimilarCases } from '../../hooks/useSimilarCases';
 import { CaseComparisonModal } from './CaseComparisonModal';
 
