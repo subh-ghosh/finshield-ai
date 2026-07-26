@@ -82,6 +82,11 @@ def _resolve_dataset_path() -> str:
         str: Absolute or relative filepath.
     """
     candidate_paths = [
+        # Primary: dataset/ folder (actual IBM AML dataset location)
+        "dataset/transactions.csv",
+        "../dataset/transactions.csv",
+        "../../dataset/transactions.csv",
+        # Legacy paths (Arhit's machine)
         "IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv",
         "../IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv",
         "../../IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv",

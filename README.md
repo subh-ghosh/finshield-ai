@@ -39,7 +39,7 @@ START -> planner_node -> analysis_node -> reasoning_node -> decision_node
 - **Network Agent**: Graph analysis, connectivity risk
 - **Rule Intelligence Agent**: Deterministic AML rules (structuring, high-risk jurisdiction, rapid cash-out)
 - **ML Intelligence Agent**: Isolation Forest anomaly scoring
-- **GNN Agent**: TemporalGCN relational risk scoring
+- **GNN Agent**: TemporalGCN relational risk scoring across the transaction graph
 - **Compliance Agent**: Hybrid risk fusion (0.3xRule + 0.3xML + 0.4xGNN)
 - **Evidence Aggregator**: Structured evidence graph with attribution percentages
 - **Audit Agent**: Immutable audit trail for regulatory compliance
@@ -47,60 +47,68 @@ START -> planner_node -> analysis_node -> reasoning_node -> decision_node
 ### AML Detection Techniques
 | Technique | Implementation |
 |-----------|----------------|
-| Structuring / Smurfing | Rule-004: Multiple transactions just below $10,000 threshold |
+| Structuring / Smurfing | Rule-004: Multiple transactions just below reporting threshold |
 | High-Risk Jurisdiction | Rule-012: Cross-border to FATF grey-list countries |
 | Rapid Cash-Out | Rule-008: High-velocity cash withdrawals |
-| Isolation Forest | Unsupervised anomaly detection on engineered features |
+| Isolation Forest | Unsupervised anomaly detection on engineered customer features |
 | Graph Neural Network | TemporalGCN detects relational risk across transaction graph |
-| Counterfactual Simulation | "What-if" analysis predicting risk before it happens |
+| Counterfactual Simulation | "What-if" analysis predicting risk changes before they happen |
 
 ---
 
 ## Dataset Information
 
-### Dataset: Synthetic AML Transactions
-**Type**: Synthetic — generated programmatically with documented logic (see `data/generate_dataset.py`)
+### Dataset: IBM AML Simulation Dataset
+**Source**: IBM Research — publicly available on Kaggle  
+**URL**: https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml  
+**License**: Community Data License Agreement - Sharing - Version 1.0
 
-**Inspiration / References**:
-- PaySim Synthetic Financial Dataset — E. A. Lopez-Rojas, A. Elmir, S. Axelsson (2016) [Kaggle](https://www.kaggle.com/datasets/ealaxi/paysim1)
-- IBM Transactions for Anti Money Laundering (AML) [Kaggle](https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml)
+**Location in repo**: `dataset/` folder
 
-**File**: `data/aml_transactions.csv` | **Size**: 10,000 transactions, 500 customers
+### Files
 
-### Schema
+| File | Rows | Description |
+|------|------|-------------|
+| `dataset/transactions.csv` | 1,323,234 | All financial transactions |
+| `dataset/accounts.csv` | ~10,000 | Account and customer metadata |
+| `dataset/alerts.csv` | 1,719+ | Known suspicious alert events |
+
+### Schema — transactions.csv
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `transaction_id` | string | Unique transaction ID (e.g., TX_12345678) |
-| `customer_id` | string | Sender customer ID (e.g., C_105707) |
-| `recipient_id` | string | Recipient customer/entity ID |
-| `amount` | float | Transaction amount in USD |
-| `timestamp` | ISO-8601 | Transaction datetime (2024 calendar year) |
-| `transaction_type` | enum | WIRE / CASH / ACH / CRYPTO / SWIFT |
-| `country_origin` | ISO-3166 | Originating country code |
-| `country_dest` | ISO-3166 | Destination country code |
-| `ip_address` | string | Sender login IP address |
-| `device_id` | string | Sender device fingerprint |
-| `merchant_id` | string | Merchant ID (ACH transactions only) |
-| `wallet_id` | string | Crypto wallet ID (CRYPTO transactions only) |
-| `aml_pattern` | enum | Ground truth: NONE / STRUCTURING / SMURFING / LAYERING / SHELL |
-| `is_flagged` | int | Ground truth label: 0 = clean, 1 = suspicious |
+| `TX_ID` | int | Unique transaction ID |
+| `SENDER_ACCOUNT_ID` | int | Sending account identifier |
+| `RECEIVER_ACCOUNT_ID` | int | Receiving account identifier |
+| `TX_TYPE` | string | Transaction type (e.g., TRANSFER) |
+| `TX_AMOUNT` | float | Transaction amount (USD) |
+| `TIMESTAMP` | int | Simulation step (time unit) |
+| `IS_FRAUD` | bool | Ground truth AML label |
+| `ALERT_ID` | int | Alert ID (-1 if no alert) |
+
+### Schema — accounts.csv
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `ACCOUNT_ID` | int | Unique account identifier |
+| `CUSTOMER_ID` | string | Customer identifier (e.g., C_1) |
+| `INIT_BALANCE` | float | Initial account balance |
+| `COUNTRY` | string | Account country (ISO code) |
+| `ACCOUNT_TYPE` | string | Account type classification |
+| `IS_FRAUD` | bool | Whether this account is a fraudulent actor |
+| `TX_BEHAVIOR_ID` | int | Transaction behavior profile ID |
 
 ### Dataset Statistics
-- **Total transactions**: 10,000 | **Flagged transactions**: ~1,024 (10.2%)
-- **Flagged customers**: 50 out of 500 (10%)
-- **AML patterns**: STRUCTURING (35%), SMURFING (25%), LAYERING (25%), SHELL (15%)
-- **Date range**: 2024-01-01 to 2024-12-31
-- **High-risk countries**: PK, YE, SY, IR, KP, MM, AF, HT, LA (FATF grey-list inspired)
+- **Total transactions**: 1,323,234
+- **Fraudulent transactions**: 1,719 (0.13% — highly imbalanced, realistic)
+- **Alert types in alerts.csv**: fan_in, fan_out, cycle, scatter_gather, etc.
+- **AML patterns covered**: Fan-in, Fan-out, Cycle, Scatter-gather, Bipartite
 
-### Synthetic Data Generation Logic
-- **Clean transactions**: Random amounts ($100-$50,000), normal countries, realistic timestamps
-- **Structuring**: Amounts $8,500-$9,999, CASH type, same origin/dest country
-- **Smurfing**: Small amounts ($500-$3,000), many recipients from same source
-- **Layering**: Large amounts ($20K-$200K), WIRE/SWIFT/CRYPTO through high-risk jurisdictions
-- **Shell company**: Very large amounts ($50K-$500K), WIRE to shell entity IDs
-
-To regenerate: `python data/generate_dataset.py`
+### How the Pipeline Uses This Dataset
+1. `transactions.csv` is loaded and mapped to canonical columns via `SchemaMapper`
+2. Joined with `accounts.csv` to enrich with `CUSTOMER_ID` and `COUNTRY`
+3. Features engineered: velocity, rolling sums, amount deviation, cross-account flows
+4. `IS_FRAUD` column used as ground truth for model training/evaluation
 
 ---
 
@@ -111,9 +119,9 @@ To regenerate: `python data/generate_dataset.py`
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, react-force-graph-2d, Framer Motion |
 | Backend | Python 3.11, FastAPI, Uvicorn |
 | AI Agent | LangGraph, LangChain, Google Gemini API (gemini-1.5-pro) |
-| Machine Learning | scikit-learn (Isolation Forest), NumPy (custom GCN) |
+| Machine Learning | scikit-learn (Isolation Forest), NumPy (custom TemporalGCN) |
 | Rule Engine | Custom deterministic Python rule classes |
-| Graph Analysis | NetworkX, custom TemporalGCN (numpy-only) |
+| Graph Analysis | NetworkX, custom Graph Neural Network (numpy-only) |
 | State Management | React Query (TanStack) |
 | Database | SQLite (local dev), PostgreSQL-compatible |
 
@@ -122,12 +130,12 @@ As required by hackathon rules:
 
 | Tool | Usage |
 |------|-------|
-| **Google Gemini API** (gemini-1.5-pro) | LLM for agent intent parsing, reasoning, report generation |
+| **Google Gemini API** (gemini-1.5-pro) | LLM for agent intent parsing, reasoning, and report generation |
 | **Antigravity (Google DeepMind)** | AI coding assistant used for scaffolding, implementation, and debugging |
 | **LangGraph** | Open-source multi-agent orchestration framework |
 | **LangChain** | Open-source LLM integration library |
 | **scikit-learn** | Open-source ML library (Isolation Forest) |
-| **react-force-graph-2d** | Open-source graph visualization |
+| **react-force-graph-2d** | Open-source graph visualization library |
 | **Framer Motion** | Open-source React animation library |
 
 ---
@@ -144,32 +152,42 @@ git clone https://github.com/subh-ghosh/finshield-ai.git
 cd finshield-ai
 ```
 
-### 2. Backend Setup
+### 2. Dataset
+The IBM AML dataset is included in the `dataset/` folder:
+- `dataset/transactions.csv` — 1.3M transactions
+- `dataset/accounts.csv` — Account/customer metadata
+- `dataset/alerts.csv` — Known suspicious alerts
+
+> Source: https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml
+
+### 3. Backend Setup
 ```bash
 python -m venv venv
-# Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
+
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
 
 pip install -r backend/requirements.txt
 
 cp backend/.env.example backend/.env
-# Edit backend/.env — set GEMINI_API_KEY
-
-python data/generate_dataset.py   # Generate synthetic dataset
+# Edit backend/.env — set GEMINI_API_KEY=your_key_here
 
 cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
-### 3. Frontend Setup
+### 4. Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 4. Access
+### 5. Access
 - **Frontend**: http://localhost:5173
 - **Backend API / Docs**: http://localhost:8000/docs
+
+> Note: On first startup, the backend will process the full 1.3M row dataset and cache results. This takes ~2-3 minutes. Subsequent startups use the cache instantly.
 
 ---
 
@@ -181,7 +199,8 @@ Navigate to a customer and type queries like:
 "Analyse this dataset for suspicious activity"
 "Find structuring patterns in the last 30 days"
 "Which customers made 10+ transactions under $10,000?"
-"Is customer C_105707 suspicious?"
+"Is customer C_1 suspicious?"
+"Flag high-risk customers"
 ```
 The agent dynamically selects only the relevant tools for each query.
 
@@ -207,20 +226,21 @@ Click **"Run Investigation"** on any customer to trigger the 9-agent swarm with:
 ## Project Structure
 ```
 finshield-ai/
+├── dataset/
+│   ├── transactions.csv     <- IBM AML transactions (1.3M rows)
+│   ├── accounts.csv         <- Account/customer metadata
+│   └── alerts.csv           <- Known suspicious alerts
 ├── backend/app/
-│   ├── agent/          <- Multi-agent swarm (LangGraph)
-│   ├── planner/        <- Enterprise investigation planner
-│   ├── ml/             <- Isolation Forest, GNN, Hybrid Risk Engine
-│   ├── rules/          <- Deterministic AML rule engine + rule suggester
-│   ├── explainability/ <- Natural language explanation generation
-│   └── api/v1/routers/ <- FastAPI REST endpoints
+│   ├── agent/               <- Multi-agent swarm (LangGraph)
+│   ├── planner/             <- Enterprise investigation planner
+│   ├── ml/                  <- Isolation Forest, GNN, Hybrid Risk Engine
+│   ├── rules/               <- Deterministic AML rule engine + rule suggester
+│   ├── explainability/      <- Natural language explanation generation
+│   └── api/v1/routers/      <- FastAPI REST endpoints
 ├── frontend/src/
-│   ├── pages/          <- Dashboard, Investigation Workspace
-│   └── components/     <- AgentSwarmView, KnowledgeGraph, RuleSuggestionsWidget
-├── data/
-│   ├── generate_dataset.py  <- Synthetic data generator (documented)
-│   └── aml_transactions.csv <- Generated dataset
-└── docs/               <- Architecture and design documents
+│   ├── pages/               <- Dashboard, Investigation Workspace
+│   └── components/          <- AgentSwarmView, KnowledgeGraph, etc.
+└── docs/                    <- Architecture and design documents
 ```
 
 ---
@@ -229,7 +249,6 @@ finshield-ai/
 
 | Source | Type | URL | Usage |
 |--------|------|-----|-------|
-| PaySim Synthetic Dataset | Reference/Inspiration | https://www.kaggle.com/datasets/ealaxi/paysim1 | Schema design, AML pattern definitions |
-| IBM AML Transactions | Reference/Inspiration | https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml | AML pattern realism |
-| FATF High-Risk Jurisdictions | Reference | https://www.fatf-gafi.org/en/topics/high-risk-and-other-monitored-jurisdictions.html | High-risk country list |
-| **aml_transactions.csv** | **Primary (Synthetic)** | `data/` folder | Generated via `data/generate_dataset.py` |
+| **IBM AML Simulation Dataset** | **Primary** | https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml | Main transaction dataset (1.3M rows, 3 files) |
+| FATF High-Risk Jurisdictions | Reference | https://www.fatf-gafi.org/en/topics/high-risk-and-other-monitored-jurisdictions.html | High-risk country list for Rule-012 |
+| IBM AML Research Paper | Reference | https://arxiv.org/abs/2306.16272 | AML pattern taxonomy (fan-in, fan-out, cycle) |
