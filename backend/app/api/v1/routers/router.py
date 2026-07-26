@@ -7,6 +7,7 @@ from app.api.v1.routers.health import router as health_router
 from app.api.v1.routers.metrics import router as metrics_router
 from app.api.v1.routers.planner import router as planner_router
 from app.api.v1.routers.queue import router as queue_router
+from app.api.v1.routers.memory import router as memory_router
 
 v1_router = APIRouter()
 
@@ -17,3 +18,5 @@ v1_router.include_router(health_router)
 v1_router.include_router(metrics_router)
 v1_router.include_router(planner_router)
 v1_router.include_router(queue_router)
+v1_router.include_router(memory_router)
+
