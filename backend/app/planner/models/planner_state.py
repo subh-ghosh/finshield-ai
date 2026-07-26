@@ -37,6 +37,13 @@ class PlannerState(TypedDict):
     recommendation: str
     final_report: str
 
+    # Intent Filters (extracted by planner_node from user query)
+    aml_pattern: str             # e.g. STRUCTURING, SMURFING, LAYERING
+    date_from: str               # ISO-8601 start date filter
+    date_to: str                 # ISO-8601 end date filter
+    country_filter: str          # ISO-3166 country code filter
+    transaction_type_filter: str # e.g. WIRE, CASH, TRANSFER
+
     # Audit Trail
     planner_timeline: Annotated[List[Dict[str, Any]], _merge_list]
     errors: Annotated[List[str], _merge_list]

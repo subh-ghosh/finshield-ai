@@ -1,4 +1,4 @@
-﻿"""Planner node: parses user intent and seeds the initial tool execution plan."""
+"""Planner node: parses user intent and seeds the initial tool execution plan."""
 
 import time
 from typing import Any, Dict, List, Optional
@@ -75,6 +75,7 @@ def _is_dataset_level_query(user_request: str, customer_id: str) -> bool:
         "all customers", "suspicious activity", "flag high-risk", "how many",
         "what does the data", "distribution", "pattern across", "find all",
         "structuring patterns", "high risk customers", "flag customers",
+        "which customers", "across all", "entire dataset",
     ]
     req_lower = user_request.lower()
     is_broad = any(kw in req_lower for kw in broad_keywords)
@@ -114,11 +115,13 @@ async def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     # Smart default if LLM fails
-    default_tools = (
-        ["eda_analysis"]
-        if _is_dataset_level_query(user_request, customer_id)
-        else ["analyze_customer"]
-    )
+    if _is_dataset_level_query(user_request, customer_id):
+        default_tools = ["eda_analysis"]
+    elif customer_id not in ("UNKNOWN", "", None):
+        # For targeted single-customer: feature -> anomaly -> risk_classify -> explain
+        default_tools = ["feature_engineering", "anomaly_detection", "risk_classification", "get_explanation"]
+    else:
+        default_tools = ["analyze_customer"]
 
     try:
         llm = get_llm()

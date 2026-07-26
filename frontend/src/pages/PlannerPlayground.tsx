@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -209,8 +209,24 @@ export default function PlannerPlayground() {
                 )}
 
                 {/* Result */}
-                {msg.result && (
-                  <div className="p-4 space-y-3 font-sans">
+                {msg.result &                  <div className="p-4 space-y-3 font-sans">
+                    {/* Intent Parsing Summary — shows what the agent extracted */}
+                    {(msg.result.filters_extracted && Object.keys(msg.result.filters_extracted).length > 0) && (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                        <div className="text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                          <Code2 className="h-3 w-3" /> Query Intent Parsed
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          {Object.entries(msg.result.filters_extracted).map(([k, v]) => v && (
+                            <div key={k} className="flex items-center gap-1 text-[11px]">
+                              <span className="text-blue-500 font-mono">{k}:</span>
+                              <span className="text-blue-800 font-semibold">{String(v)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Key metrics */}
                     <div className="grid grid-cols-3 gap-3">
                       <div className="text-center p-3 bg-[#FAFBFC] border border-[#E4E7EC]">
@@ -227,7 +243,7 @@ export default function PlannerPlayground() {
                       </div>
                     </div>
 
-                    {/* Report â€” rendered as Markdown */}
+                    {/* Report — rendered as Markdown */}
                     {msg.result.final_report && (
                       <div className="mt-2">
                         <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -247,6 +263,7 @@ export default function PlannerPlayground() {
                       </div>
                     )}
                   </div>
+    </div>
                 )}
               </div>
             )}

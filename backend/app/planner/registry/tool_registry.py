@@ -4,10 +4,13 @@ from typing import Dict, List, Optional
 from app.planner.tools.base_tool import BaseTool, ToolMetadata
 from app.planner.tools.analyze_customer_tool import AnalyzeCustomerTool
 from app.planner.tools.analyze_batch_tool import AnalyzeBatchTool
+from app.planner.tools.anomaly_detection_tool import AnomalyDetectionTool
 from app.planner.tools.eda_analysis_tool import EDAAnalysisTool
+from app.planner.tools.feature_engineering_tool import FeatureEngineeringTool
 from app.planner.tools.get_customer_profile_tool import GetCustomerProfileTool
 from app.planner.tools.get_explanation_tool import GetExplanationTool
 from app.planner.tools.health_tool import HealthTool
+from app.planner.tools.risk_classification_tool import RiskClassificationTool
 from app.planner.tools.version_tool import VersionTool
 from app.utils.logger import get_logger
 
@@ -89,11 +92,16 @@ def build_registry() -> ToolRegistry:
     """
     registry = ToolRegistry()
     for tool in [
-        EDAAnalysisTool(),
+        # 5 core tools matching the problem statement's required agent architecture
+        EDAAnalysisTool(),              # EDA Tool
+        FeatureEngineeringTool(),       # Feature Engineering Tool
+        AnomalyDetectionTool(),         # Anomaly Detection Tool
+        RiskClassificationTool(),       # Risk Classification Tool
+        GetExplanationTool(),           # Explanation Component
+        # Supporting tools
         AnalyzeCustomerTool(),
         AnalyzeBatchTool(),
         GetCustomerProfileTool(),
-        GetExplanationTool(),
         HealthTool(),
         VersionTool(),
     ]:

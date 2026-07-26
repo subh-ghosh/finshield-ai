@@ -181,3 +181,15 @@ class FinShieldAPIClient:
     async def get_eda_summary(self) -> Dict[str, Any]:
         """GET /api/v1/eda/summary â€” dataset-level EDA stats."""
         return await self._request("GET", "/api/v1/eda/summary")
+
+    async def get_customer_features(self, customer_id: str) -> Dict[str, Any]:
+        """GET /api/v1/features/{customer_id} — AML feature vector."""
+        return await self._request("GET", f"/api/v1/features/{customer_id}")
+
+    async def get_customer_anomaly(self, customer_id: str) -> Dict[str, Any]:
+        """GET /api/v1/anomaly/{customer_id} — Isolation Forest anomaly score."""
+        return await self._request("GET", f"/api/v1/anomaly/{customer_id}")
+
+    async def get_risk_classification(self, customer_id: str) -> Dict[str, Any]:
+        """GET /api/v1/risk-classify/{customer_id} — Hybrid risk classification."""
+        return await self._request("GET", f"/api/v1/risk-classify/{customer_id}")

@@ -34,6 +34,7 @@ class InvestigateRequest(BaseModel):
 class InvestigateResponse(BaseModel):
     """Response model for investigation results."""
     customer_id: str
+    user_request: str
     correlation_id: str
     planner_status: str
     investigation_complete: bool
@@ -45,6 +46,8 @@ class InvestigateResponse(BaseModel):
     reasoning_steps: List[str]
     execution_time_ms: float
     errors: List[str]
+    # Intent parsing — shows what the agent extracted from the query
+    filters_extracted: Optional[Dict[str, Any]] = None
     # V2 multi-agent fields
     planner_timeline: Optional[List[Dict[str, Any]]] = None
     evidence_graph: Optional[Dict[str, Any]] = None
@@ -89,19 +92,26 @@ async def investigate(
     #        failure here never breaks the existing enterprise response.
     planner_timeline = None
     evidence_graph = None
+    filters_extracted = {}
     try:
         from app.agent.graph import get_agent_executor
         from langchain_core.messages import HumanMessage
         agent = get_agent_executor()
         thread_cfg = {"configurable": {"thread_id": f"{customer_id}-{cid}"}}
+        # FIX: Pass the actual user request text, not a hardcoded string
+        user_request_text = body.request or f"Investigate customer {customer_id}"
         agent_input = {
-            "messages": [HumanMessage(content=f"Investigate {customer_id}")],
+            "messages": [HumanMessage(content=user_request_text)],
             "customer_id": customer_id,
+            "user_request": user_request_text,
         }
         agent_result = await agent.ainvoke(agent_input, config=thread_cfg)
         # planner_timeline is a list of ActionLog TypedDicts
         raw_timeline = agent_result.get("planner_timeline", [])
         planner_timeline = [dict(t) for t in raw_timeline]
+        # Extract filters from the timeline entry
+        if planner_timeline:
+            filters_extracted = planner_timeline[0].get("filters_extracted", {})
         # evidence_graph is embedded in the last Evidence Aggregator AIMessage
         for msg in reversed(agent_result.get("messages", [])):
             content = getattr(msg, "content", "")
@@ -116,6 +126,7 @@ async def investigate(
 
     return InvestigateResponse(
         customer_id=result.customer_id,
+        user_request=body.request,
         correlation_id=result.correlation_id,
         planner_status="COMPLETED",
         investigation_complete=True,
@@ -127,6 +138,7 @@ async def investigate(
         reasoning_steps=[f"{evt['action']}: {evt['description']}" for evt in result.timeline],
         execution_time_ms=result.execution_time_ms,
         errors=[],
+        filters_extracted=filters_extracted or {},
         planner_timeline=planner_timeline,
         evidence_graph=evidence_graph,
     )
