@@ -7,6 +7,10 @@ from app.config import PipelineConfig
 from app.services.pipeline import AMLPipeline
 from app.explainability.explainability_service import ExplainabilityService
 from app.models.pipeline_result import PipelineResult
+from app.services.graph_adapter import NetworkXAdapter
+from app.repositories.graph_repository import GraphRepository
+from app.services.graph_insights import GraphInsightsEngine
+from app.services.graph_service import GraphService
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -18,6 +22,21 @@ APP_START_TIME: float = time.time()
 _pipeline_instance: Optional[AMLPipeline] = None
 _pipeline_result_cache: Optional[PipelineResult] = None
 _explainability_service_instance: Optional[ExplainabilityService] = None
+_graph_service_instance: Optional[GraphService] = None
+
+def get_graph_service() -> GraphService:
+    """FastAPI Dependency providing GraphService instance."""
+    global _graph_service_instance
+    if _graph_service_instance is None:
+        logger.info("FastAPI Dependency: Initializing GraphService singleton...")
+        # Get the cached pipeline result directly
+        pipeline_result = get_pipeline_result()
+        adapter = NetworkXAdapter()
+        repository = GraphRepository(adapter)
+        insights_engine = GraphInsightsEngine()
+        _graph_service_instance = GraphService(repository, insights_engine, pipeline_result)
+        logger.info("GraphService initialized successfully.")
+    return _graph_service_instance
 
 def get_pipeline() -> AMLPipeline:
     """FastAPI Dependency providing AMLPipeline instance.

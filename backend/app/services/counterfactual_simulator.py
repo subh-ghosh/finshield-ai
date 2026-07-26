@@ -4,7 +4,8 @@ import math
 from typing import Dict, Any
 from app.models.counterfactual import (
     CounterfactualSimulationRequest,
-    CounterfactualSimulationResult
+    CounterfactualSimulationResult,
+    ContributionItem
 )
 
 

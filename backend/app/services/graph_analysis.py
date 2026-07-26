@@ -2,31 +2,23 @@
 
 import pandas as pd
 import networkx as nx
-from typing import Dict
+from typing import Dict, List, Tuple
 from app.utils.logger import get_logger
+from app.services.graph_adapter import IGraphAdapter
+from app.models.graph_models import GraphNode, GraphEdge, CentralityMetrics
 
 logger = get_logger(__name__)
 
 class GraphAnalyzer:
-    """Uses NetworkX to build transaction graphs and calculate network-level risk."""
+    """Uses NetworkX to build transaction graphs and calculate network-level risk.
+    (Legacy implementation preserved for AMLPipeline compatibility)"""
 
     def __init__(self):
         pass
 
     def run(self, clean_dataframe: pd.DataFrame) -> Dict[str, float]:
-        """Builds a directed graph and calculates a network risk score for each customer.
-        
-        Args:
-            clean_dataframe: Transactions DataFrame containing SENDER_ACCOUNT_ID and RECEIVER_ACCOUNT_ID.
-            
-        Returns:
-            Dict[str, float]: Mapping of customer_id to network_risk_score.
-        """
+        """Builds a directed graph and calculates a network risk score for each customer."""
         logger.info("Starting Network Graph Analysis...")
-        
-        # We need sender and receiver. Since transactions have 'customer_id' as the sender,
-        # and 'receiver_account_id' (or similar). Let's map it.
-        # Ensure we have the necessary columns
         sender_col = None
         receiver_col = None
         
@@ -38,33 +30,24 @@ class GraphAnalyzer:
                 receiver_col = col
                 
         if not sender_col or not receiver_col:
-            logger.warning("Could not find sender/receiver columns for Graph Analysis. Returning 0.0 scores.")
-            # Return 0.0 for all unique customer_ids if available
             cust_col = "customer_id" if "customer_id" in clean_dataframe.columns else sender_col
             if cust_col:
                 return {str(c): 0.0 for c in clean_dataframe[cust_col].unique()}
             return {}
 
-        # Vectorized graph building
-        logger.info("Aggregating edges for graph...")
-        # Cap the dataframe size to prevent extreme memory usage during graph analysis
         if len(clean_dataframe) > 50000:
-            logger.warning(f"Dataframe too large for graph analysis ({len(clean_dataframe)}). Sampling 50000 rows.")
             df_subset = clean_dataframe.sample(50000, random_state=42)
         else:
             df_subset = clean_dataframe
 
-        # Ensure amount is float
         if "amount" not in df_subset.columns:
             df_subset["amount"] = 1.0
         
-        # Group by sender and receiver to sum weights and count edges
         edges = df_subset.groupby([sender_col, receiver_col]).agg(
             weight=("amount", "sum"),
             count=("amount", "count")
         ).reset_index()
 
-        # Convert columns to string explicitly to avoid typing issues
         edges[sender_col] = edges[sender_col].astype(str)
         edges[receiver_col] = edges[receiver_col].astype(str)
 
@@ -76,33 +59,58 @@ class GraphAnalyzer:
             create_using=nx.DiGraph()
         )
                 
-        logger.info(f"Built transaction graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges.")
-        
         risk_scores: Dict[str, float] = {}
-        
-        # Assign scores based on simple degrees to be O(V+E) and instant
         for node in G.nodes():
             score = 0.0
-            
             in_deg = G.in_degree(node)
             out_deg = G.out_degree(node)
             total_deg = in_deg + out_deg
             
-            # High activity node
             if total_deg > 50:
                 score += 10.0
-                
-            # Fan-out anomaly (distributor)
             if out_deg > 10 and in_deg <= 2:
                 score += 20.0
-                
-            # Fan-in anomaly (collector)
             if in_deg > 10 and out_deg <= 2:
                 score += 20.0
-                
-            # Fast simple heuristic instead of pagerank
             score += min(total_deg, 50.0)
-                
             risk_scores[node] = min(score, 100.0)
             
         return risk_scores
+
+
+class KnowledgeGraphAnalyzer:
+    """Executes pure graph theoretical algorithms on the IGraphAdapter for the Knowledge Graph module."""
+    
+    def __init__(self, adapter: IGraphAdapter):
+        self.adapter = adapter
+        
+    def get_ego_graph(self, node_id: str, radius: int = 2) -> Tuple[List[GraphNode], List[GraphEdge]]:
+        """Retrieve the neighborhood graph centered on a specific node."""
+        return self.adapter.get_ego_graph_data(node_id, radius)
+        
+    def calculate_centrality(self, node_id: str) -> CentralityMetrics:
+        """Calculate network centrality metrics for a specific node."""
+        # Note: In a production enterprise system, centrality might be cached or approximated.
+        degree_map = self.adapter.calculate_degree_centrality()
+        betweenness_map = self.adapter.calculate_betweenness_centrality(k=50) # Approx for speed
+        pagerank_map = self.adapter.calculate_pagerank()
+        
+        return CentralityMetrics(
+            degree=degree_map.get(node_id, 0.0),
+            betweenness=betweenness_map.get(node_id, 0.0),
+            pagerank=pagerank_map.get(node_id, 0.0)
+        )
+        
+    def find_shortest_path(self, source: str, target: str) -> List[GraphNode]:
+        """Find the shortest path between two nodes and return the populated nodes."""
+        path_ids = self.adapter.shortest_path(source, target)
+        return [self.adapter.get_node(n_id) for n_id in path_ids]
+        
+    def get_connected_entities(self, node_id: str) -> List[GraphNode]:
+        """Get all entities directly connected to the specified node."""
+        neighbor_ids = self.adapter.get_neighbors(node_id)
+        return [self.adapter.get_node(n_id) for n_id in neighbor_ids]
+        
+    def get_communities(self) -> List[List[str]]:
+        """Detect and return distinct communities within the graph."""
+        return self.adapter.detect_communities()

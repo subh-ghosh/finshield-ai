@@ -6,7 +6,9 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
 import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation } from '../hooks'
 import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
-import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget, SimilarCasesWidget } from '../components/investigation'
+import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget, SimilarCasesWidget, RuleSuggestionsWidget } from '../components/investigation'
+import { KnowledgeGraph } from '../components/investigation/KnowledgeGraph'
+import { KnowledgeGraphSummary } from '../components/investigation/KnowledgeGraphSummary'
 
 
 
@@ -31,7 +33,7 @@ export default function InvestigationWorkspace() {
   // Enterprise Investigation Mode
   const { investigate, data: enterpriseData, isPending: isEnterprisePending, error: enterpriseError } = usePlannerInvestigation()
 
-  const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar'>('risk')
+  const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar' | 'graph'>('risk')
 
   useEffect(() => {
     if (mode === 'chat') {
@@ -121,9 +123,15 @@ export default function InvestigationWorkspace() {
             </button>
             <button
               onClick={() => setLeftTab('evidence')}
-              className={`pb-2 text-[11px] font-bold tracking-wider uppercase ${leftTab === 'evidence' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+              className={`pb-2 text-[11px] font-bold tracking-wider uppercase mr-6 ${leftTab === 'evidence' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
             >
               Evidence
+            </button>
+            <button
+              onClick={() => setLeftTab('graph')}
+              className={`pb-2 text-[11px] font-bold tracking-wider uppercase ${leftTab === 'graph' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+            >
+              Knowledge Graph
             </button>
           </div>
 
@@ -182,6 +190,8 @@ export default function InvestigationWorkspace() {
                     />
                   );
                 })()}
+
+                <RuleSuggestionsWidget />
               </div>
             )}
 
@@ -209,6 +219,13 @@ export default function InvestigationWorkspace() {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {leftTab === 'graph' && (
+              <div className="p-6 space-y-6">
+                <KnowledgeGraphSummary customerId={customerId} />
+                <KnowledgeGraph customerId={customerId} />
               </div>
             )}
           </div>

@@ -1,8 +1,10 @@
 """Pydantic v2 response schemas for REST API error, health, metrics, and profile endpoints."""
 
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TypeVar, Generic
 from pydantic import BaseModel, Field
+
+T = TypeVar('T')
 
 class ErrorResponse(BaseModel):
     """Standardized HTTP error response structure."""
@@ -37,3 +39,11 @@ class CustomerProfileResponse(BaseModel):
     feature_metrics: Dict[str, Any] = Field(..., description="Engineered behavioral feature metrics dictionary")
     rule_summary: Optional[Dict[str, Any]] = Field(None, description="Summary of rule evaluations")
     anomaly_summary: Optional[Dict[str, Any]] = Field(None, description="Summary of anomaly detection")
+
+class ApiResponse(BaseModel, Generic[T]):
+    """Generic API response wrapper providing standardized envelope."""
+    success: bool = Field(True, description="Whether the operation was successful")
+    version: int = Field(1, description="API payload version")
+    generated_at: str = Field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), description="ISO 8601 generation timestamp")
+    data: T = Field(..., description="The main response payload")
+    message: Optional[str] = Field(None, description="Optional response message")
