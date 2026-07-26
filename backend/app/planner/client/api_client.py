@@ -177,3 +177,7 @@ class FinShieldAPIClient:
     async def get_version(self) -> Dict[str, Any]:
         """GET /api/v1/version"""
         return await self._request("GET", "/api/v1/version")
+
+    async def get_eda_summary(self) -> Dict[str, Any]:
+        """GET /api/v1/eda/summary — dataset-level EDA stats."""
+        return await self._request("GET", "/api/v1/eda/summary")

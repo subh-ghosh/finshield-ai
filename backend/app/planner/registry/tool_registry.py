@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 from app.planner.tools.base_tool import BaseTool, ToolMetadata
 from app.planner.tools.analyze_customer_tool import AnalyzeCustomerTool
 from app.planner.tools.analyze_batch_tool import AnalyzeBatchTool
+from app.planner.tools.eda_analysis_tool import EDAAnalysisTool
 from app.planner.tools.get_customer_profile_tool import GetCustomerProfileTool
 from app.planner.tools.get_explanation_tool import GetExplanationTool
 from app.planner.tools.health_tool import HealthTool
@@ -88,6 +89,7 @@ def build_registry() -> ToolRegistry:
     """
     registry = ToolRegistry()
     for tool in [
+        EDAAnalysisTool(),
         AnalyzeCustomerTool(),
         AnalyzeBatchTool(),
         GetCustomerProfileTool(),
