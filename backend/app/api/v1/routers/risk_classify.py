@@ -1,4 +1,4 @@
-﻿"""Risk Classification Router — converts ML/rule scores into risk categories."""
+"""Risk Classification Router — converts ML/rule scores into risk categories."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.v1.dependencies import get_pipeline_result
@@ -13,6 +13,26 @@ def _safe(val):
     if isinstance(val, np.integer): return int(val)
     if isinstance(val, np.floating): return float(val) if not np.isnan(val) else None
     return val
+
+
+_REC_MAP = {
+    "continue monitoring":  "CLEAR",
+    "monitor":              "CLEAR",
+    "clear":                "CLEAR",
+    "manual review":        "MANUAL_REVIEW",
+    "manual_review":        "MANUAL_REVIEW",
+    "flag for review":      "MANUAL_REVIEW",
+    "escalate":             "ESCALATE",
+    "escalation":           "ESCALATE",
+    "report":               "FILE_SAR",
+    "file sar":             "FILE_SAR",
+    "file_sar":             "FILE_SAR",
+    "sar":                  "FILE_SAR",
+}
+
+def _normalize_rec(raw: str) -> str:
+    """Map any recommendation text to the standard CLEAR/MANUAL_REVIEW/ESCALATE/FILE_SAR enum."""
+    return _REC_MAP.get(str(raw).lower().strip(), str(raw).upper().replace(" ", "_"))
 
 
 @router.get(
@@ -74,7 +94,8 @@ def get_risk_classification(
         "risk_score_pct": risk_score_pct,
         "risk_category": category,
         "severity": str(h_res.severity),
-        "recommendation": str(h_res.recommendation),
+        "recommendation": _normalize_rec(str(h_res.recommendation)),
+        "recommendation_label": str(h_res.recommendation),
         "escalation_action": str(h_res.recommendation),
         "score_breakdown": {
             "overall_hybrid_score": _safe(h_res.overall_risk_score),

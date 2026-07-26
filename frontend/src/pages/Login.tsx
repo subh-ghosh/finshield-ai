@@ -35,7 +35,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-xs text-gray-500">
-          Â© FINSHIELD AI Group {new Date().getFullYear()}
+          Â© FinShield AI Group {new Date().getFullYear()}
         </div>
       </div>
 
@@ -106,4 +106,5 @@ export default function Login() {
     </div>
   )
 }
+
 

@@ -1,10 +1,40 @@
 """FastAPI main application entrypoint with middleware, OpenAPI metadata, and exception handling."""
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router as api_router
 from app.api.v1.middleware.logging import RequestLoggingMiddleware
 from app.api.v1.middleware.exception_handlers import register_exception_handlers
+import logging
+import asyncio
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Pre-warm the pipeline cache at startup so all first user requests are instant."""
+    logger.info("🔥 FinShield AI: Pre-warming pipeline cache on startup...")
+    try:
+        # Run blocking pipeline load in a thread pool to not block the event loop
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, _prewarm_pipeline)
+        logger.info("✅ FinShield AI: Pipeline cache warm — server ready for requests.")
+    except Exception as e:
+        logger.warning(f"⚠️  Pipeline pre-warm failed (will load on first request): {e}")
+    yield  # Server is running
+    logger.info("🛑 FinShield AI: Shutting down.")
+
+
+def _prewarm_pipeline():
+    """Load and cache the full pipeline synchronously."""
+    from app.api.v1.dependencies import get_pipeline_result
+    try:
+        get_pipeline_result()
+    except Exception as e:
+        logger.warning(f"Pre-warm exception: {e}")
+
 
 app = FastAPI(
     title="FinShield AI Enterprise Intelligence Platform",
@@ -12,7 +42,8 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 import os
@@ -44,4 +75,4 @@ app.include_router(api_router, prefix="/api", dependencies=[Depends(verify_api_k
 @app.get("/health", tags=["System Operations"])
 def health_check():
     """Root health check endpoint."""
-    return {"status": "ok", "service": "FinShield AI Backend", "version": "1.0.0"}
+    return {"status": "ok", "service": "FinShield AI Intelligence API", "version": "1.0.0"}

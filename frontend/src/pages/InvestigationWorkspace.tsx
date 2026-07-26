@@ -172,18 +172,19 @@ export default function InvestigationWorkspace() {
                 {riskClassData?.recommendation && (
                   <div className="mt-2 text-right">
                     <span className={`text-[10px] font-bold px-2 py-0.5 ${
-                      riskClassData.recommendation === 'FILE_SAR' ? 'bg-red-100 text-red-700' :
-                      riskClassData.recommendation === 'ESCALATE' ? 'bg-orange-100 text-orange-700' :
-                      riskClassData.recommendation === 'MANUAL_REVIEW' ? 'bg-yellow-100 text-yellow-700' :
+                      ['FILE_SAR', 'FILE SAR', 'SAR'].includes(riskClassData.recommendation?.toUpperCase?.() ?? '') ? 'bg-red-100 text-red-700' :
+                      ['ESCALATE', 'ESCALATION'].includes(riskClassData.recommendation?.toUpperCase?.() ?? '') ? 'bg-orange-100 text-orange-700' :
+                      ['MANUAL_REVIEW', 'MANUAL REVIEW', 'FLAG FOR REVIEW'].includes(riskClassData.recommendation?.toUpperCase?.() ?? '') ? 'bg-yellow-100 text-yellow-700' :
                       'bg-green-100 text-green-700'
-                    }`}>{riskClassData.recommendation.replace('_', ' ')}</span>
+                    }`}>
+                      {riskClassData.recommendation_label || riskClassData.recommendation}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
-              </div>
-            </div>
           </div>
+
 
           {/* Left Panel Tabs */}
           <div className="flex border-b border-[#E4E7EC] px-6 mt-2 overflow-x-auto">
