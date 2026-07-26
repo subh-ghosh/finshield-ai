@@ -7,6 +7,7 @@ export function useInvestigationQueue() {
   return useQuery<QueueItem[]>({
     queryKey: queryKeys.queue.all,
     queryFn: () => UseCases.getQueue.execute(),
+    staleTime: 5 * 60 * 1000, // 5 minutes - queue doesn't change frequently
     refetchOnWindowFocus: true,
   });
 }

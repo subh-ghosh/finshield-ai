@@ -99,15 +99,30 @@ export class CustomerMapper {
           risk: 'Medium'
         }
       ],
-      recent_transactions: [
-        {
-          date: new Date().toISOString().split('T')[0],
-          amount: `$${(dto.feature_metrics?.maximum_amount || 25000).toLocaleString()}`,
-          type: hash % 2 === 0 ? 'Wire Transfer' : 'SWIFT Transfer',
-          status: 'completed',
-          party: `${generateEntityName(`party_${id}`)} Inc`
-        }
-      ]
+      recent_transactions: (() => {
+        const txTypes = ['Wire Transfer', 'SWIFT Transfer', 'SEPA Transfer', 'ACH Credit', 'Domestic Transfer'];
+        const statuses = ['completed', 'completed', 'completed', 'pending', 'flagged'];
+        const parties = [
+          `${generateEntityName(`party_${id}_1`)} Inc`,
+          `${generateEntityName(`party_${id}_2`)} Ltd`,
+          `${generateEntityName(`party_${id}_3`)} Corp`,
+          `${generateEntityName(`party_${id}_4`)} Group`,
+          `${generateEntityName(`party_${id}_5`)} Holdings`,
+        ];
+        const baseAmt = dto.feature_metrics?.average_amount || 25000;
+        return Array.from({ length: 5 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (i * 7));
+          const amt = Math.round(baseAmt * (0.5 + ((hash * (i + 1)) % 150) / 100));
+          return {
+            date: d.toISOString().split('T')[0],
+            amount: `$${amt.toLocaleString()}`,
+            type: txTypes[(hash + i) % txTypes.length],
+            status: statuses[(hash + i) % statuses.length],
+            party: parties[i % parties.length],
+          };
+        });
+      })()
     };
   }
 }

@@ -1,4 +1,4 @@
-﻿import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell, X, ChevronRight, UserSquare2 } from 'lucide-react'
 
@@ -201,7 +201,7 @@ export function Layout() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Backend API</span>
-                    <span className="text-[12px] font-mono text-[#10B981]">http://localhost:8000 âœ“</span>
+                    <span className="text-[12px] font-mono text-[#10B981]">http://localhost:8000 ✓</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Investigation Engine</span>

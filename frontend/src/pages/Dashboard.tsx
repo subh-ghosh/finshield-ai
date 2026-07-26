@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Activity, AlertTriangle, Users, FileCheck, TrendingUp, TrendingDown, ArrowUpRight, Clock, RefreshCw } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Area, AreaChart } from 'recharts'
 import { useDashboardData } from '../hooks'
@@ -37,7 +37,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <Clock className="h-3.5 w-3.5 text-brand-gray" />
           <span className="text-[11px] text-brand-gray">
-            Last updated: {lastUpdated.toLocaleTimeString()} Â· Auto-refresh: 30s
+            Last updated: {lastUpdated.toLocaleTimeString()} · Auto-refresh: 30s
           </span>
           {isFetching && (
             <span className="text-[10px] font-bold text-brand-red animate-pulse">REFRESHING...</span>
@@ -96,7 +96,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-[13px] font-bold text-brand-black">Risk Distribution</h3>
-                <p className="text-[11px] text-brand-gray mt-0.5">Entity risk breakdown â€“ current period</p>
+                <p className="text-[11px] text-brand-gray mt-0.5">Entity risk breakdown – current period</p>
               </div>
               <span className="fs-section-label">Current Period</span>
             </div>

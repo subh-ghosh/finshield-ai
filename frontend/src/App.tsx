@@ -8,7 +8,17 @@ import Customer360 from '@/pages/Customer360'
 import PlannerPlayground from '@/pages/PlannerPlayground'
 import Login from '@/pages/Login'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,      // Data stays fresh for 5 minutes
+      gcTime: 30 * 60 * 1000,         // Cache stays alive for 30 minutes
+      retry: 1,                        // Only retry once on failure
+      refetchOnWindowFocus: false,     // Don't refetch when switching tabs
+      refetchOnMount: false,           // Use cache if data exists
+    },
+  },
+})
 
 function App() {
   return (

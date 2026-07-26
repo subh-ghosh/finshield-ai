@@ -184,9 +184,9 @@ export default function InvestigationWorkspace() {
               </div>
             </div>
           </div>
+        </div>
 
-
-          {/* Left Panel Tabs */}
+        {/* Left Panel Tabs */}
           <div className="flex border-b border-[#E4E7EC] px-6 mt-2 overflow-x-auto">
             <button
               onClick={() => setLeftTab('risk')}
@@ -323,7 +323,7 @@ export default function InvestigationWorkspace() {
               }`}
             >
               <CheckCircle2 className="h-4 w-4" />
-              {sarConfirmed ? 'SAR FILED âœ“' : 'FINALIZE SAR RECOMMENDATION'}
+              {sarConfirmed ? 'SAR FILED ✓' : 'FINALIZE SAR RECOMMENDATION'}
             </button>
           </div>
         </StateView>
@@ -423,7 +423,7 @@ export default function InvestigationWorkspace() {
                 <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
                 <h3 className="text-[13px] font-bold text-brand-black uppercase tracking-wider">SAR Recommendation Finalized</h3>
               </div>
-              <button onClick={() => setShowSarModal(false)} className="text-gray-400 hover:text-black font-bold text-[14px]">âœ•</button>
+              <button onClick={() => setShowSarModal(false)} className="text-gray-400 hover:text-black font-bold text-[14px]">&times;</button>
             </div>
 
             <div className="space-y-3 text-[12px] text-brand-black">

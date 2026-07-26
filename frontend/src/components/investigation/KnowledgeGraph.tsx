@@ -84,7 +84,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ customerId }) =>
             onClick={() => toggleType(type)}
             className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
               selectedTypes.has(type) 
-                ? 'bg-brand-blue/20 text-brand-blue border border-brand-blue/50' 
+                ? 'bg-brand-red/20 text-brand-red border border-brand-red/50' 
                 : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'
             }`}
           >

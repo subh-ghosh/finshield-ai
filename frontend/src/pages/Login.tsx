@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -35,7 +35,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-xs text-gray-500">
-          Â© FinShield AI Group {new Date().getFullYear()}
+          &copy; FinShield AI Group {new Date().getFullYear()}
         </div>
       </div>
 
@@ -43,9 +43,9 @@ export default function Login() {
       <div className="w-full lg:w-[55%] flex items-center justify-center bg-white p-8 relative">
         {/* Top utility bar */}
         <div className="absolute top-6 right-8 flex items-center gap-4 text-sm text-gray-500">
-          <span className="cursor-pointer hover:text-black">â“˜</span>
-          <span className="cursor-pointer hover:text-black">âŠž</span>
-          <span className="cursor-pointer hover:text-black">ðŸŒ EN â–¾</span>
+          <span className="cursor-pointer hover:text-black" title="Help">ℹ</span>
+          <span className="cursor-pointer hover:text-black" title="Accessibility">⊞</span>
+          <span className="cursor-pointer hover:text-black">🌐 EN ▾</span>
         </div>
 
         <div className="w-full max-w-[440px]">
