@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from app.utils.logger import get_logger
 from app.services.graph_analysis import GraphAnalyzer
+from app.ml.sequence_model import TransactionSequenceModel
 
 logger = get_logger(__name__)
 
@@ -12,6 +13,10 @@ class FeatureEngineering:
 
     Structured with private methods to allow future scaling of AML features.
     """
+
+    def __init__(self):
+        self.graph_analyzer = GraphAnalyzer()
+        self.sequence_model = TransactionSequenceModel()
 
     def run(self, clean_dataframe: pd.DataFrame) -> pd.DataFrame:
         """Runs the feature engineering pipeline from end to end.
@@ -28,9 +33,10 @@ class FeatureEngineering:
         if "timestamp" in clean_dataframe.columns:
             clean_dataframe["timestamp"] = pd.to_datetime(clean_dataframe["timestamp"])
             
-        # 0. Run Graph Analysis to get network risk scores
-        graph_analyzer = GraphAnalyzer()
-        network_risks = graph_analyzer.run(clean_dataframe)
+        # 0. Run Analysis
+        network_risks = self.graph_analyzer.run(clean_dataframe)
+        self.sequence_model.fit(clean_dataframe)
+        sequence_perplexity = self.sequence_model.score_customers(clean_dataframe)
         
         # 1. Compute basic transaction aggregations (grouped by customer)
         features_df = self._basic_aggregations(clean_dataframe)
@@ -38,8 +44,8 @@ class FeatureEngineering:
         # 2. Add temporal features (ratios, windows, recency)
         features_df = self._temporal_features(clean_dataframe, features_df)
         
-        # 3. Add behavioral fingerprints (velocity, diversity, smurfing)
-        features_df = self._behavioral_fingerprints(clean_dataframe, features_df, network_risks)
+        # 3. Add behavioral fingerprints (velocity, diversity, smurfing, sequence perplexity)
+        features_df = self._behavioral_fingerprints(clean_dataframe, features_df, network_risks, sequence_perplexity)
         
         # 4. Finalize features (sorting, re-ordering)
         features_df = self._finalize(features_df)
@@ -95,12 +101,14 @@ class FeatureEngineering:
         
         return df
 
-    def _behavioral_fingerprints(self, raw_df: pd.DataFrame, agg_df: pd.DataFrame, network_risks: dict) -> pd.DataFrame:
+    def _behavioral_fingerprints(self, raw_df: pd.DataFrame, agg_df: pd.DataFrame, network_risks: dict, sequence_perplexity: dict) -> pd.DataFrame:
         """Appends behavioral fingerprints (velocity, diversity, structuring) to the feature matrix."""
         df = agg_df.copy()
         
         # Map network risk
         df["network_risk_score"] = df["customer_id"].map(lambda x: network_risks.get(str(x), 0.0))
+        # Add sequence perplexity
+        df["sequence_perplexity"] = df["customer_id"].map(lambda x: sequence_perplexity.get(x, 0.0))
         
         # Structuring score (count of transactions between $9k and $10k)
         raw_df["is_structuring"] = ((raw_df["amount"] >= 9000) & (raw_df["amount"] < 10000)).astype(int)

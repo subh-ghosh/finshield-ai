@@ -320,6 +320,15 @@ class AMLPipeline:
                 )
                 explain_reports.append(explain_service.explain(exp_context))
 
+        # 11. 2026-Era Federated Learning Simulation
+        try:
+            from app.federated.local_trainer import FederatedLocalTrainer
+            fl_trainer = FederatedLocalTrainer(export_dir=self.config.reports_dir)
+            fl_trainer.export_dp_weights(dataset_hash, anomaly_engine)
+            # Federated export completed
+        except Exception as e:
+            logger.warning(f"Federated learning export failed (non-critical): {e}")
+
         logger.info("Pipeline Completed")
         
         PipelineEvents.on_pipeline_finished(elapsed)
