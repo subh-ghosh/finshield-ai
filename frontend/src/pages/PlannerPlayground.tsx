@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -8,8 +8,8 @@ function extractCustomerId(message: string): string {
   // Match C_NNN, CUST-NNN patterns
   const match = message.match(/\b(C_\d+|CUST-\d+)\b/i)
   if (match) return match[1].toUpperCase()
-  // Fallback: treat whole trimmed input as customer ID
-  return message.trim().toUpperCase().replace(/\s+/g, '_')
+  // Dataset-level queries â€” no customer ID
+  return 'UNKNOWN'
 }
 
 function RecommendationBadge({ rec }: { rec: string }) {
@@ -58,7 +58,7 @@ export default function PlannerPlayground() {
       const response = await fetch('http://localhost:8000/api/v1/planner/investigate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer_id: customerId })
+        body: JSON.stringify({ customer_id: customerId, request: userMsg })
       })
 
       const data = await response.json()
@@ -136,10 +136,17 @@ export default function PlannerPlayground() {
             </div>
             <div className="text-[13px] font-semibold text-[#6B7280] font-sans">System Ready</div>
             <div className="text-[12px] text-brand-gray font-sans mt-1">
-              Type a customer ID or investigation request below
+              Ask about a customer, or query the full dataset
             </div>
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {['Investigate C_1', 'Run AML check on C_2', 'Analyze customer C_500'].map(s => (
+              {[
+                'Analyse this dataset for suspicious activity',
+                'Find structuring patterns across all customers',
+                'Investigate C_1',
+                'Run AML check on C_2',
+                'Flag high-risk customers',
+                'Analyze customer C_500',
+              ].map(s => (
                 <button
                   key={s}
                   onClick={() => setInput(s)}
@@ -220,7 +227,7 @@ export default function PlannerPlayground() {
                       </div>
                     </div>
 
-                    {/* Report — rendered as Markdown */}
+                    {/* Report â€” rendered as Markdown */}
                     {msg.result.final_report && (
                       <div className="mt-2">
                         <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -263,7 +270,7 @@ export default function PlannerPlayground() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="e.g. Investigate C_1  or  Run AML check on C_500"
+            placeholder="e.g. Analyse dataset for suspicious activity  or  Investigate C_1"
             className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-10 pr-24 py-3 text-[13px] font-mono focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all"
             disabled={isProcessing}
           />

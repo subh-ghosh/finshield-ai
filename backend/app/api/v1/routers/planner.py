@@ -16,10 +16,14 @@ router = APIRouter(tags=["Investigation Planner"])
 
 class InvestigateRequest(BaseModel):
     """Request model for triggering an AML investigation."""
-    customer_id: str = Field(..., description="Target customer identifier.", examples=["C_1200"])
+    customer_id: str = Field(
+        default="UNKNOWN",
+        description="Target customer identifier. Use 'UNKNOWN' for dataset-level queries.",
+        examples=["C_1200", "UNKNOWN"]
+    )
     request: str = Field(
         default="Perform a full AML investigation for this customer.",
-        description="Natural language investigation request."
+        description="Natural language investigation request. Can be a dataset-level query."
     )
     use_enterprise: Optional[bool] = Field(
         default=None,
