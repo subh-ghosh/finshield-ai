@@ -1,3 +1,5 @@
+import type { AgentTimelineEntry, EvidenceGraph } from '../../data/dtos/InvestigationResultDTO';
+
 export interface InvestigationResult {
   readonly customerId: string;
   readonly correlationId: string;
@@ -24,5 +26,8 @@ export interface InvestigationResult {
   readonly execution_time_ms?: number;
   readonly reasoning_steps?: string[];
   readonly errors?: string[];
-}
 
+  // V2: multi-agent execution data
+  readonly planner_timeline?: AgentTimelineEntry[];
+  readonly evidence_graph?: EvidenceGraph;
+}

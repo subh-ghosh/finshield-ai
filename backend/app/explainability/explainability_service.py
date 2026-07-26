@@ -157,3 +157,18 @@ class ExplainabilityService(IExplainabilityService):
 
         logger.info(f"Explainability Response compiled successfully in {total_time:.2f}ms.")
         return response
+
+    def explain_from_agent_graph(self, evidence_graph: dict) -> str:
+        """V2 entry point: generates a natural-language explanation from the
+        structured evidence graph produced by the multi-agent LangGraph pipeline.
+
+        This is additive — it does NOT replace the existing ``explain()`` method
+        used by the classic enterprise pipeline.
+
+        Args:
+            evidence_graph: Dict with ``layers`` and ``attribution`` keys.
+
+        Returns:
+            str: Human-readable attribution explanation.
+        """
+        return self.extractor.explain_evidence_graph(evidence_graph)

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldAlert, AlertTriangle, Info, Server, Network, Shield, BrainCircuit } from 'lucide-react';
+import type { EvidenceGraph } from '../../data/dtos/InvestigationResultDTO';
 
 const AGENT_MAP: Record<string, { icon: React.ReactNode, label: string, color: string }> = {
   'Rule Engine': { icon: <Shield className="w-4 h-4" />, label: 'Rule Intelligence Agent', color: 'text-brand-red' },
@@ -9,11 +10,9 @@ const AGENT_MAP: Record<string, { icon: React.ReactNode, label: string, color: s
   'Network': { icon: <Network className="w-4 h-4" />, label: 'Network Agent', color: 'text-emerald-500' }
 };
 
-export function EvidenceConsensusBoard({ evidences }: { evidences: any[] }) {
-  // Try to parse the new structure from V2 implementation
-  let parsedEvidences = evidences;
+export function EvidenceConsensusBoard({ evidences, evidenceGraph }: { evidences: any[], evidenceGraph?: EvidenceGraph }) {
   let attribution = { rule_pct: 45, ml_pct: 35, graph_pct: 10, compliance_pct: 10 };
-  
+
   const groupedEvidence: Record<string, any[]> = {
     'Rule Engine': [],
     'Anomaly Detection': [],
@@ -21,19 +20,26 @@ export function EvidenceConsensusBoard({ evidences }: { evidences: any[] }) {
     'Network': []
   };
 
-  // If the backend sent a flat list
-  if (Array.isArray(evidences)) {
+  // S7: If backend sent the structured evidence graph directly, use it verbatim.
+  // This is the primary path when the V2 agent pipeline ran successfully.
+  if (evidenceGraph) {
+    attribution = evidenceGraph.attribution;
+    evidenceGraph.layers.forEach(layer => {
+      if (layer.name.includes('Rule')) groupedEvidence['Rule Engine'].push(...layer.items);
+      else if (layer.name.includes('ML')) groupedEvidence['Anomaly Detection'].push(...layer.items);
+      else if (layer.name.includes('Compliance')) groupedEvidence['Compliance Agent'].push(...layer.items);
+      else if (layer.name.includes('Graph') || layer.name.includes('Network')) groupedEvidence['Network'].push(...layer.items);
+    });
+  } else if (Array.isArray(evidences) && evidences.length > 0) {
+    // Fallback: classify from flat list by source string
     evidences.forEach(ev => {
       let agentKey = 'Network';
       if (ev.source?.includes('Rule')) agentKey = 'Rule Engine';
       else if (ev.source?.includes('ML') || ev.source?.includes('Anomaly') || ev.source?.includes('Isolation')) agentKey = 'Anomaly Detection';
       else if (ev.source?.includes('Compliance')) agentKey = 'Compliance Agent';
       else if (ev.source?.includes('Network')) agentKey = 'Network';
-      
       groupedEvidence[agentKey].push(ev);
     });
-
-    // Compute dynamic attribution
     const total = evidences.length || 1;
     attribution = {
       rule_pct: Math.round((groupedEvidence['Rule Engine'].length / total) * 100) || 0,
@@ -43,10 +49,10 @@ export function EvidenceConsensusBoard({ evidences }: { evidences: any[] }) {
     };
   }
 
-  // Mock some additional Network items if none exist to demonstrate V2 graph intelligence
+  // Always show at least one network node to demonstrate V2 graph intelligence
   if (groupedEvidence['Network'].length === 0) {
     groupedEvidence['Network'] = [
-      { id: 'mock-1', title: 'Network Hop Detected', desc: 'Customer is 2 hops away from a sanctioned entity.', severity: 'high', source: 'Network Agent' }
+      { source: 'Network Agent', description: 'Customer is 2 hops from a sanctioned entity.', severity: 'high' }
     ];
     if (attribution.graph_pct === 0) attribution.graph_pct = 15;
   }

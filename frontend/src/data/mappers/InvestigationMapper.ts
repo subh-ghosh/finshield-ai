@@ -34,6 +34,10 @@ export class InvestigationMapper {
       execution_time_ms: dto.execution_time_ms,
       reasoning_steps: dto.reasoning_steps || [],
       errors: dto.errors || [],
+
+      // V2: pass through agent execution trace and evidence graph directly
+      planner_timeline: dto.planner_timeline,
+      evidence_graph: dto.evidence_graph,
     };
   }
 }
