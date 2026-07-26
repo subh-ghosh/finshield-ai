@@ -86,33 +86,44 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
           <span className="font-mono text-brand-black font-bold">Baseline: {initialScore} | Sim: {simulatedScore}</span>
         </div>
 
-        {/* Horizontal Bar */}
-        <div className="relative w-full h-5 bg-[#E5E7EB] rounded-xs overflow-hidden flex font-mono text-[9px] font-bold text-white text-center leading-5">
+        {/* Horizontal Bar with Pin/Triangle Cursors */}
+        <div className="relative w-full h-6 bg-[#E5E7EB] rounded-xs flex font-mono text-[9px] font-bold text-white text-center leading-6 cursor-pointer shadow-inner">
           <div className="w-[35%] bg-[#10B981] border-r border-white/40">CLEAR (0-34)</div>
           <div className="w-[30%] bg-[#F59E0B] border-r border-white/40">REVIEW (35-64)</div>
           <div className="w-[20%] bg-[#EF4444] border-r border-white/40">ESCALATE (65-84)</div>
           <div className="w-[15%] bg-[#991B1B]">SAR (85+)</div>
 
-          {/* Baseline Risk Pointer */}
+          {/* Baseline Risk Pointer Pin Cursor */}
           <div 
-            className="absolute top-0 bottom-0 w-1 bg-black z-10 transition-all duration-300 shadow-md"
+            className="absolute top-0 bottom-0 -ml-1 w-2 bg-black z-10 transition-all duration-300 shadow-xl cursor-pointer group"
             style={{ left: `${Math.min(99, Math.max(0, initialScore))}%` }}
             title={`Baseline Risk: ${initialScore}`}
-          />
+          >
+            <div className="absolute -top-2 -left-1 text-[10px] text-black">▼</div>
+            <div className="absolute -bottom-2 -left-1 text-[10px] text-black">▲</div>
+          </div>
 
-          {/* Simulated Risk Pointer */}
+          {/* Simulated Risk Pointer Pin Cursor */}
           <div 
-            className="absolute top-0 bottom-0 w-1.5 bg-yellow-300 z-20 transition-all duration-500 ease-out shadow-lg animate-pulse"
+            className="absolute top-0 bottom-0 -ml-1.5 w-3 bg-[#FACC15] border border-black z-20 transition-all duration-500 ease-out shadow-2xl animate-pulse cursor-pointer group"
             style={{ left: `${Math.min(99, Math.max(0, simulatedScore))}%` }}
             title={`Simulated Risk: ${simulatedScore}`}
-          />
+          >
+            <div className="absolute -top-2.5 -left-1.5 text-[11px] text-[#991B1B] font-bold">▼</div>
+            <div className="absolute -bottom-2.5 -left-1.5 text-[11px] text-[#991B1B] font-bold">▲</div>
+          </div>
         </div>
 
-        <div className="flex justify-between text-[9px] font-mono text-[#6B7280]">
-          <span>▲ Black: Baseline ({initialScore})</span>
-          <span className="text-brand-red font-bold">▲ Yellow: Simulated ({simulatedScore})</span>
+        <div className="flex justify-between text-[9px] font-mono text-[#6B7280] pt-1">
+          <span className="flex items-center gap-1 font-bold text-black">
+            <span className="inline-block w-2 h-2 bg-black rounded-full" /> Baseline Pin ({initialScore})
+          </span>
+          <span className="flex items-center gap-1 font-bold text-brand-red">
+            <span className="inline-block w-2 h-2 bg-[#FACC15] border border-brand-red rounded-full" /> Simulated Pin ({simulatedScore})
+          </span>
         </div>
       </div>
+
 
       {/* Baseline vs Simulated Cards */}
       <div className="grid grid-cols-2 gap-3 p-3 bg-[#F9FAFB] border border-[#E4E7EC] rounded-sm">
