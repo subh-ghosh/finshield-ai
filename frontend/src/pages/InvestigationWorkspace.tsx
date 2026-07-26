@@ -31,6 +31,8 @@ export default function InvestigationWorkspace() {
   // Enterprise Investigation Mode
   const { investigate, data: enterpriseData, isPending: isEnterprisePending, error: enterpriseError } = usePlannerInvestigation()
 
+  const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar'>('risk')
+
   useEffect(() => {
     if (mode === 'chat') {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -62,7 +64,7 @@ export default function InvestigationWorkspace() {
   return (
     <div className="h-[calc(100vh-56px)] flex overflow-hidden">
       {/* Left Panel - Entity Context */}
-      <div className="w-[480px] bg-white border-r border-[#E4E7EC] flex flex-col overflow-y-auto">
+      <div className="w-[520px] bg-white border-r border-[#E4E7EC] flex flex-col overflow-y-auto shrink-0">
         {/* Navigation */}
         <div className="p-4 border-b border-[#E4E7EC]">
           <Link to="/queue" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B7280] hover:text-brand-black transition-colors">
@@ -72,7 +74,7 @@ export default function InvestigationWorkspace() {
 
         <StateView isLoading={isLoading} isError={isError} error={error}>
           {/* Entity Header */}
-          <div className="p-6" style={{ borderTop: '3px solid #E1000F' }}>
+          <div className="p-6 pb-2" style={{ borderTop: '3px solid #E1000F' }}>
             <div className="flex items-center justify-between mb-1">
               <span className="sg-section-label">Entity Profile</span>
               <span className="sg-badge sg-badge-critical">Case #{id}</span>
@@ -103,89 +105,112 @@ export default function InvestigationWorkspace() {
             </div>
           </div>
 
-          {/* Counterfactual Risk Sensitivity Simulator */}
-          <div className="px-6 pb-4">
-            <CounterfactualSimulatorWidget 
-              customerId={customerId}
-              initialScore={Math.round(customer?.risk_score || customer?.riskScore || investigation?.riskScore || 41)}
-              initialRecommendation={investigation?.recommendation || 'MANUAL_REVIEW'}
-            />
-
-            <div className="mt-4">
-              <SimilarCasesWidget investigationId={customerId} />
-            </div>
+          {/* Left Panel Tabs */}
+          <div className="flex border-b border-[#E4E7EC] px-6 mt-2">
+            <button
+              onClick={() => setLeftTab('risk')}
+              className={`pb-2 text-[11px] font-bold tracking-wider uppercase mr-6 ${leftTab === 'risk' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+            >
+              Risk & Gaps
+            </button>
+            <button
+              onClick={() => setLeftTab('similar')}
+              className={`pb-2 text-[11px] font-bold tracking-wider uppercase mr-6 ${leftTab === 'similar' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+            >
+              Similar Cases
+            </button>
+            <button
+              onClick={() => setLeftTab('evidence')}
+              className={`pb-2 text-[11px] font-bold tracking-wider uppercase ${leftTab === 'evidence' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+            >
+              Evidence
+            </button>
           </div>
 
-
-          {/* Evidence Gap & Compliance Completeness Detector */}
-          <div className="px-6 pb-4">
-
-            {(() => {
-              const hasKyc = Boolean((customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') && customer?.name);
-              const hasSof = Boolean(customer?.total_amount || customer?.maximum_amount || investigation?.evidenceSummary?.length);
-              const hasUbo = Boolean(customer?.industry);
-              const hasTx = Boolean(customer?.transaction_count || customer?.rolling_count_24h || investigation);
-              const hasNetwork = Boolean(customer?.recipient_diversity || customer?.sender_diversity || true);
-              const hasRules = Boolean(investigation?.ruleHits?.length || enterpriseData?.rule_hits?.length || true);
-              const hasML = Boolean(investigation?.mlResults || enterpriseData?.ml_results || customer?.riskScore || true);
-              const hasNotes = Boolean(investigation?.timeline?.length || enterpriseData?.timeline?.length || true);
-
-              const pillars = [
-                { pillar: 'KYC_VERIFICATION', name: 'Customer Identity & KYC Status', status: hasKyc ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Verified PII and jurisdiction.', remediationAction: 'Complete KYC verification.' },
-                { pillar: 'SOURCE_OF_FUNDS', name: 'Source of Funds & Inflow Analysis', status: hasSof ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Documented funding sources.', remediationAction: 'Request proof of wealth.' },
-                { pillar: 'BENEFICIAL_OWNERSHIP', name: 'Ultimate Beneficial Ownership (UBO)', status: hasUbo ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Entity trade structure verified.', remediationAction: 'Verify corporate ownership.' },
-                { pillar: 'TRANSACTION_EVIDENCE', name: 'Itemized Transaction Audit Trail', status: hasTx ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Chronological transaction logs.', remediationAction: 'Pull 90-day ledger.' },
-                { pillar: 'NETWORK_ANALYSIS', name: 'Counterparty Network Risk Analysis', status: hasNetwork ? 'PRESENT' : 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'Counterparty risk evaluation.', remediationAction: 'Run network analysis.' },
-                { pillar: 'RULE_VALIDATION', name: 'Deterministic Rule Trigger Evaluation', status: hasRules ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.10, isRequiredForSar: true, description: 'Rule engine threshold check.', remediationAction: 'Execute rule engine.' },
-                { pillar: 'EXTERNAL_VERIFICATION', name: 'Isolation Forest Anomaly & Watchlist', status: hasML ? 'PRESENT' : 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'ML anomaly & watchlist screening.', remediationAction: 'Run ML anomaly model.' },
-                { pillar: 'ANALYST_NOTES', name: 'Investigator Disposition & Audit Log', status: hasNotes ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.10, isRequiredForSar: true, description: 'Investigation timeline recorded.', remediationAction: 'Add case notes.' }
-              ];
-
-              const passedCount = pillars.filter(p => p.status === 'PRESENT').length;
-              const score = Math.round((pillars.filter(p => p.status === 'PRESENT').reduce((acc, p) => acc + p.weight, 0) / 1.0) * 100);
-              const missingCritical = pillars.filter(p => p.status === 'MISSING_CRITICAL').map(p => p.name);
-              const missingOptional = pillars.filter(p => p.status === 'MISSING_OPTIONAL').map(p => p.name);
-              const blockingCount = pillars.filter(p => p.status === 'MISSING_CRITICAL' && p.isRequiredForSar).length;
-
-              return (
-                <EvidenceGapWidget 
-                  assessment={{
-                    customerId: customerId,
-                    completenessScore: score,
-                    sarFilingReady: blockingCount === 0 && score >= 75,
-                    blockingCriticalGapsCount: blockingCount,
-                    totalItemsEvaluated: 8,
-                    passedItemsCount: passedCount,
-                    evaluations: pillars as any,
-                    warnings: blockingCount > 0 ? [`Filing Blocked: ${blockingCount} mandatory item(s) missing.`] : [],
-                    missingCriticalItems: missingCritical,
-                    missingOptionalItems: missingOptional,
-                    remediationRoadmap: pillars.filter(p => p.status !== 'PRESENT').map(p => p.remediationAction)
-                  }} 
+          {/* Tab Content */}
+          <div className="flex-1 overflow-y-auto bg-[#F9FAFB]">
+            {leftTab === 'risk' && (
+              <div className="p-6 space-y-6">
+                <CounterfactualSimulatorWidget 
+                  customerId={customerId}
+                  initialScore={Math.round(customer?.risk_score || customer?.riskScore || investigation?.riskScore || 41)}
+                  initialRecommendation={investigation?.recommendation || 'MANUAL_REVIEW'}
                 />
-              );
-            })()}
-          </div>
 
+                {(() => {
+                  const hasKyc = Boolean((customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') && customer?.name);
+                  const hasSof = Boolean(customer?.total_amount || customer?.maximum_amount || investigation?.evidenceSummary?.length);
+                  const hasUbo = Boolean(customer?.industry);
+                  const hasTx = Boolean(customer?.transaction_count || customer?.rolling_count_24h || investigation);
+                  const hasNetwork = Boolean(customer?.recipient_diversity || customer?.sender_diversity || true);
+                  const hasRules = Boolean(investigation?.ruleHits?.length || enterpriseData?.rule_hits?.length || true);
+                  const hasML = Boolean(investigation?.mlResults || enterpriseData?.ml_results || customer?.riskScore || true);
+                  const hasNotes = Boolean(investigation?.timeline?.length || enterpriseData?.timeline?.length || true);
 
-          {/* Evidence */}
-          <div className="px-6 pb-6">
+                  const pillars = [
+                    { pillar: 'KYC_VERIFICATION', name: 'Customer Identity & KYC Status', status: hasKyc ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Verified PII and jurisdiction.', remediationAction: 'Complete KYC verification.' },
+                    { pillar: 'SOURCE_OF_FUNDS', name: 'Source of Funds & Inflow Analysis', status: hasSof ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Documented funding sources.', remediationAction: 'Request proof of wealth.' },
+                    { pillar: 'BENEFICIAL_OWNERSHIP', name: 'Ultimate Beneficial Ownership (UBO)', status: hasUbo ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Entity trade structure verified.', remediationAction: 'Verify corporate ownership.' },
+                    { pillar: 'TRANSACTION_EVIDENCE', name: 'Itemized Transaction Audit Trail', status: hasTx ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Chronological transaction logs.', remediationAction: 'Pull 90-day ledger.' },
+                    { pillar: 'NETWORK_ANALYSIS', name: 'Counterparty Network Risk Analysis', status: hasNetwork ? 'PRESENT' : 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'Counterparty risk evaluation.', remediationAction: 'Run network analysis.' },
+                    { pillar: 'RULE_VALIDATION', name: 'Deterministic Rule Trigger Evaluation', status: hasRules ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.10, isRequiredForSar: true, description: 'Rule engine threshold check.', remediationAction: 'Execute rule engine.' },
+                    { pillar: 'EXTERNAL_VERIFICATION', name: 'Isolation Forest Anomaly & Watchlist', status: hasML ? 'PRESENT' : 'MISSING_OPTIONAL', weight: 0.10, isRequiredForSar: false, description: 'ML anomaly & watchlist screening.', remediationAction: 'Run ML anomaly model.' },
+                    { pillar: 'ANALYST_NOTES', name: 'Investigator Disposition & Audit Log', status: hasNotes ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.10, isRequiredForSar: true, description: 'Investigation timeline recorded.', remediationAction: 'Add case notes.' }
+                  ];
 
-            <h3 className="sg-section-label mb-3 pb-2 border-b border-[#E4E7EC] flex items-center gap-2">
-              <FileText className="h-3.5 w-3.5" /> Evidence Board
-            </h3>
-            <div className="space-y-2">
-              {evidences.map((ev, i) => (
-                <motion.div
-                  key={ev.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                >
-                  <EvidenceCard evidence={ev} />
-                </motion.div>
-              ))}
-            </div>
+                  const passedCount = pillars.filter(p => p.status === 'PRESENT').length;
+                  const score = Math.round((pillars.filter(p => p.status === 'PRESENT').reduce((acc, p) => acc + p.weight, 0) / 1.0) * 100);
+                  const missingCritical = pillars.filter(p => p.status === 'MISSING_CRITICAL').map(p => p.name);
+                  const missingOptional = pillars.filter(p => p.status === 'MISSING_OPTIONAL').map(p => p.name);
+                  const blockingCount = pillars.filter(p => p.status === 'MISSING_CRITICAL' && p.isRequiredForSar).length;
+
+                  return (
+                    <EvidenceGapWidget 
+                      assessment={{
+                        customerId: customerId,
+                        completenessScore: score,
+                        sarFilingReady: blockingCount === 0 && score >= 75,
+                        blockingCriticalGapsCount: blockingCount,
+                        totalItemsEvaluated: 8,
+                        passedItemsCount: passedCount,
+                        evaluations: pillars as any,
+                        warnings: blockingCount > 0 ? [`Filing Blocked: ${blockingCount} mandatory item(s) missing.`] : [],
+                        missingCriticalItems: missingCritical,
+                        missingOptionalItems: missingOptional,
+                        remediationRoadmap: pillars.filter(p => p.status !== 'PRESENT').map(p => p.remediationAction)
+                      }} 
+                    />
+                  );
+                })()}
+              </div>
+            )}
+
+            {leftTab === 'similar' && (
+              <div className="p-6">
+                <SimilarCasesWidget investigationId={customerId} />
+              </div>
+            )}
+
+            {leftTab === 'evidence' && (
+              <div className="p-6">
+                <div className="space-y-2">
+                  {evidences.length > 0 ? evidences.map((ev, i) => (
+                    <motion.div
+                      key={ev.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.08 }}
+                    >
+                      <EvidenceCard evidence={ev} />
+                    </motion.div>
+                  )) : (
+                    <div className="text-[12px] text-brand-gray text-center p-4 bg-white border border-[#E4E7EC]">
+                      No evidence collected yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* SAR Button */}
