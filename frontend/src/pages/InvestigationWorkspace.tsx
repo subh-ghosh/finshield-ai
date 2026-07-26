@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { FileText, CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
 import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation } from '../hooks'
 import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
-import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget } from '../components/investigation'
+import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget, SimilarCasesWidget } from '../components/investigation'
 
 
 
@@ -111,7 +111,11 @@ export default function InvestigationWorkspace() {
               initialRecommendation={investigation?.recommendation || 'MANUAL_REVIEW'}
             />
 
+            <div className="mt-4">
+              <SimilarCasesWidget investigationId={customerId} />
+            </div>
           </div>
+
 
           {/* Evidence Gap & Compliance Completeness Detector */}
           <div className="px-6 pb-4">

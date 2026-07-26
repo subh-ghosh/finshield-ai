@@ -5,4 +5,6 @@ export * from './useInvestigation';
 export * from './usePlanner';
 export * from './usePlannerInvestigation';
 export * from './useMemoryStore';
+export * from './useSimilarCases';
+
 
