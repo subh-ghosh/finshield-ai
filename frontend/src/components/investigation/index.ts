@@ -5,7 +5,8 @@ export * from './RecommendationCard';
 export * from './ReasoningTimeline';
 export * from './DeveloperSection';
 export * from './EvidenceGapWidget';
-export * from './CounterfactualSimulatorWidget';
-export * from './SimilarCasesWidget';
-
-
+export { CounterfactualSimulatorWidget } from './CounterfactualSimulatorWidget'
+export { SimilarCasesWidget } from './SimilarCasesWidget'
+export { KnowledgeGraph } from './KnowledgeGraph'
+export { AgentSwarmView } from './AgentSwarmView'
+export { EvidenceConsensusBoard } from './EvidenceConsensusBoard'

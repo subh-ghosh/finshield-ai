@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
 import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation } from '../hooks'
 import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
-import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget, SimilarCasesWidget } from '../components/investigation'
+import { InvestigationReportView, EvidenceGapWidget, CounterfactualSimulatorWidget, SimilarCasesWidget, KnowledgeGraph, AgentSwarmView, EvidenceConsensusBoard } from '../components/investigation'
 
 
 
@@ -15,7 +15,7 @@ export default function InvestigationWorkspace() {
   const { id } = useParams()
   const customerId = id || ''
   
-  const [mode, setMode] = useState<'enterprise' | 'chat'>('enterprise')
+  const [mode, setMode] = useState<'enterprise' | 'swarm'>('enterprise')
   const [chatInput, setChatInput] = useState('')
   const [sarConfirmed, setSarConfirmed] = useState(false)
   const [showSarToast, setShowSarToast] = useState(false)
@@ -193,22 +193,7 @@ export default function InvestigationWorkspace() {
 
             {leftTab === 'evidence' && (
               <div className="p-6">
-                <div className="space-y-2">
-                  {evidences.length > 0 ? evidences.map((ev, i) => (
-                    <motion.div
-                      key={ev.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.08 }}
-                    >
-                      <EvidenceCard evidence={ev} />
-                    </motion.div>
-                  )) : (
-                    <div className="text-[12px] text-brand-gray text-center p-4 bg-white border border-[#E4E7EC]">
-                      No evidence collected yet.
-                    </div>
-                  )}
-                </div>
+                <EvidenceConsensusBoard evidences={evidences} />
               </div>
             )}
           </div>
@@ -251,12 +236,12 @@ export default function InvestigationWorkspace() {
               <Server className="h-3.5 w-3.5" /> Enterprise Planner
             </button>
             <button 
-              onClick={() => setMode('chat')}
+              onClick={() => setMode('swarm')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold tracking-wider uppercase transition-colors rounded-sm ${
-                mode === 'chat' ? 'bg-white text-brand-black shadow-sm' : 'text-[#6B7280] hover:text-brand-black'
+                mode === 'swarm' ? 'bg-white text-brand-black shadow-sm' : 'text-[#6B7280] hover:text-brand-black'
               }`}
             >
-              <Activity className="h-3.5 w-3.5" /> Chat (Legacy)
+              <Activity className="h-3.5 w-3.5" /> Agent Swarm
             </button>
           </div>
           
@@ -267,47 +252,24 @@ export default function InvestigationWorkspace() {
 
         {/* Dynamic Content based on Mode */}
         {mode === 'enterprise' ? (
-          <div className="flex-1 overflow-hidden">
-            <InvestigationReportView 
-              result={enterpriseData} 
-              isPending={isEnterprisePending} 
-              error={enterpriseError}
-              onRetry={handleRunEnterprise}
-            />
+          <div className="flex-1 overflow-hidden flex flex-col bg-white">
+            <div className="h-[450px] shrink-0 border-b border-[#E4E7EC]">
+               <KnowledgeGraph customerId={customerId} />
+            </div>
+            <div className="flex-1 overflow-auto">
+              <InvestigationReportView 
+                result={enterpriseData} 
+                isPending={isEnterprisePending} 
+                error={enterpriseError}
+                onRetry={handleRunEnterprise}
+              />
+            </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 sg-page-bg">
-              {events.length === 0 && !current_step && !final_answer && (
-                <div className="h-full flex flex-col items-center justify-center text-center">
-                  <div className="w-14 h-14 rounded-full bg-white border border-[#E4E7EC] flex items-center justify-center mb-4 shadow-sm">
-                    <Activity className="h-6 w-6 text-brand-gray" />
-                  </div>
-                  <div className="text-[14px] font-semibold text-[#6B7280]">AI Chat Ready</div>
-                  <div className="text-[12px] text-brand-gray max-w-sm mt-1.5 leading-relaxed">
-                    Legacy interactive planner chat.
-                  </div>
-                </div>
-              )}
-              
-              {events.map((evt, i) => {
-                if (evt.type === 'tool_end' && evt.step) {
-                  return <ExecutionStepItem key={i} step={evt.step} index={i} />;
-                }
-                if (evt.type === 'thought') {
-                  return (
-                    <div key={i} className="text-[12px] text-[#6B7280] italic ml-2 border-l-2 border-[#E4E7EC] pl-3 py-1">
-                      {evt.content}
-                    </div>
-                  )
-                }
-                return null;
-              })}
+              <AgentSwarmView events={events} isRunning={is_running} />
 
-              {current_step && current_step.status === 'running' && (
-                <ExecutionStepItem step={current_step} index={events.length} />
-              )}
-              
               {final_answer && (
                 <div className="flex flex-col items-start mt-4 w-full">
                   <div className="max-w-[90%] p-4 text-[12px] leading-relaxed shadow-sm bg-white border border-[#E4E7EC] text-brand-black prose prose-sm max-w-none">
@@ -325,11 +287,6 @@ export default function InvestigationWorkspace() {
                  </div>
               )}
 
-              {is_running && !current_step && (
-                <div className="flex items-center gap-2 text-[12px] text-brand-gray bg-white border border-[#E4E7EC] p-3 w-fit shadow-sm">
-                  <Activity className="h-3.5 w-3.5 animate-spin text-brand-red" /> LangGraph reasoning...
-                </div>
-              )}
               <div ref={chatEndRef} />
             </div>
 
