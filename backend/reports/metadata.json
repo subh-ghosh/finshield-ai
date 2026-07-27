@@ -1,10 +1,10 @@
 {
     "dataset": "IBM AMLSim",
     "pipeline_version": "1.0.0",
-    "processed_at": "2026-07-26T21:50:17.941914",
-    "rows": 1323234,
+    "processed_at": "2026-07-27T14:33:49.567077",
+    "rows": 1328234,
     "columns": 11,
     "duplicates_removed": 0,
-    "runtime_seconds": 8.8836,
+    "runtime_seconds": 11.6768,
     "data_quality_score": 100.0
 }

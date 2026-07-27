@@ -92,7 +92,7 @@ export function InvestigationReportView({ result, isPending, error, onRetry }: P
           </div>
           
           <div className="xl:col-span-1 space-y-6">
-            <ReasoningTimeline steps={result.reasoning_steps} />
+            <ReasoningTimeline steps={result.reasoning_steps ?? []} />
             <DeveloperSection result={result} />
           </div>
         </div>

@@ -1,6 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ShieldAlert, AlertTriangle, Info, Server, Network, Shield, BrainCircuit } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Info, Network, Shield, BrainCircuit } from 'lucide-react';
 import type { EvidenceGraph } from '../../data/dtos/InvestigationResultDTO';
 
 const AGENT_MAP: Record<string, { icon: React.ReactNode, label: string, color: string }> = {

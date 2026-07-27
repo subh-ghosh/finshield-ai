@@ -1,7 +1,7 @@
 {
-    "row_count": 1323215,
+    "row_count": 1328215,
     "column_count": 11,
-    "memory_usage": 359916049,
+    "memory_usage": 361280219,
     "column_types": {
         "transaction_id": "object",
         "sender_account": "object",
@@ -36,12 +36,12 @@
     },
     "date_range": {
         "min": "1970-01-01 00:00:00",
-        "max": "1970-01-01 00:03:19"
+        "max": "1970-01-01 00:03:29"
     },
     "amount_statistics": {
         "min": 1.840000033378601,
         "max": 21474836.0,
-        "mean": 115989.8515625,
-        "median": 156.7100067138672
+        "mean": 115556.9921875,
+        "median": 157.27000427246094
     }
 }

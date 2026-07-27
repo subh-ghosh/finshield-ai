@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Sliders, TrendingUp, RotateCcw, Zap, Target, CheckCircle2, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Sliders, TrendingUp, RotateCcw, Zap, Target, CheckCircle2, ChevronDown, ChevronUp, Info, Play } from 'lucide-react';
+import { useSimulation } from '../../hooks/useSimulation';
 
 interface CounterfactualSimulatorWidgetProps {
   customerId: string;
@@ -7,115 +8,55 @@ interface CounterfactualSimulatorWidgetProps {
   initialRecommendation?: string;
 }
 
-interface ContributionItemData {
-  id: string;
-  category: string;
-  points: number;
-  subsystem: string;
-  confidence: number;
-  reason: string;
-}
-
 export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidgetProps> = ({
+  customerId,
   initialScore = 41,
   initialRecommendation = 'MANUAL_REVIEW'
 }) => {
   const [cashCount, setCashCount] = useState(0);
   const [cashAmount] = useState(9500);
-  const [crossBorderChange] = useState(0);
+  const [crossBorderChange, setCrossBorderChange] = useState(0);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
-  // Deterministic mathematical formulas
-  const cashImpact = Math.min(38, (cashCount * cashAmount / 4500) * 7.5 * (cashAmount >= 8000 && cashAmount <= 9999 ? 1.35 : 1.0));
-  const crossBorderImpact = (crossBorderChange / 100) * 18.0;
-  const totalDelta = Math.round(cashImpact + crossBorderImpact);
+  const { mutate: runSimulation, data: simResult, isPending, reset: resetSimulation } = useSimulation();
 
-  const simulatedScore = Math.max(5, Math.min(98, Math.round(initialScore + totalDelta)));
-
-  const getRec = (score: number) => {
-    if (score >= 85) return 'FILE_SAR';
-    if (score >= 65) return 'ESCALATE';
-    if (score >= 35) return 'MANUAL_REVIEW';
-    return 'CLEAR';
+  const handleRunSimulation = () => {
+    runSimulation({
+      customer_id: customerId,
+      additional_cash_deposits_count: cashCount,
+      additional_cash_deposit_amount: cashAmount,
+      cross_border_transfer_change_pct: crossBorderChange,
+      velocity_multiplier: 1.0
+    });
   };
-
-  const simulatedRec = getRec(simulatedScore);
-  const isFlipped = simulatedRec !== initialRecommendation;
-
-  // Feature 1: Deterministic Risk Contribution Breakdown Items
-  const structuringContrib = Math.round(cashImpact * 0.48);
-  const velocityContrib = Math.round(cashImpact * 0.22);
-  const cbContrib = Math.round(crossBorderImpact);
-  const mlContrib = Math.round(cashImpact * 0.30);
-
-  const contributionItems: ContributionItemData[] = [];
-
-  if (structuringContrib > 0) {
-    contributionItems.push({
-      id: 'structuring',
-      category: 'Structuring Pattern',
-      points: structuringContrib,
-      subsystem: 'RULE_ENGINE',
-      confidence: 0.96,
-      reason: `${cashCount} additional ₹${cashAmount.toLocaleString()} deposits increased structuring score because multiple sub-threshold cash deposits occurred within a short time window.`
-    });
-  }
-
-  if (velocityContrib > 0) {
-    contributionItems.push({
-      id: 'velocity',
-      category: 'Behavioral Velocity',
-      points: velocityContrib,
-      subsystem: 'BEHAVIORAL_ANALYZER',
-      confidence: 0.92,
-      reason: 'Deposit frequency and transaction velocity exceeded the 30-day customer baseline activity.'
-    });
-  }
-
-  if (cbContrib !== 0) {
-    contributionItems.push({
-      id: 'cross_border',
-      category: 'Cross-Border Exposure',
-      points: cbContrib,
-      subsystem: 'HYBRID_RISK_ENGINE',
-      confidence: 0.94,
-      reason: `Cross-border transfer volume ${cbContrib > 0 ? 'increased' : 'decreased'} by ${Math.abs(crossBorderChange)}%, shifting international risk exposure.`
-    });
-  }
-
-  if (mlContrib > 0) {
-    contributionItems.push({
-      id: 'isolation_forest',
-      category: 'Isolation Forest Anomaly',
-      points: mlContrib,
-      subsystem: 'ISOLATION_FOREST',
-      confidence: 0.89,
-      reason: "The anomaly score increased because the simulated transaction pattern deviates further from the customer's historical baseline."
-    });
-  }
-
-  // Feature 2: Minimum Change Required calculation
-  const getNextTarget = (score: number) => {
-    if (score < 35) return { target: 'MANUAL_REVIEW', targetScore: 35 };
-    if (score < 65) return { target: 'ESCALATE', targetScore: 65 };
-    if (score < 85) return { target: 'FILE_SAR', targetScore: 85 };
-    return { target: 'FILE_SAR', targetScore: 85 };
-  };
-
-  const { target: nextTarget, targetScore } = getNextTarget(initialScore);
-  const neededPts = Math.max(0, targetScore - initialScore);
-  const reqCashDeposits = Math.ceil(neededPts / 21.37);
-  const reqCbPct = Math.ceil((neededPts / 18.0) * 100);
 
   const handleReset = () => {
     setCashCount(0);
     setCrossBorderChange(0);
     setExpandedItemId(null);
+    resetSimulation();
   };
 
   const toggleExpand = (id: string) => {
     setExpandedItemId(prev => prev === id ? null : id);
   };
+
+  const simulatedScore = simResult?.simulated_risk_score ?? initialScore;
+  const simulatedRec = simResult?.simulated_recommendation ?? initialRecommendation;
+  const totalDelta = simResult?.score_delta ?? 0;
+  const isFlipped = simResult?.recommendation_flipped ?? false;
+  const contributionItems = (simResult?.risk_contributions ? Object.values(simResult.risk_contributions) : []) as Array<{
+    id: string;
+    category: string;
+    points: number;
+    subsystem: string;
+    confidence: number;
+    reason: string;
+  }>;
+  
+  const nextTarget = simResult?.next_threshold_target ?? 'ESCALATE';
+  const targetScore = simResult?.next_threshold_score ?? 65;
+  const minimumChanges = simResult?.minimum_changes_required ?? [];
 
   return (
     <div className="bg-white border border-[#E4E7EC] rounded-sm p-4 shadow-sm space-y-4">
@@ -124,19 +65,28 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
         <div>
           <div className="text-[11px] font-bold tracking-wider text-[#6B7280] uppercase flex items-center gap-1.5">
             <Sliders className="h-3.5 w-3.5 text-brand-red" />
-            Counterfactual Risk Sensitivity Simulator
+            Counterfactual Risk Simulator (API Powered)
           </div>
           <div className="text-[12px] text-brand-gray mt-0.5">
             Simulate parameter shifts & decision threshold boundaries
           </div>
         </div>
 
-        <button 
-          onClick={handleReset}
-          className="text-[10px] font-semibold text-[#6B7280] hover:text-brand-black flex items-center gap-1 uppercase tracking-wider bg-[#F3F4F6] px-2 py-1 rounded-sm transition-colors cursor-pointer"
-        >
-          <RotateCcw className="h-3 w-3" /> Reset
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleReset}
+            className="text-[10px] font-semibold text-[#6B7280] hover:text-brand-black flex items-center gap-1 uppercase tracking-wider bg-[#F3F4F6] px-2 py-1 rounded-sm transition-colors cursor-pointer"
+          >
+            <RotateCcw className="h-3 w-3" /> Reset
+          </button>
+          <button 
+            onClick={handleRunSimulation}
+            disabled={isPending}
+            className="text-[10px] font-semibold text-white bg-brand-red hover:bg-red-700 flex items-center gap-1 uppercase tracking-wider px-3 py-1 rounded-sm transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Play className="h-3 w-3" /> {isPending ? 'Simulating...' : 'Run Simulation'}
+          </button>
+        </div>
       </div>
 
       {/* FEATURE 3: DECISION THRESHOLD INDICATOR BAR */}
@@ -185,7 +135,7 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
       </div>
 
       {/* Baseline vs Simulated Cards */}
-      <div className="grid grid-cols-2 gap-3 p-3 bg-[#F9FAFB] border border-[#E4E7EC] rounded-sm">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 p-3 bg-[#F9FAFB] border border-[#E4E7EC] rounded-sm">
         <div>
           <div className="text-[10px] uppercase font-bold text-[#6B7280]">Baseline Risk</div>
           <div className="flex items-baseline gap-2 mt-1">
@@ -316,20 +266,20 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
         </div>
 
         <div className="space-y-1.5 text-[11px] text-[#1E3A8A]">
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB] shrink-0" />
-            <span><strong>+{reqCashDeposits}</strong> additional cash deposits of ₹9,500</span>
-          </div>
-          <div className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-widest pl-5">OR</div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB] shrink-0" />
-            <span><strong>+{reqCbPct}%</strong> cross-border transfer volume</span>
-          </div>
-          <div className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-widest pl-5">OR</div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB] shrink-0" />
-            <span>One additional transfer from a <strong>High Risk Jurisdiction</strong></span>
-          </div>
+          {minimumChanges.length > 0 ? minimumChanges.map((change, idx) => (
+            <React.Fragment key={idx}>
+              {idx > 0 && <div className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-widest pl-5">OR</div>}
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB] shrink-0" />
+                <span>{change}</span>
+              </div>
+            </React.Fragment>
+          )) : (
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB] shrink-0" />
+              <span>Use the sliders to simulate thresholds.</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -342,17 +292,7 @@ export const CounterfactualSimulatorWidget: React.FC<CounterfactualSimulatorWidg
           {isFlipped ? 'Decision Threshold Boundary Crossed' : 'Sensitivity Impact Narrative'}
         </div>
         <div>
-          {cashCount === 0 && crossBorderChange === 0 ? (
-            'Adjust sliders above to simulate how future cash structuring or cross-border velocity shifts will impact risk score thresholds.'
-          ) : (
-            `If ${cashCount > 0 ? `${cashCount} additional ₹${cashAmount.toLocaleString()} cash deposit(s) occur` : ''} ${
-              cashCount > 0 && crossBorderChange !== 0 ? 'and ' : ''
-            }${crossBorderChange !== 0 ? `cross-border volume ${crossBorderChange > 0 ? 'increases' : 'decreases'} by ${Math.abs(crossBorderChange)}%` : ''}, overall risk score ${
-              totalDelta >= 0 ? 'increases' : 'decreases'
-            } by ${Math.abs(totalDelta)} points from ${initialScore} to ${simulatedScore}.${
-              isFlipped ? ` This flips compliance recommendation from ${initialRecommendation} to ${simulatedRec}.` : ''
-            }`
-          )}
+          {simResult?.counterfactual_narrative || 'Adjust sliders above and click Run Simulation to see how future cash structuring or cross-border velocity shifts will impact risk score thresholds.'}
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ from app.api.v1.routers.graph import router as graph_router
 from app.api.v1.routers.rules import router as rules_router
 from app.api.v1.routers.simulation import router as simulation_router
 from app.api.v1.routers.monitoring import router as monitoring_router
+from app.api.v1.routers.report import router as report_router
 
 v1_router = APIRouter()
 
@@ -37,4 +38,4 @@ v1_router.include_router(graph_router)
 v1_router.include_router(rules_router)
 v1_router.include_router(simulation_router)
 v1_router.include_router(monitoring_router)
-
+v1_router.include_router(report_router)

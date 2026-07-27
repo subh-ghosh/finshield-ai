@@ -2,10 +2,9 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { CheckCircle2, Activity, Send, ArrowLeft, Globe, Briefcase, Check, Server } from 'lucide-react'
-import { useCustomerDetails, useInvestigationData, usePlannerChat, usePlannerInvestigation, useCustomerAnomaly, useCustomerRiskClassification } from '../hooks'
-import { StateView, EvidenceCard, ExecutionStepItem } from '../components/shared'
+import { useCustomerDetails, useInvestigationData, usePlannerInvestigation, useCustomerAnomaly, useCustomerRiskClassification, generateAnalystChatAnswer } from '../hooks'
+import { StateView } from '../components/shared'
 import {
   InvestigationReportView,
   EvidenceGapWidget,
@@ -35,33 +34,39 @@ export default function InvestigationWorkspace() {
   const { data: customer, isLoading: isCustLoading } = useCustomerDetails(customerId)
   const { data: investigation, isLoading: isInvLoading, isError, error } = useInvestigationData(customerId)
 
-  // Legacy Chat Mode
-  const { is_running, events, current_step, final_answer, error: plannerError, sendMessage } = usePlannerChat()
-
-  // Enterprise Investigation Mode â€” returns real planner_timeline + evidence_graph
+  // Enterprise Investigation Mode — returns real planner_timeline + evidence_graph
   const { investigate, data: enterpriseData, isPending: isEnterprisePending, error: enterpriseError } = usePlannerInvestigation()
 
-  const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar' | 'lifecycle'>('risk')
+  type ChatMessage = { role: 'user' | 'agent', content: string }
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+
+  const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar' | 'lifecycle' | 'simulation'>('risk')
 
   // Real data from 3 new agent tool endpoints
   const { data: anomalyData } = useCustomerAnomaly(customerId)
   const { data: riskClassData } = useCustomerRiskClassification(customerId)
 
   useEffect(() => {
-    if (mode === 'chat') {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [events, current_step, final_answer, plannerError, mode])
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [enterpriseData, chatHistory, enterpriseError, mode])
 
   const handleChat = async () => {
-    if (!chatInput.trim() || is_running) return
+    if (!chatInput.trim() || isEnterprisePending) return
     const msg = chatInput
     setChatInput('')
-    await sendMessage(msg, customerId)
+    
+    setChatHistory(prev => [...prev, { role: 'user', content: msg }])
+    
+    setTimeout(() => {
+      setChatHistory(prev => [...prev, { 
+        role: 'agent', 
+        content: generateAnalystChatAnswer(msg, customerId, enterpriseData || investigation, customer) 
+      }])
+    }, 600)
   }
 
   const handleRunEnterprise = () => {
-    investigate(customerId)
+    investigate({ customerId })
   }
 
   const handleFinalizeSAR = () => {
@@ -75,8 +80,6 @@ export default function InvestigationWorkspace() {
 
   // S6: real agent timeline â€” prefer the live enterprise run result over cached
   const agentTimeline = enterpriseData?.planner_timeline ?? investigation?.planner_timeline ?? []
-  const isSwarmRunning = isEnterprisePending
-
   // S7: real evidence graph
   const evidenceGraph = enterpriseData?.evidence_graph ?? investigation?.evidence_graph
 
@@ -87,10 +90,15 @@ export default function InvestigationWorkspace() {
       )
     : (investigation as any)?.evidences ?? []
 
+  const currentRiskScore = riskClassData?.risk_score_pct ?? (investigation as any)?.risk_profile?.composite_score ?? customer?.risk_score ?? 0;
+  const aiRiskLevel = (enterpriseData as any)?.final_recommendation?.risk_level;
+  const isAiHighRisk = aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL';
+  const disableSarBtn = sarConfirmed || (!isAiHighRisk && !isEnterprisePending);
+
   return (
     <div className="h-[calc(100vh-56px)] flex overflow-hidden">
       {/* Left Panel - Entity Context */}
-      <div className="w-[520px] bg-white border-r border-[#E4E7EC] flex flex-col overflow-y-auto shrink-0">
+      <div className="w-[550px] xl:w-[650px] bg-white border-r border-[#E4E7EC] flex flex-col overflow-y-auto shrink-0">
         {/* Navigation */}
         <div className="p-4 border-b border-[#E4E7EC]">
           <Link to="/queue" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B7280] hover:text-brand-black transition-colors">
@@ -100,7 +108,7 @@ export default function InvestigationWorkspace() {
 
         <StateView isLoading={isLoading} isError={isError} error={error}>
           {/* Entity Header */}
-          <div className="p-6 pb-2" style={{ borderTop: '3px solid #E1000F' }}>
+          <div className="p-6 pb-2 shrink-0" style={{ borderTop: '3px solid #E1000F' }}>
             <div className="flex items-center justify-between mb-1">
               <span className="fs-section-label">Entity Profile</span>
               <div className="flex items-center gap-2">
@@ -129,12 +137,13 @@ export default function InvestigationWorkspace() {
             <p className="text-[12px] text-brand-gray mt-1">ID: {customer?.id}</p>
 
             {/* Risk Score — from /api/v1/risk-classify/{id} (real hybrid score) */}
-            <div className="mt-5 p-4 bg-[#FEF2F2] border border-[#FECACA]">
-              <div className="flex items-center justify-between">
+            <div className="mt-5 space-y-3">
+              {/* Score Card */}
+              <div className="p-4 bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-between">
                 <div>
                   <div className="text-[10px] font-bold tracking-widest uppercase text-brand-gray">Hybrid Risk Score</div>
                   <div className="text-[42px] font-bold text-brand-red leading-none mt-1">
-                    {riskClassData?.risk_score_pct ?? (investigation as any)?.risk_profile?.composite_score ?? customer?.risk_score ?? 0}
+                    {currentRiskScore}
                   </div>
                   {riskClassData?.risk_category && (
                     <div className={`mt-1 inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
@@ -145,33 +154,9 @@ export default function InvestigationWorkspace() {
                     }`}>{riskClassData.risk_category}</div>
                   )}
                 </div>
-                <div className="text-right space-y-2">
-                <div className="flex items-center gap-1.5 justify-end">
-                  <Check className="h-3 w-3 text-[#10B981]" />
-                  <span className="text-[11px] text-brand-black">KYC: {customer?.kyc_status}</span>
-                </div>
-                <div className="flex items-center gap-1.5 justify-end">
-                  <Globe className="h-3 w-3 text-brand-gray" />
-                  <span className="text-[11px] text-brand-black">{customer?.jurisdiction}</span>
-                </div>
-                <div className="flex items-center gap-1.5 justify-end">
-                  <Briefcase className="h-3 w-3 text-brand-gray" />
-                  <span className="text-[11px] text-brand-black">{customer?.industry}</span>
-                </div>
-                {/* Anomaly score from /api/v1/anomaly/{id} */}
-                {anomalyData && (
-                  <div className="flex items-center gap-1.5 justify-end mt-1">
-                    <Activity className="h-3 w-3 text-brand-gray" />
-                    <span className="text-[11px] text-brand-black">
-                      ML Score: {(anomalyData.anomaly_score * 100).toFixed(0)}%
-                      {anomalyData.is_anomaly && <span className="ml-1 text-brand-red font-bold">⚑</span>}
-                    </span>
-                  </div>
-                )}
-                {/* Escalation from /api/v1/risk-classify/{id} */}
                 {riskClassData?.recommendation && (
-                  <div className="mt-2 text-right">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 ${
+                  <div className="text-right">
+                    <span className={`text-[11px] font-bold px-3 py-1.5 ${
                       ['FILE_SAR', 'FILE SAR', 'SAR'].includes(riskClassData.recommendation?.toUpperCase?.() ?? '') ? 'bg-red-100 text-red-700' :
                       ['ESCALATE', 'ESCALATION'].includes(riskClassData.recommendation?.toUpperCase?.() ?? '') ? 'bg-orange-100 text-orange-700' :
                       ['MANUAL_REVIEW', 'MANUAL REVIEW', 'FLAG FOR REVIEW'].includes(riskClassData.recommendation?.toUpperCase?.() ?? '') ? 'bg-yellow-100 text-yellow-700' :
@@ -182,62 +167,99 @@ export default function InvestigationWorkspace() {
                   </div>
                 )}
               </div>
+
+              {/* Metadata Grid */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 bg-white border border-[#E4E7EC] flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1 text-brand-gray">
+                    <Check className="h-3.5 w-3.5 text-[#10B981]" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">KYC Status</span>
+                  </div>
+                  <span className="text-[12px] font-semibold text-brand-black">{customer?.kyc_status}</span>
+                </div>
+                <div className="p-3 bg-white border border-[#E4E7EC] flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1 text-brand-gray">
+                    <Globe className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Jurisdiction</span>
+                  </div>
+                  <span className="text-[12px] font-semibold text-brand-black">{customer?.jurisdiction}</span>
+                </div>
+                <div className="p-3 bg-white border border-[#E4E7EC] flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1 text-brand-gray">
+                    <Briefcase className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Industry</span>
+                  </div>
+                  <span className="text-[12px] font-semibold text-brand-black truncate" title={customer?.industry}>{customer?.industry}</span>
+                </div>
+                {anomalyData && (
+                  <div className="p-3 bg-[#FEF2F2] border border-[#FECACA] flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 mb-1 text-brand-gray">
+                      <Activity className="h-3.5 w-3.5 text-brand-red" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">ML Anomaly</span>
+                    </div>
+                    <span className="text-[12px] font-semibold text-brand-red">
+                      {(anomalyData.anomaly_score * 100).toFixed(0)}% Score
+                      {anomalyData.is_anomaly && <span className="ml-1 font-bold">⚑</span>}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
         </div>
 
         {/* Left Panel Tabs */}
-          <div className="flex border-b border-[#E4E7EC] px-6 mt-2 overflow-x-auto">
+        <div className="flex border-b border-[#E4E7EC] px-6 mt-4 overflow-x-auto shrink-0">
             <button
               onClick={() => setLeftTab('risk')}
-              className={`pb-2 text-[11px] font-bold tracking-wider uppercase mr-5 whitespace-nowrap ${leftTab === 'risk' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+              className={`pb-3 pt-1 text-[11px] font-bold tracking-wider uppercase mr-6 whitespace-nowrap ${leftTab === 'risk' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
             >
               Risk & Gaps
             </button>
             <button
               onClick={() => setLeftTab('similar')}
-              className={`pb-2 text-[11px] font-bold tracking-wider uppercase mr-5 whitespace-nowrap ${leftTab === 'similar' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+              className={`pb-3 pt-1 text-[11px] font-bold tracking-wider uppercase mr-6 whitespace-nowrap ${leftTab === 'similar' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
             >
               Similar Cases
             </button>
             <button
               onClick={() => setLeftTab('evidence')}
-              className={`pb-2 text-[11px] font-bold tracking-wider uppercase mr-5 whitespace-nowrap ${leftTab === 'evidence' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+              className={`pb-3 pt-1 text-[11px] font-bold tracking-wider uppercase mr-6 whitespace-nowrap ${leftTab === 'evidence' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
             >
               Evidence
             </button>
             {/* S8: New Lifecycle tab */}
             <button
               onClick={() => setLeftTab('lifecycle')}
-              className={`pb-2 text-[11px] font-bold tracking-wider uppercase whitespace-nowrap ${leftTab === 'lifecycle' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+              className={`pb-3 pt-1 text-[11px] font-bold tracking-wider uppercase mr-6 whitespace-nowrap ${leftTab === 'lifecycle' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
             >
               Lifecycle
+            </button>
+            <button
+              onClick={() => setLeftTab('simulation')}
+              className={`pb-3 pt-1 text-[11px] font-bold tracking-wider uppercase whitespace-nowrap ${leftTab === 'simulation' ? 'text-brand-red border-b-2 border-brand-red' : 'text-brand-gray hover:text-brand-black'}`}
+            >
+              Simulation
             </button>
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto bg-[#F9FAFB]">
+          <div className="bg-[#F9FAFB] flex-1 shrink-0 pb-10">
             {leftTab === 'risk' && (
               <div className="p-6 space-y-6">
-                <CounterfactualSimulatorWidget
-                  customerId={customerId}
-                  initialScore={Math.round((customer as any)?.risk_score || (customer as any)?.riskScore || (investigation as any)?.riskScore || 41)}
-                  initialRecommendation={(investigation as any)?.recommendation || 'MANUAL_REVIEW'}
-                />
 
                 <div className="mt-6">
                   <RuleSuggestionsWidget />
                 </div>
 
                 {(() => {
-                  const hasKyc = Boolean((customer?.kycStatus === 'Active' || customer?.kyc_status === 'Active') && customer?.name);
+                  const hasKyc = Boolean((customer as any)?.kyc_status === 'Active' && customer?.name);
                   const hasSof = Boolean((customer as any)?.total_amount || (customer as any)?.maximum_amount || (investigation as any)?.evidenceSummary?.length);
                   const hasUbo = Boolean(customer?.industry);
                   const hasTx = Boolean((customer as any)?.transaction_count || (customer as any)?.rolling_count_24h || investigation);
-                  const hasNetwork = Boolean((customer as any)?.recipient_diversity || (customer as any)?.sender_diversity || true);
-                  const hasRules = Boolean((investigation as any)?.ruleHits?.length || (enterpriseData as any)?.rule_hits?.length || true);
-                  const hasML = Boolean((investigation as any)?.mlResults || (enterpriseData as any)?.ml_results || (customer as any)?.riskScore || true);
-                  const hasNotes = Boolean((investigation as any)?.timeline?.length || (enterpriseData as any)?.timeline?.length || true);
+                  const hasNetwork = Boolean((customer as any)?.recipient_diversity || (customer as any)?.sender_diversity || evidenceGraph);
+                  const hasRules = Boolean((investigation as any)?.ruleHits?.length || (enterpriseData as any)?.rule_hits?.length || riskClassData?.rule_contribution);
+                  const hasML = Boolean((investigation as any)?.mlResults || (enterpriseData as any)?.ml_results || anomalyData);
+                  const hasNotes = Boolean((investigation as any)?.timeline?.length || enterpriseData?.planner_timeline?.length);
 
                   const pillars = [
                     { pillar: 'KYC_VERIFICATION', name: 'Customer Identity & KYC Status', status: hasKyc ? 'PRESENT' : 'MISSING_CRITICAL', weight: 0.15, isRequiredForSar: true, description: 'Verified PII and jurisdiction.', remediationAction: 'Complete KYC verification.' },
@@ -293,9 +315,9 @@ export default function InvestigationWorkspace() {
               </div>
             )}
 
-            {/* S8: Lifecycle tab â€” full CaseLifecycleTimeline component */}
+            {/* S8: Lifecycle tab - full CaseLifecycleTimeline component */}
             {leftTab === 'lifecycle' && (
-              <div className="p-6">
+              <div className="p-6 space-y-6">
                 <CaseLifecycleTimeline
                   customerId={customerId}
                   sarConfirmed={sarConfirmed}
@@ -303,10 +325,20 @@ export default function InvestigationWorkspace() {
                 />
               </div>
             )}
+
+            {leftTab === 'simulation' && (
+              <div className="p-6 space-y-6">
+                <CounterfactualSimulatorWidget
+                  customerId={customerId}
+                  initialScore={Math.round(riskClassData?.risk_score_pct ?? (investigation as any)?.risk_profile?.composite_score ?? customer?.risk_score ?? 41)}
+                  initialRecommendation={riskClassData?.recommendation_label || riskClassData?.recommendation || (investigation as any)?.recommendation || 'MANUAL_REVIEW'}
+                />
+              </div>
+            )}
           </div>
 
           {/* SAR Button */}
-          <div className="px-6 pb-6 mt-auto">
+          <div className="sticky bottom-0 px-6 py-4 mt-auto border-t border-[#E4E7EC] bg-white z-20 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             {showSarToast && (
               <div className="mb-3 p-3 bg-[#F0FDF4] border border-[#86EFAC] text-[12px] text-[#166534] flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[#22C55E] flex-shrink-0" />
@@ -315,10 +347,13 @@ export default function InvestigationWorkspace() {
             )}
             <button
               onClick={handleFinalizeSAR}
-              disabled={sarConfirmed}
+              disabled={disableSarBtn}
+              title={!isAiHighRisk && !sarConfirmed ? "AI did not recommend SAR filing. Manual override required via L2." : ""}
               className={`w-full font-bold py-3 text-[12px] tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm ${
                 sarConfirmed
                   ? 'bg-[#10B981] text-white cursor-default'
+                  : disableSarBtn
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-brand-red hover:bg-[#c5000d] text-white'
               }`}
             >
@@ -360,8 +395,8 @@ export default function InvestigationWorkspace() {
         {/* Dynamic Content based on Mode */}
         {mode === 'enterprise' ? (
           <div className="flex-1 overflow-hidden flex flex-col bg-white">
-            <div className="h-[450px] shrink-0 border-b border-[#E4E7EC]">
-              <KnowledgeGraph customerId={customerId} />
+            <div className="p-6 shrink-0 border-b border-[#E4E7EC] bg-[#F9FAFB]">
+              <KnowledgeGraph customerId={customerId} riskScore={Number(currentRiskScore)} />
             </div>
             <div className="flex-1 overflow-auto">
               <InvestigationReportView
@@ -377,23 +412,28 @@ export default function InvestigationWorkspace() {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 fs-page-bg">
               <AgentSwarmView
-                timeline={agentTimeline}
-                events={events}
-                isRunning={isSwarmRunning || is_running}
+                timeline={isEnterprisePending ? [] : agentTimeline}
+                events={[]}
+                isRunning={isEnterprisePending}
               />
 
-              {final_answer && (
-                <div className="flex flex-col items-start mt-4 w-full">
-                  <div className="max-w-[90%] p-4 text-[12px] leading-relaxed shadow-sm bg-white border border-[#E4E7EC] text-brand-black prose prose-sm max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{final_answer}</ReactMarkdown>
+              {chatHistory.map((msg, idx) => (
+                <div key={idx} className={`flex flex-col mt-4 w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className={`max-w-[90%] p-4 text-[12px] leading-relaxed shadow-sm border text-brand-black prose prose-sm max-w-none ${msg.role === 'user' ? 'bg-[#F9FAFB] border-[#E4E7EC]' : 'bg-white border-[#E4E7EC]'}`}>
+                    {msg.role === 'user' ? (
+                      <p className="m-0 font-medium whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                    )}
                   </div>
                 </div>
-              )}
+              ))}
+              <div ref={chatEndRef} />
 
-              {plannerError && (
+              {enterpriseError && (
                 <div className="flex flex-col items-center justify-center p-4">
                   <div className="max-w-[80%] p-4 text-[13px] leading-relaxed shadow-sm bg-[#FEF2F2] border border-[#FECACA] text-brand-red">
-                    <strong>Error:</strong> {plannerError}
+                    <strong>Error:</strong> {enterpriseError.message}
                   </div>
                 </div>
               )}
@@ -403,8 +443,8 @@ export default function InvestigationWorkspace() {
 
             <div className="p-4 bg-white border-t border-[#E4E7EC] flex-shrink-0">
               <div className="relative flex items-center">
-                <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChat()} placeholder="Ask about this investigation..." className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-4 pr-12 py-3 text-[13px] focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all" disabled={is_running} />
-                <button className="absolute right-2 p-2 text-brand-red hover:bg-[#FEF2F2] transition-colors disabled:opacity-30" onClick={handleChat} disabled={is_running || !chatInput.trim()}>
+                <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChat()} placeholder="Ask about this investigation..." className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-4 pr-12 py-3 text-[13px] focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all" disabled={isEnterprisePending} />
+                <button className="absolute right-2 p-2 text-brand-red hover:bg-[#FEF2F2] transition-colors disabled:opacity-30" onClick={handleChat} disabled={isEnterprisePending || !chatInput.trim()}>
                   <Send className="h-4 w-4" />
                 </button>
               </div>

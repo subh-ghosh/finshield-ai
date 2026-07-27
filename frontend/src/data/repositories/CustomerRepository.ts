@@ -12,13 +12,7 @@ export class CustomerRepository implements ICustomerRepository {
   ) {}
 
   async getCustomerProfile(customerId: string): Promise<CustomerProfile> {
-    try {
-      const dto = await this.remoteDataSource.getCustomerProfile(customerId);
-      return CustomerMapper.toDomain(dto);
-    } catch (error) {
-      Logger.warn(`Backend unavailable for Customer ${customerId}. Falling back to local data source.`, { error });
-      const fallbackDto = await this.localDataSource.getCustomerProfile(customerId);
-      return CustomerMapper.toDomain(fallbackDto);
-    }
+    const dto = await this.remoteDataSource.getCustomerProfile(customerId);
+    return CustomerMapper.toDomain(dto);
   }
 }

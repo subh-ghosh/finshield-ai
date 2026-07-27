@@ -1,6 +1,7 @@
 """Shared async HTTP client for the FinShield REST API with retry, timeout, and correlation ID support."""
 
 import asyncio
+import os
 import time
 from typing import Any, Dict, List, Optional
 
@@ -50,12 +51,17 @@ class FinShieldAPIClient:
     # ------------------------------------------------------------------
 
     async def __aenter__(self) -> "FinShieldAPIClient":
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        api_key = os.environ.get("API_KEY")
+        if api_key:
+            headers["X-API-Key"] = api_key
+
         self._client = httpx.AsyncClient(
             base_url=self._settings.FINSHIELD_API_BASE_URL,
             timeout=httpx.Timeout(self._settings.PLANNER_REQUEST_TIMEOUT),
-            headers={"Accept": "application/json", "Content-Type": "application/json"},
+            headers=headers,
         )
-        logger.info(f"[CID: {self._correlation_id}] FinShieldAPIClient session opened → {self._settings.FINSHIELD_API_BASE_URL}")
+        logger.info(f"[CID: {self._correlation_id}] FinShieldAPIClient session opened â†’ {self._settings.FINSHIELD_API_BASE_URL}")
         return self
 
     async def __aexit__(self, *args) -> None:
@@ -100,10 +106,10 @@ class FinShieldAPIClient:
                 elapsed_ms = (time.perf_counter() - start) * 1000.0
 
                 logger.info(
-                    f"[CID: {self._correlation_id}] {method} {path} → {response.status_code} ({elapsed_ms:.2f}ms)"
+                    f"[CID: {self._correlation_id}] {method} {path} â†’ {response.status_code} ({elapsed_ms:.2f}ms)"
                 )
 
-                # Map client errors — never retried
+                # Map client errors â€” never retried
                 if response.status_code == 404:
                     raise APINotFoundError(
                         f"Resource not found at {path}", status_code=404
@@ -113,7 +119,7 @@ class FinShieldAPIClient:
                         f"Validation error from {path}: {response.text}", status_code=response.status_code
                     )
 
-                # Map server errors — retryable
+                # Map server errors â€” retryable
                 if response.status_code in _RETRYABLE_STATUS_CODES:
                     raise APIUnavailableError(
                         f"Server error {response.status_code} at {path}", status_code=response.status_code
@@ -123,7 +129,7 @@ class FinShieldAPIClient:
                 return response.json()
 
             except (APINotFoundError, APIValidationError):
-                raise  # Non-retryable — propagate immediately
+                raise  # Non-retryable â€” propagate immediately
 
             except httpx.TimeoutException as exc:
                 last_error = APITimeoutError(f"Request to {path} timed out: {exc}")
@@ -179,17 +185,17 @@ class FinShieldAPIClient:
         return await self._request("GET", "/api/v1/version")
 
     async def get_eda_summary(self) -> Dict[str, Any]:
-        """GET /api/v1/eda/summary — dataset-level EDA stats."""
+        """GET /api/v1/eda/summary - dataset-level EDA stats."""
         return await self._request("GET", "/api/v1/eda/summary")
 
     async def get_customer_features(self, customer_id: str) -> Dict[str, Any]:
-        """GET /api/v1/features/{customer_id} � AML feature vector."""
+        """GET /api/v1/features/{customer_id} - AML feature vector."""
         return await self._request("GET", f"/api/v1/features/{customer_id}")
 
     async def get_customer_anomaly(self, customer_id: str) -> Dict[str, Any]:
-        """GET /api/v1/anomaly/{customer_id} � Isolation Forest anomaly score."""
+        """GET /api/v1/anomaly/{customer_id} - Isolation Forest anomaly score."""
         return await self._request("GET", f"/api/v1/anomaly/{customer_id}")
 
     async def get_risk_classification(self, customer_id: str) -> Dict[str, Any]:
-        """GET /api/v1/risk-classify/{customer_id} � Hybrid risk classification."""
+        """GET /api/v1/risk-classify/{customer_id} - Hybrid risk classification."""
         return await self._request("GET", f"/api/v1/risk-classify/{customer_id}")

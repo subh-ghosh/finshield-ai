@@ -9,8 +9,26 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # AWS RDS Settings (To be injected via .env on EC2)
-      - DATABASE_URL=${DATABASE_URL:-}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - ENVIRONMENT=production
-    restart: always
+      # Pass API Key for Gemini LangGraph Swarm
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - DOCKER_ENV=1
+    volumes:
+      - ./backend:/app
+      - ./dataset:/app/dataset  # Map the root dataset folder to the backend
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: finshield-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped

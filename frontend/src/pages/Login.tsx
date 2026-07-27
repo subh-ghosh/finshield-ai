@@ -7,7 +7,7 @@ export default function Login() {
     <div className="min-h-screen w-full flex bg-gradient-to-br from-[#dce6f0] via-[#e8eef4] to-[#f0f4f8]">
       {/* Left Branding Panel */}
       <div className="hidden lg:flex w-[45%] flex-col justify-between p-12 relative">
-        {/* SG Logo */}
+        {/* Product logo */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 relative">
             <div className="absolute top-0 left-0 w-6 h-6 bg-brand-red"></div>

@@ -17,7 +17,7 @@ export function ExecutionStepItem({ step, index }: { step: ExecutionStep; index:
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 font-mono">
           <span className="text-brand-red font-bold">[{index + 1}]</span>
-          <span className="text-brand-black font-semibold">{step.tool_name}</span>
+          <span className="text-brand-black font-semibold">{step.tool_name || step.message}</span>
         </div>
         <div className="flex items-center gap-2">
           {step.duration_ms && <span className="text-brand-gray font-mono">{step.duration_ms}ms</span>}

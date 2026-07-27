@@ -7,8 +7,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../core/api';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-
 // ── Feature Engineering ──────────────────────────────────────────────────────
 export function useCustomerFeatures(customerId: string) {
   return useQuery({

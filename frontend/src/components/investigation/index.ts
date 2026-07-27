@@ -1,4 +1,4 @@
-// ── Subarta's S-task components ─────────────────────────────────────────────
+// Core investigation components
 export * from './InvestigationReportView';
 export * from './LoadingInvestigation';
 export * from './InvestigationHeader';
@@ -14,6 +14,6 @@ export * from './CaseLifecycleTimeline';
 export type { CaseStatus } from './CaseLifecycleTimeline';
 export { KnowledgeGraph } from './KnowledgeGraph';
 
-// ── Arhit's A-task components ────────────────────────────────────────────────
+// Supporting investigation components
 export * from './RuleSuggestionsWidget';
 export * from './KnowledgeGraphSummary';

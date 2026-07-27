@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
+import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X, Download } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -106,23 +106,23 @@ export default function PlannerPlayground() {
       <div className="h-11 bg-white border-b border-[#E4E7EC] flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Terminal className="h-3.5 w-3.5 text-brand-red" />
-          <span className="text-[12px] font-bold tracking-wider uppercase text-[#6B7280]">AI Investigation Console</span>
+          <span className="text-[12px] font-bold tracking-wider uppercase text-[#6B7280]">AI Investigator Copilot</span>
         </div>
         <div className="flex gap-2 items-center">
           <span className="text-[10px] font-mono text-brand-gray bg-[#F3F4F6] px-2 py-0.5 rounded border border-[#E4E7EC]">
-            Engine: Deterministic v2.0 + LLM Report
+            Engine: Standard Operating Procedure (SOP)
           </span>
           <button
             onClick={() => setShowToolRegistry(true)}
             className="text-[11px] border border-[#E4E7EC] px-3 py-1 bg-white text-[#6B7280] hover:bg-[#F9FAFB] flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <Database className="h-3 w-3" /> Tool Registry
+            <Database className="h-3 w-3" /> AML Capabilities Library
           </button>
           <button
             onClick={() => setShowViewState(true)}
             className="text-[11px] border border-[#E4E7EC] px-3 py-1 bg-white text-[#6B7280] hover:bg-[#F9FAFB] flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <Code2 className="h-3 w-3" /> View State
+            <Code2 className="h-3 w-3" /> Audit & Context Memory
           </button>
         </div>
       </div>
@@ -132,13 +132,13 @@ export default function PlannerPlayground() {
         {history.length === 0 && (
           <div className="text-center mt-16">
             <div className="w-14 h-14 rounded-full bg-white border border-[#E4E7EC] flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <Terminal className="h-6 w-6 text-brand-gray" />
+              <Terminal className="h-6 w-6 text-brand-black" />
             </div>
-            <div className="text-[13px] font-semibold text-[#6B7280] font-sans">System Ready</div>
-            <div className="text-[12px] text-brand-gray font-sans mt-1">
+            <div className="text-[16px] font-bold text-brand-black font-sans">System Ready</div>
+            <div className="text-[13px] text-[#6B7280] font-sans mt-1">
               Ask about a customer, or query the full dataset
             </div>
-            <div className="mt-4 flex flex-wrap gap-2 justify-center">
+            <div className="mt-6 flex flex-wrap gap-2 justify-center">
               {[
                 'Analyse this dataset for suspicious activity',
                 'Find structuring patterns across all customers',
@@ -150,7 +150,7 @@ export default function PlannerPlayground() {
                 <button
                   key={s}
                   onClick={() => setInput(s)}
-                  className="text-[11px] font-sans border border-[#E4E7EC] px-3 py-1.5 bg-white text-[#6B7280] hover:bg-[#F9FAFB] hover:text-brand-black hover:border-brand-red/30 transition-all rounded-sm"
+                  className="text-[12px] font-sans border border-[#E4E7EC] px-4 py-2 bg-white text-[#374151] hover:bg-brand-red hover:text-white hover:border-brand-red transition-all rounded-sm shadow-sm"
                 >
                   {s}
                 </button>
@@ -172,7 +172,7 @@ export default function PlannerPlayground() {
                   <div className="flex items-center gap-2">
                     <Activity className={`h-3 w-3 ${msg.status === 'running' ? 'animate-spin text-brand-red' : msg.status === 'done' ? 'text-green-500' : 'text-red-400'}`} />
                     <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest font-sans">
-                      {msg.status === 'running' ? 'Executing Investigation...' : msg.status === 'error' ? 'Investigation Failed' : 'Investigation Complete'}
+                      {msg.status === 'running' ? 'Compiling Regulatory Profile...' : msg.status === 'error' ? 'Compilation Failed' : 'Verification Checks Complete'}
                     </span>
                   </div>
                   {msg.customerId && (
@@ -193,10 +193,10 @@ export default function PlannerPlayground() {
                 {/* Execution trace */}
                 {(msg.steps?.length > 0 || msg.status === 'running') && (
                   <div className="px-4 py-3 border-b border-[#F3F4F6] space-y-1.5">
-                    <div className="text-[10px] font-bold text-brand-red uppercase tracking-[0.15em] mb-2">++ Execution Trace ++</div>
+                    <div className="text-[10px] font-bold text-brand-red uppercase tracking-[0.15em] mb-2">++ Chain of Evidence Log ++</div>
                     {msg.status === 'running' && msg.steps?.length === 0 && (
                       <div className="text-[11px] text-brand-gray flex items-center gap-1.5">
-                        <Activity className="h-3 w-3 animate-spin" /> Running pipeline stages...
+                        <Activity className="h-3 w-3 animate-spin" /> Running verification checks...
                       </div>
                     )}
                     {msg.steps?.map((step: string, idx: number) => (
@@ -218,7 +218,9 @@ export default function PlannerPlayground() {
                           <Code2 className="h-3 w-3" /> Query Intent Parsed
                         </div>
                         <div className="grid grid-cols-2 gap-1">
-                          {Object.entries(msg.result.filters_extracted).map(([k, v]) => v && (
+                          {Object.entries(msg.result.filters_extracted)
+                            .filter(([, v]) => Boolean(v))
+                            .map(([k, v]) => (
                             <div key={k} className="flex items-center gap-1 text-[11px]">
                               <span className="text-blue-500 font-mono">{k}:</span>
                               <span className="text-blue-800 font-semibold">{String(v)}</span>
@@ -239,7 +241,7 @@ export default function PlannerPlayground() {
                         <div className="text-[16px] font-bold text-brand-black">{(parseFloat(msg.result.confidence) * 100).toFixed(0)}%</div>
                       </div>
                       <div className="text-center p-3 bg-[#FAFBFC] border border-[#E4E7EC]">
-                        <div className="text-[10px] uppercase tracking-widest text-brand-gray mb-1">Exec Time</div>
+                        <div className="text-[10px] uppercase tracking-widest text-brand-gray mb-1">Analysis Duration</div>
                         <div className="text-[14px] font-bold text-brand-black">{msg.result.execution_time_ms?.toFixed(1)}ms</div>
                       </div>
                     </div>
@@ -260,6 +262,18 @@ export default function PlannerPlayground() {
                           ">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.result.final_report}</ReactMarkdown>
                           </div>
+                        </div>
+                        
+                        {/* Download SAR Button */}
+                        <div className="mt-4 flex justify-end">
+                           <a 
+                             href={`http://localhost:8000/api/v1/report/sar/${msg.customerId || 'C_1'}`} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-red text-white text-[11px] font-bold uppercase tracking-wider hover:bg-red-700 transition-colors shadow-sm"
+                           >
+                             <Download className="h-3.5 w-3.5" /> Export Official SAR (PDF)
+                           </a>
                         </div>
                       </div>
                     )}
@@ -288,7 +302,7 @@ export default function PlannerPlayground() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="e.g. Analyse dataset for suspicious activity  or  Investigate C_1"
-            className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-10 pr-24 py-3 text-[13px] font-mono focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all"
+            className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-10 pr-24 py-3 text-[13px] font-mono text-brand-black focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-[#6B7280] transition-all"
             disabled={isProcessing}
           />
           <button
@@ -408,8 +422,8 @@ export default function PlannerPlayground() {
                   </div>
                   <p className="text-[12px] text-[#374151] mt-1 leading-snug">{tool.desc}</p>
                   <div className="flex flex-col gap-0.5 mt-2">
-                    <span className="text-[10px] text-brand-gray">IN: <code className="text-[#6B7280]">{tool.input}</code></span>
-                    <span className="text-[10px] text-brand-gray">OUT: <code className="text-[#6B7280]">{tool.output}</code></span>
+                    <span className="text-[10px] text-brand-gray">PARAMETERS: <code className="text-[#6B7280]">{tool.input}</code></span>
+                    <span className="text-[10px] text-brand-gray">FINDINGS: <code className="text-[#6B7280]">{tool.output}</code></span>
                     <span className="text-[10px] text-brand-gray font-mono">{tool.endpoint}</span>
                   </div>
                 </div>
@@ -428,7 +442,7 @@ export default function PlannerPlayground() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 sticky top-0 bg-[#161A22]">
               <div className="flex items-center gap-2">
                 <Code2 className="h-4 w-4 text-[#22C55E]" />
-                <h2 className="text-[13px] font-bold text-white tracking-wide font-mono">Pipeline State</h2>
+                <h2 className="text-[13px] font-bold text-white tracking-wide font-mono">Audit & Context Memory</h2>
               </div>
               <button onClick={() => setShowViewState(false)}><X className="h-4 w-4 text-white/40" /></button>
             </div>

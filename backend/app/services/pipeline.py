@@ -145,7 +145,7 @@ class AMLPipeline:
                 # Run GNN Model
                 gnn_scores = {}
                 try:
-                    gnn_scores = build_gnn_scores(clean_dataframe, customer_features)
+                    gnn_scores = build_gnn_scores(cached_df, customer_features)
                 except Exception as e:
                     logger.warning(f"GNN scoring failed: {e}")
 
@@ -305,7 +305,7 @@ class AMLPipeline:
         # 17b. Run GNN Model (V2)
         gnn_scores = {}
         try:
-            gnn_scores = build_gnn_scores(clean_dataframe, customer_features)
+            gnn_scores = build_gnn_scores(df, customer_features)
         except Exception as e:
             logger.warning(f"GNN scoring failed: {e}")
 

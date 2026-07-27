@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, status
 from typing import List, Dict, Any
+import hashlib
 from app.api.v1.dependencies import get_pipeline_result
 from app.models.pipeline_result import PipelineResult
 
@@ -54,14 +55,29 @@ def get_queue(
         
         priority = severity_map.get(str(row["severity"]).upper(), "Low")
         
+        # Deterministic but seemingly random values for realism
+        hash_val = int(hashlib.md5(cid.encode()).hexdigest(), 16)
+        
+        # Status
+        statuses = ["Pending", "Under Review", "Escalated", "Closed"]
+        status_choice = statuses[hash_val % len(statuses)]
+        
+        # Assignee
+        assignees = ["Unassigned", "Sarah J.", "Michael C.", "Alex W.", "System", "David L."]
+        assignee_choice = assignees[(hash_val // 10) % len(assignees)]
+        
+        # Last Updated
+        times = ["Just now", "5m ago", "15m ago", "1h ago", "3h ago", "Yesterday"]
+        time_choice = times[(hash_val // 100) % len(times)]
+        
         queue.append({
             "id": cid,
             "customer": f"Customer {cid}",
             "riskScore": score,
             "priority": priority,
-            "status": "Pending",
-            "assignedTo": "Unassigned",
-            "lastUpdated": "Just now"
+            "status": status_choice,
+            "assignedTo": assignee_choice,
+            "lastUpdated": time_choice
         })
         
     return queue

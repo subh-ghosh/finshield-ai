@@ -7,6 +7,7 @@ interface StateViewProps {
   isEmpty?: boolean;
   error?: Error | null;
   loadingComponent?: ReactNode;
+  emptyComponent?: ReactNode;
   errorComponent?: ReactNode;
   children: ReactNode;
 }

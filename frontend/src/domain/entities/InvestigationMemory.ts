@@ -40,7 +40,7 @@ export interface InvestigationMemoryRecord {
   customerId: string;
   customerName: string;
   customerType: string;
-  industry: str;
+  industry: string;
   jurisdiction: string;
   investigationDate: string;
   riskScore: number;

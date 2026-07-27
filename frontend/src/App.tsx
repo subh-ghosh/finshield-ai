@@ -6,6 +6,8 @@ import InvestigationQueue from '@/pages/InvestigationQueue'
 import InvestigationWorkspace from '@/pages/InvestigationWorkspace'
 import Customer360 from '@/pages/Customer360'
 import PlannerPlayground from '@/pages/PlannerPlayground'
+import Insights from '@/pages/Insights'
+import SystemAdmin from '@/pages/SystemAdmin'
 import Login from '@/pages/Login'
 
 const queryClient = new QueryClient({
@@ -34,6 +36,8 @@ function App() {
             <Route path="customer" element={<Customer360 />} />
             <Route path="customer/:id" element={<Customer360 />} />
             <Route path="playground" element={<PlannerPlayground />} />
+            <Route path="insights" element={<Insights />} />
+            <Route path="system" element={<SystemAdmin />} />
           </Route>
         </Routes>
       </Router>

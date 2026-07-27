@@ -1,23 +1,18 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Building2, Globe, Calendar, Briefcase, ExternalLink, ArrowLeft, Search } from 'lucide-react'
 import { useState } from 'react'
-import { useCustomerDetails } from '../hooks'
+import { useCustomerDetails, useInvestigationQueue } from '../hooks'
 import { StateView } from '../components/shared'
-
-// Quick-access sample customers
-const SAMPLE_CUSTOMERS = [
-  { id: 'C_1', name: 'Acme Corp Ltd' },
-  { id: 'C_2', name: 'Global Traders Inc' },
-  { id: 'C_3', name: 'TechVentures LLC' },
-  { id: 'C_4', name: 'Nexus Dynamics' },
-  { id: 'C_5', name: 'Pacific Holdings' },
-]
+import { Loader2 } from 'lucide-react'
 
 export default function Customer360() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [searchInput, setSearchInput] = useState('')
   const { data: customer, isLoading, isError, error } = useCustomerDetails(id || '')
+  const { data: queueData, isLoading: isQueueLoading } = useInvestigationQueue()
+
+  const recentInvestigations = queueData ? queueData.slice(0, 5) : []
 
   // No ID — show customer selector landing
   if (!id) {
@@ -33,28 +28,50 @@ export default function Customer360() {
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && searchInput.trim()) navigate(`/customer/${searchInput.trim()}`) }}
-            placeholder="Enter Customer ID (e.g. C_1) and press Enter..."
-            className="w-full pl-11 pr-4 py-3 bg-white border border-[#E4E7EC] text-[13px] text-brand-black placeholder:text-brand-gray focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && searchInput.trim()) {
+                const query = searchInput.trim();
+                const match = query.match(/\b(C_\d+|CUST-\d+)\b/i);
+                if (match) {
+                  navigate(`/customer/${match[1].toUpperCase()}`);
+                } else {
+                  // Route them to playground if no specific customer ID is found
+                  navigate('/playground');
+                }
+              }
+            }}
+            placeholder="Enter Customer ID (e.g. C_1) or ask a question about a customer..."
+            className="w-full pl-11 pr-4 py-3 bg-white border border-[#E4E7EC] text-[13px] text-brand-black placeholder:text-[#6B7280] focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] transition-all"
           />
         </div>
 
         {/* Quick access */}
         <h3 className="text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-3">Recent Investigations</h3>
         <div className="space-y-2">
-          {SAMPLE_CUSTOMERS.map(c => (
-            <button
-              key={c.id}
-              onClick={() => navigate(`/customer/${c.id}`)}
-              className="w-full flex items-center justify-between p-4 bg-white border border-[#E4E7EC] hover:border-brand-red/30 hover:bg-[#FAFBFF] transition-all text-left group"
-            >
-              <div>
-                <div className="text-[13px] font-semibold text-brand-black">{c.name}</div>
-                <div className="text-[11px] font-mono text-brand-gray mt-0.5">{c.id}</div>
-              </div>
-              <ExternalLink className="h-4 w-4 text-brand-gray group-hover:text-brand-red transition-colors" />
-            </button>
-          ))}
+          {isQueueLoading ? (
+            <div className="flex items-center justify-center p-8 border border-[#E4E7EC] bg-white text-brand-gray">
+              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading recent investigations...
+            </div>
+          ) : (
+            recentInvestigations.map(c => (
+              <button
+                key={c.id}
+                onClick={() => navigate(`/customer/${c.id}`)}
+                className="w-full flex items-center justify-between p-4 bg-white border border-[#E4E7EC] hover:border-brand-red/30 hover:bg-[#FAFBFF] transition-all text-left group"
+              >
+                <div>
+                  <div className="text-[13px] font-semibold text-brand-black flex items-center gap-2">
+                    {c.customer}
+                    <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 ${c.priority === 'Critical' ? 'bg-red-100 text-red-700' : c.priority === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>
+                      {c.priority} Risk
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono text-brand-gray mt-0.5">{c.id} • Score: {c.riskScore}/100</div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-brand-gray group-hover:text-brand-red transition-colors" />
+              </button>
+            ))
+          )}
         </div>
       </div>
     )
@@ -89,7 +106,7 @@ export default function Customer360() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
               {/* Profile Card */}
               <div className="bg-white border border-[#e3e3e3] p-5">
                 <h3 className="text-[11px] font-bold tracking-wider uppercase text-gray-500 mb-4 pb-2 border-b border-gray-200">Profile Details</h3>

@@ -1,0 +1,39 @@
+graph TD
+    %% Define Styles
+    classDef frontend fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
+    classDef backend fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef ai fill:#8b5cf6,stroke:#6d28d9,stroke-width:2px,color:#fff;
+    classDef database fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff;
+
+    %% Components
+    UI[Frontend Client<br/>React + Tailwind + Vite]:::frontend
+    API[Backend REST API<br/>FastAPI - Python]:::backend
+    
+    subgraph Core AML Engines
+        Pipeline[Data Pipeline<br/>Feature Extraction]:::backend
+        Rules[Deterministic Rule Engine<br/>Thresholds & Velocity]:::backend
+        ML[Isolation Forest ML<br/>Behavioral Anomalies]:::backend
+        Hybrid[Hybrid Risk Engine<br/>Score Fusion]:::backend
+    end
+    
+    subgraph Multi-Agent Swarm
+        LangGraph[LangGraph Orchestrator]:::ai
+        Agents[Swarm Sub-Agents<br/>Rule, ML, Network]:::ai
+    end
+    
+    DB[(NetworkX Graph DB)]:::database
+    Data[(Transactions Dataset)]:::database
+
+    %% Connections
+    UI -- "Intent-driven NLP Queries" --> API
+    API -- "Initiates Data Loading" --> Pipeline
+    Pipeline -- "Raw Features" --> Rules
+    Pipeline -- "Feature Vectors" --> ML
+    Rules -- "Violations" --> Hybrid
+    ML -- "Anomaly Scores" --> Hybrid
+    
+    API -- "Trigger Investigation" --> LangGraph
+    LangGraph -- "Delegates Tasks" --> Agents
+    Agents -- "Queries Context" --> Hybrid
+    Agents -- "Traverses Counterparties" --> DB
+    Pipeline -- "Extracts" --> Data

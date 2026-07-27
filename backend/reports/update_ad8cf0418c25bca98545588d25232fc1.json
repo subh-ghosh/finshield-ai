@@ -1,0 +1,12 @@
+{
+    "bank_id": "FinShield_Node_1",
+    "model_version": "1.0.3",
+    "dataset_hash": "ad8cf0418c25bca98545588d25232fc1",
+    "parameters": {
+        "n_estimators": 100,
+        "max_features": 1.0,
+        "dp_structural_depth": 13.833,
+        "dp_epsilon": 0.5
+    },
+    "status": "READY_FOR_AGGREGATION"
+}

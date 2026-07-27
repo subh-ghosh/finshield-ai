@@ -71,16 +71,20 @@ def mock_version_response():
 # ============================================================
 
 class TestToolRegistry:
-    def test_registry_has_all_six_tools(self):
+    def test_registry_has_expected_tools(self):
         from app.planner.registry.tool_registry import TOOL_REGISTRY
         tools = TOOL_REGISTRY.list_tools()
+        assert "eda_analysis" in tools
+        assert "feature_engineering" in tools
+        assert "anomaly_detection" in tools
+        assert "risk_classification" in tools
         assert "analyze_customer" in tools
         assert "analyze_batch" in tools
         assert "get_customer_profile" in tools
         assert "get_explanation" in tools
         assert "health" in tools
         assert "version" in tools
-        assert len(tools) == 6
+        assert len(tools) == 10
 
     def test_get_tool_returns_instance(self):
         from app.planner.registry.tool_registry import TOOL_REGISTRY
@@ -110,7 +114,7 @@ class TestToolRegistry:
     def test_list_metadata_returns_all(self):
         from app.planner.registry.tool_registry import TOOL_REGISTRY
         all_meta = TOOL_REGISTRY.list_metadata()
-        assert len(all_meta) == 6
+        assert len(all_meta) == 10
 
 
 # ============================================================
@@ -352,7 +356,7 @@ class TestPlannerNode:
 
     @pytest.mark.asyncio
     async def test_planner_node_handles_llm_error(self, customer_id, correlation_id):
-        """On LLM failure, falls back to ['analyze_customer']."""
+        """On LLM failure, falls back to the deterministic single-customer plan."""
         from app.planner.nodes.planner_node import planner_node
 
         with patch("app.planner.nodes.planner_node.get_llm", side_effect=Exception("LLM error")):
@@ -363,7 +367,12 @@ class TestPlannerNode:
             }
             result = await planner_node(state)
 
-        assert result["pending_tools"] == ["analyze_customer"]
+        assert result["pending_tools"] == [
+            "feature_engineering",
+            "anomaly_detection",
+            "risk_classification",
+            "get_explanation",
+        ]
 
 
 # ============================================================

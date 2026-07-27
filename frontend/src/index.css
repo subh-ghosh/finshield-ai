@@ -6,14 +6,14 @@
 
 @layer base {
   :root {
-    /* SG Enterprise Design System â€” Refined */
+    /* Enterprise design system - refined */
     --background: 216 20% 96%;       /* #F2F4F7 bluish grey like FinShield corporate */
     --foreground: 0 0% 12%;          /* #1E1E1E */
     --card: 0 0% 100%;
     --card-foreground: 0 0% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 12%;
-    --primary: 354 100% 44%;         /* #E1000F SG Red */
+    --primary: 354 100% 44%;         /* #E1000F brand red */
     --primary-foreground: 0 0% 100%;
     --secondary: 220 13% 91%;        /* #E4E7EC */
     --secondary-foreground: 0 0% 12%;
@@ -50,7 +50,7 @@
     line-height: 1.5;
   }
 
-  /* â”€â”€ SG Premium Components â”€â”€ */
+  /* Premium components */
 
   .fs-page-bg {
     background: #F2F4F7;

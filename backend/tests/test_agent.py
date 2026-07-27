@@ -10,7 +10,7 @@ def test_analyze_intent():
     result = agent_executor.invoke({"messages": [input_message], "customer_id": "UNKNOWN"}, config=config)
     
     assert "current_intent" in result
-    assert result["current_intent"] == "Investigate customer C_12345"
+    assert result["current_intent"] == "single_entity"
     assert result["customer_id"] == "C_12345"
 
 def test_dynamic_plan():

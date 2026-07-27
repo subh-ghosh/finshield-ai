@@ -12,13 +12,7 @@ export class DashboardRepository implements IDashboardRepository {
   ) {}
 
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    try {
-      const dto = await this.remoteDataSource.getMetrics();
-      return DashboardMapper.toDomain(dto);
-    } catch (error) {
-      Logger.warn('Backend unavailable for Dashboard Metrics. Falling back to local data source.', { error });
-      const fallbackDto = await this.localDataSource.getMetrics();
-      return DashboardMapper.toDomain(fallbackDto);
-    }
+    const dto = await this.remoteDataSource.getMetrics();
+    return DashboardMapper.toDomain(dto);
   }
 }

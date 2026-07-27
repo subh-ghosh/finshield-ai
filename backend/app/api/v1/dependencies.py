@@ -86,11 +86,10 @@ def _resolve_dataset_path() -> str:
         "dataset/transactions.csv",
         "../dataset/transactions.csv",
         "../../dataset/transactions.csv",
-        # Legacy paths (Arhit's machine)
+        # Legacy local dataset folder names
         "IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv",
         "../IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv",
         "../../IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv",
-        "/home/arhit/Desktop/Socite General Hackathon/IBM AML Transaction Dataset (IBM AMLSim)/transactions.csv"
     ]
     for path in candidate_paths:
         if os.path.exists(path):

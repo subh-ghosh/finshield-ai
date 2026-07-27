@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, CheckCircle2, User, FileText, Globe, Search, ArrowRight, GitMerge, Loader2, ShieldCheck, FileSearch } from 'lucide-react';
+import { Activity, CheckCircle2, User, FileText, Globe, Search, GitMerge, Loader2, ShieldCheck, FileSearch } from 'lucide-react';
 
 const AGENT_CONFIG: Record<string, { icon: React.ReactNode, color: string, bg: string }> = {
   'Supervisor Agent': { icon: <Search className="w-5 h-5" />, color: 'text-[#E1000F]', bg: 'bg-[#FEF2F2]' },
@@ -25,7 +25,7 @@ export function AgentSwarmView({ timeline = [], events = [], isRunning = false }
   if (completedAgents.length === 0 && events.length > 0) {
     completedAgents = events
       .filter(e => e.type === 'tool_end' && e.step?.tool_name)
-      .map(e => ({ name: e.step.tool_name, output: e.step.output, status: 'completed' }));
+      .map(e => ({ name: e.step.tool_name, output: e.step.output, duration: e.step.duration, status: 'completed' }));
   }
 
   let activeAgent = null;
@@ -43,6 +43,20 @@ export function AgentSwarmView({ timeline = [], events = [], isRunning = false }
 
   const agentsList = Object.keys(AGENT_CONFIG);
 
+  const [simIndex, setSimIndex] = useState(0);
+  useEffect(() => {
+    if (isRunning && timeline.length === 0) {
+      const interval = setInterval(() => {
+        setSimIndex(prev => (prev + 1) % agentsList.length);
+      }, 300);
+      return () => clearInterval(interval);
+    }
+  }, [isRunning, timeline.length, agentsList.length]);
+
+  if (isRunning && timeline.length === 0) {
+    activeAgent = agentsList[simIndex];
+  }
+
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-6 bg-[#F9FAFB] overflow-y-auto">
       <div className="flex flex-col text-center items-center justify-center mb-4">
@@ -50,7 +64,7 @@ export function AgentSwarmView({ timeline = [], events = [], isRunning = false }
         <p className="text-[12px] text-brand-gray mt-1">Multi-agent LangGraph orchestrating specialized analysts.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {agentsList.map((agentName, idx) => {
           const config = AGENT_CONFIG[agentName];
           const completedInfo = completedAgents.find(a => a.name === agentName);

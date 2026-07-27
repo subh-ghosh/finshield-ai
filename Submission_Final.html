@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FinShield AI - Technical Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        h1, h2, h3 {
+            color: #111;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>FinShield AI: Detailed Technical Documentation &amp; Architecture</h1>
+<h2>1. Executive Summary</h2>
+<p>FinShield AI is a next-generation Anti-Money Laundering (AML) platform designed to solve the critical issue of "alert fatigue" in financial compliance. By fusing deterministic rule engines with Machine Learning anomaly detection and orchestrating investigations via a <strong>LangGraph Multi-Agent Generative AI swarm</strong>, FinShield AI reduces false positives, automates manual data gathering, and provides completely transparent, explainable results to compliance officers.</p>
+<hr />
+<h2>2. Platform Architecture</h2>
+<p>The platform is built on a modern, decoupled architecture designed for high throughput, real-time inference, and autonomous orchestration.</p>
+<h3>2.1 High-Level System Architecture</h3>
+<p><img alt="Diagram 0" src="https://mermaid.ink/img/eyJjb2RlIjogImdyYXBoIFREXG4gICAgJSUgRGVmaW5lIFN0eWxlc1xuICAgIGNsYXNzRGVmIGZyb250ZW5kIGZpbGw6IzNiODJmNixzdHJva2U6IzFkNGVkOCxzdHJva2Utd2lkdGg6MnB4LGNvbG9yOiNmZmY7XG4gICAgY2xhc3NEZWYgYmFja2VuZCBmaWxsOiMxMGI5ODEsc3Ryb2tlOiMwNDc4NTcsc3Ryb2tlLXdpZHRoOjJweCxjb2xvcjojZmZmO1xuICAgIGNsYXNzRGVmIGFpIGZpbGw6IzhiNWNmNixzdHJva2U6IzZkMjhkOSxzdHJva2Utd2lkdGg6MnB4LGNvbG9yOiNmZmY7XG4gICAgY2xhc3NEZWYgZGF0YWJhc2UgZmlsbDojZjU5ZTBiLHN0cm9rZTojYjQ1MzA5LHN0cm9rZS13aWR0aDoycHgsY29sb3I6I2ZmZjtcblxuICAgICUlIENvbXBvbmVudHNcbiAgICBVSVtGcm9udGVuZCBDbGllbnQ8YnIvPlJlYWN0ICsgVGFpbHdpbmQgKyBWaXRlXTo6OmZyb250ZW5kXG4gICAgQVBJW0JhY2tlbmQgUkVTVCBBUEk8YnIvPkZhc3RBUEkgLSBQeXRob25dOjo6YmFja2VuZFxuICAgIFxuICAgIHN1YmdyYXBoIENvcmUgQU1MIEVuZ2luZXNcbiAgICAgICAgUGlwZWxpbmVbRGF0YSBQaXBlbGluZTxici8-RmVhdHVyZSBFeHRyYWN0aW9uXTo6OmJhY2tlbmRcbiAgICAgICAgUnVsZXNbRGV0ZXJtaW5pc3RpYyBSdWxlIEVuZ2luZTxici8-VGhyZXNob2xkcyAmIFZlbG9jaXR5XTo6OmJhY2tlbmRcbiAgICAgICAgTUxbSXNvbGF0aW9uIEZvcmVzdCBNTDxici8-QmVoYXZpb3JhbCBBbm9tYWxpZXNdOjo6YmFja2VuZFxuICAgICAgICBIeWJyaWRbSHlicmlkIFJpc2sgRW5naW5lPGJyLz5TY29yZSBGdXNpb25dOjo6YmFja2VuZFxuICAgIGVuZFxuICAgIFxuICAgIHN1YmdyYXBoIE11bHRpLUFnZW50IFN3YXJtXG4gICAgICAgIExhbmdHcmFwaFtMYW5nR3JhcGggT3JjaGVzdHJhdG9yXTo6OmFpXG4gICAgICAgIEFnZW50c1tTd2FybSBTdWItQWdlbnRzPGJyLz5SdWxlLCBNTCwgTmV0d29ya106OjphaVxuICAgIGVuZFxuICAgIFxuICAgIERCWyhOZXR3b3JrWCBHcmFwaCBEQildOjo6ZGF0YWJhc2VcbiAgICBEYXRhWyhUcmFuc2FjdGlvbnMgRGF0YXNldCldOjo6ZGF0YWJhc2VcblxuICAgICUlIENvbm5lY3Rpb25zXG4gICAgVUkgLS0gXCJJbnRlbnQtZHJpdmVuIE5MUCBRdWVyaWVzXCIgLS0-IEFQSVxuICAgIEFQSSAtLSBcIkluaXRpYXRlcyBEYXRhIExvYWRpbmdcIiAtLT4gUGlwZWxpbmVcbiAgICBQaXBlbGluZSAtLSBcIlJhdyBGZWF0dXJlc1wiIC0tPiBSdWxlc1xuICAgIFBpcGVsaW5lIC0tIFwiRmVhdHVyZSBWZWN0b3JzXCIgLS0-IE1MXG4gICAgUnVsZXMgLS0gXCJWaW9sYXRpb25zXCIgLS0-IEh5YnJpZFxuICAgIE1MIC0tIFwiQW5vbWFseSBTY29yZXNcIiAtLT4gSHlicmlkXG4gICAgXG4gICAgQVBJIC0tIFwiVHJpZ2dlciBJbnZlc3RpZ2F0aW9uXCIgLS0-IExhbmdHcmFwaFxuICAgIExhbmdHcmFwaCAtLSBcIkRlbGVnYXRlcyBUYXNrc1wiIC0tPiBBZ2VudHNcbiAgICBBZ2VudHMgLS0gXCJRdWVyaWVzIENvbnRleHRcIiAtLT4gSHlicmlkXG4gICAgQWdlbnRzIC0tIFwiVHJhdmVyc2VzIENvdW50ZXJwYXJ0aWVzXCIgLS0-IERCXG4gICAgUGlwZWxpbmUgLS0gXCJFeHRyYWN0c1wiIC0tPiBEYXRhIiwgIm1lcm1haWQiOiB7InRoZW1lIjogImRlZmF1bHQifX0=" /></p>
+<h3>2.2 Backend (Python &amp; FastAPI)</h3>
+<ul>
+<li><strong>API Layer:</strong> FastAPI provides a high-performance, asynchronous REST API.</li>
+<li><strong>Orchestration Layer:</strong> LangGraph manages the stateful execution of the Multi-Agent Swarm.</li>
+<li><strong>Network Graph Analysis:</strong> Utilizing <strong>NetworkX</strong>, the backend constructs directed graphs of transactions to detect cyclic funds transfers and nested shell company relationships.</li>
+</ul>
+<h3>2.3 Frontend (React &amp; TypeScript)</h3>
+<ul>
+<li><strong>Framework:</strong> React 18 with TypeScript and Vite.</li>
+<li><strong>State Management:</strong> React Query manages server state, caching pipeline results and queue data.</li>
+<li><strong>UI &amp; Animations:</strong> Tailwind CSS and Framer Motion are used to visually simulate the real-time execution of the multi-agent swarm, providing user feedback during the autonomous investigation.</li>
+</ul>
+<hr />
+<h2>3. The Multi-Agent Orchestration Swarm</h2>
+<p>Rather than using a single monolithic LLM prompt, FinShield AI uses a graph-based multi-agent system where specialized agents perform distinct analytical tasks.</p>
+<p><img alt="Diagram 1" src="https://mermaid.ink/img/eyJjb2RlIjogImZsb3djaGFydCBMUlxuICAgICUlIFN0eWxlc1xuICAgIGNsYXNzRGVmIHN1cGVydmlzb3IgZmlsbDojZWY0NDQ0LHN0cm9rZTojYjkxYzFjLGNvbG9yOiNmZmY7XG4gICAgY2xhc3NEZWYgd29ya2VyIGZpbGw6IzhiNWNmNixzdHJva2U6IzZkMjhkOSxjb2xvcjojZmZmO1xuICAgIGNsYXNzRGVmIG91dHB1dCBmaWxsOiMxMGI5ODEsc3Ryb2tlOiMwNDc4NTcsY29sb3I6I2ZmZjtcblxuICAgIFVzZXIoW1VzZXIgUXVlcnk8YnIvPlwiV2h5IGlzIENfMSBzdXNwaWNpb3VzP1wiXSkgLS0-IFN1cGVydmlzb3JcbiAgICBcbiAgICBTdXBlcnZpc29ye1N1cGVydmlzb3IgQWdlbnR9Ojo6c3VwZXJ2aXNvclxuICAgIFxuICAgIFN1cGVydmlzb3IgLS0gXCJEZWxlZ2F0ZTogQ2hlY2sgcnVsZXNcIiAtLT4gUnVsZUFnZW50W1J1bGUgSW50ZWxsaWdlbmNlIEFnZW50XTo6OndvcmtlclxuICAgIFN1cGVydmlzb3IgLS0gXCJEZWxlZ2F0ZTogQ2hlY2sgTUwgYW5vbWFsaWVzXCIgLS0-IE1MQWdlbnRbTUwgSW5zaWdodHMgQWdlbnRdOjo6d29ya2VyXG4gICAgU3VwZXJ2aXNvciAtLSBcIkRlbGVnYXRlOiBDaGVjayBjb3VudGVycGFydGllc1wiIC0tPiBOZXR3b3JrQWdlbnRbTmV0d29yayBBbmFseXNpcyBBZ2VudF06Ojp3b3JrZXJcbiAgICBcbiAgICBSdWxlQWdlbnQgLS4gXCJSZXR1cm5zIFJ1bGVzXCIgLi0-IFN1cGVydmlzb3JcbiAgICBNTEFnZW50IC0uIFwiUmV0dXJucyBNTCBTY29yZVwiIC4tPiBTdXBlcnZpc29yXG4gICAgTmV0d29ya0FnZW50IC0uIFwiUmV0dXJucyBHcmFwaFwiIC4tPiBTdXBlcnZpc29yXG4gICAgXG4gICAgU3VwZXJ2aXNvciAtLSBcIlN5bnRoZXNpemUgRmluZGluZ3NcIiAtLT4gUmVwb3J0QWdlbnRbUmVwb3J0IEdlbmVyYXRvciBBZ2VudF06Ojp3b3JrZXJcbiAgICBSZXBvcnRBZ2VudCAtLT4gRmluYWxSZXBvcnQoW0ZpbmFsIEV4ZWN1dGFibGUgUmVwb3J0XSk6OjpvdXRwdXQiLCAibWVybWFpZCI6IHsidGhlbWUiOiAiZGVmYXVsdCJ9fQ==" /></p>
+<p><strong>Agent Roles:</strong>
+1. <strong>Customer &amp; Transaction Agents:</strong> Fetches historical profiles and extracts timeseries metrics.
+2. <strong>Rule Intelligence Agent:</strong> Evaluates hard threshold rules.
+3. <strong>ML Intelligence Agent:</strong> Evaluates Isolation Forest behavioral anomalies.
+4. <strong>Compliance Agent:</strong> Merges outputs through the Hybrid Fusion Engine.
+5. <strong>Report Generator:</strong> Synthesizes the final deterministic recommendation (e.g., "FILE_SAR", "ESCALATE").
+6. <strong>Audit Agent:</strong> Generates an immutable JSON audit log.</p>
+<hr />
+<h2>4. Analysis Algorithms &amp; Hybrid Risk Engine</h2>
+<p>The Hybrid Risk Engine resolves the conflict between rigid rules (which generate false positives) and probabilistic ML (which lacks explainability).</p>
+<p><img alt="Diagram 2" src="https://mermaid.ink/img/eyJjb2RlIjogImdyYXBoIFREXG4gICAgY2xhc3NEZWYgcHJvY2VzcyBmaWxsOiMzYjgyZjYsY29sb3I6I2ZmZjtcbiAgICBjbGFzc0RlZiBkYXRhIGZpbGw6I2Y1OWUwYixjb2xvcjojZmZmO1xuICAgIGNsYXNzRGVmIGZ1c2lvbiBmaWxsOiNlZjQ0NDQsY29sb3I6I2ZmZjtcblxuICAgIFR4RGF0YVsoUmF3IFRyYW5zYWN0aW9uIERhdGEpXTo6OmRhdGFcbiAgICBGRVtGZWF0dXJlIEVuZ2luZWVyaW5nPGJyLz5WZWxvY2l0eSwgVm9sdW1lLCBWYXJpYW5jZV06Ojpwcm9jZXNzXG4gICAgXG4gICAgVHhEYXRhIC0tPiBGRVxuICAgIFxuICAgIEZFIC0tPiBSdWxlc1tEZXRlcm1pbmlzdGljIFJ1bGVzPGJyLz5lLmcuID4kMTBrLCBTdHJ1Y3R1cmluZ106Ojpwcm9jZXNzXG4gICAgRkUgLS0-IElTT1tJc29sYXRpb24gRm9yZXN0IE1vZGVsPGJyLz5PdXRsaWVyIERldGVjdGlvbl06Ojpwcm9jZXNzXG4gICAgXG4gICAgUnVsZXMgLS0-fFJ1bGUgU2V2ZXJpdHkgU2NvcmV8IEZ1c2lvbntIeWJyaWQgRnVzaW9uIEVuZ2luZX06OjpmdXNpb25cbiAgICBJU08gLS0-fEFub21hbHkgUHJvYmFiaWxpdHl8IEZ1c2lvblxuICAgIFxuICAgIEZ1c2lvbiAtLT58V2VpZ2h0czogNjAlIFJ1bGUsIDQwJSBNTHwgRmluYWxTY29yZVtDb21wb3NpdGUgUmlzayBTY29yZTxici8-MCAtIDEwMF06OjpkYXRhXG4gICAgXG4gICAgRmluYWxTY29yZSAtLT4gVHJpYWdlW0FsZXJ0IFByaW9yaXRpemF0aW9uPGJyLz5Dcml0aWNhbCwgSGlnaCwgTWVkLCBMb3ddOjo6cHJvY2VzcyIsICJtZXJtYWlkIjogeyJ0aGVtZSI6ICJkZWZhdWx0In19" /></p>
+<ul>
+<li><strong>Deterministic Rules:</strong> Catches known typologies (e.g., structuring, rapid velocity).</li>
+<li><strong>Isolation Forest (ML):</strong> Evaluates multidimensional behavioral features to isolate outliers in the feature space.</li>
+<li><strong>Fusion Logic:</strong> A customer is only flagged as "Critical" if they exhibit both deterministic rule violations <em>and</em> statistically significant behavioral deviations.</li>
+</ul>
+<hr />
+<h2>5. User Interface Design &amp; Explainability</h2>
+<h3>5.1 Intent-Driven NLP Search</h3>
+<p>Instead of complex navigation menus, the platform features a global NLP search bar. Users can type full conversational questions (e.g., <em>"Why is C_1580 suspicious?"</em>). The frontend automatically uses regex parsing to extract the Customer ID and dynamically route the user directly to the active investigation workspace for that specific customer.</p>
+<h3>5.2 Multi-Agent Swarm Visualization</h3>
+<p>A core differentiator is how the AI operates visually. The UI cycles through the active LangGraph agents as they process the data. This "Human-in-the-Loop" design builds trust, showing the compliance officer exactly what the AI is analyzing at any given moment.</p>
+<h3>5.3 Interactive Explainability (Counterfactual Simulator)</h3>
+<p>To comply with regulatory demands against "Black Box" AI, the UI features a <strong>Counterfactual Simulator</strong>. Compliance officers can use sliders to artificially adjust a customer's transaction volume or velocity. The UI instantly recalculates the ML anomaly score and Rule Engine hits, mathematically proving <em>why</em> the model made its decision.</p>
+</body>
+</html>

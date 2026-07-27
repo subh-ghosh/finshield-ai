@@ -12,11 +12,11 @@ export function usePlannerInvestigation() {
     isPending,
     error,
     reset,
-  } = useMutation<InvestigationResult, Error, string>({
-    mutationFn: async (customerId: string) => {
-      return await UseCases.runInvestigation.execute(customerId);
+  } = useMutation<InvestigationResult, Error, { customerId: string, request?: string }>({
+    mutationFn: async ({ customerId, request }) => {
+      return await UseCases.runInvestigation.execute(customerId, request);
     },
-    onSuccess: (result, customerId) => {
+    onSuccess: (_result, { customerId }) => {
       // Phase 10: Cache Strategy - invalidate queries
       queryClient.invalidateQueries({ queryKey: queryKeys.queue.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.investigation.detail(customerId) });

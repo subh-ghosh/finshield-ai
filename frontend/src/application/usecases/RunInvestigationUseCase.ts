@@ -4,7 +4,7 @@ import type { InvestigationResult } from '../../domain/entities/InvestigationRes
 export class RunInvestigationUseCase {
   constructor(private plannerRepository: IPlannerRepository) {}
 
-  async execute(customerId: string): Promise<InvestigationResult> {
-    return this.plannerRepository.runInvestigation(customerId);
+  async execute(customerId: string, request?: string): Promise<InvestigationResult> {
+    return this.plannerRepository.runInvestigation(customerId, request);
   }
 }

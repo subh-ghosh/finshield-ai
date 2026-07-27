@@ -3,6 +3,7 @@ import { QueueLocalDataSource } from '../local/QueueLocalDataSource';
 import { QueueMapper } from '../mappers/QueueMapper';
 import type { QueueItem } from '../../domain/entities/QueueItem';
 import type { IQueueRepository } from '../../domain/repositories/IQueueRepository';
+import { Logger } from '../../core/observability/logger';
 
 export class QueueRepository implements IQueueRepository {
   constructor(
@@ -11,13 +12,7 @@ export class QueueRepository implements IQueueRepository {
   ) {}
 
   async getQueue(): Promise<QueueItem[]> {
-    try {
-      const dtos = await this.remoteDataSource.getQueue();
-      return dtos.map(dto => QueueMapper.toDomain(dto));
-    } catch (error) {
-      Logger.warn('Backend unavailable for Queue. Falling back to local data source.', { error });
-      const fallbackDtos = await this.localDataSource.getQueue();
-      return fallbackDtos.map(dto => QueueMapper.toDomain(dto));
-    }
+    const dtos = await this.remoteDataSource.getQueue();
+    return dtos.map(dto => QueueMapper.toDomain(dto));
   }
 }

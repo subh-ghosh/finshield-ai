@@ -18,7 +18,7 @@ export function EvidenceCard({ evidence }: { evidence: Evidence }) {
             </span>
           )}
         </div>
-        <div className="text-[11px] text-brand-gray mt-0.5 leading-relaxed">{evidence.desc}</div>
+        <div className="text-[11px] text-brand-gray mt-0.5 leading-relaxed">{evidence.desc || evidence.description}</div>
         
         {(evidence.source || evidence.timestamp) && (
           <div className="flex items-center gap-3 mt-2 text-[10px] text-brand-gray font-medium uppercase tracking-wider">

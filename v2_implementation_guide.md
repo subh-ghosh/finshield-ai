@@ -1,6 +1,6 @@
 # FinShield Nexus V2 — Full Implementation Guide & Task Division
 
-> **Share this document with Arhit.** It contains everything both of you need to work independently.
+> **Share this document with Developer B.** It contains everything both of you need to work independently.
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Person | Machine | AI Assistant | Branch |
 |--------|---------|-------------|--------|
-| **Subarta** | Laptop 1 | Antigravity Instance 1 | `master` (or `subarta-v2`) |
-| **Arhit** | Laptop 2 | Antigravity Instance 2 | `arhit-v2` |
+| **Developer A** | Laptop 1 | IDE Instance 1 | `master` (or `subarta-v2`) |
+| **Developer B** | Laptop 2 | IDE Instance 2 | `arhit-v2` |
 
 ### Golden Rules
 1. **NEVER edit each other's files.** Every file is owned by exactly one person.
 2. Work on separate Git branches. Merge at the end via PR.
 3. If you need data from the other person's module, define a **contract** (API endpoint or TypeScript interface) upfront. Build against the contract, not the implementation.
-4. When done, Subarta merges Arhit's branch into master. One integration session at the end.
+4. When done, Developer A merges Developer B's branch into master. One integration session at the end.
 
 ---
 
@@ -25,15 +25,15 @@
 backend/
 ├── app/
 │   ├── agent/          ← LangGraph multi-agent system
-│   │   ├── graph.py       (Subarta owns)
-│   │   ├── state.py       (Subarta owns)
-│   │   └── tools.py       (Subarta owns)
+│   │   ├── graph.py       (Developer A owns)
+│   │   ├── state.py       (Developer A owns)
+│   │   └── tools.py       (Developer A owns)
 │   ├── api/
 │   │   ├── endpoints/     (Legacy — don't touch)
 │   │   └── v1/routers/
 │   │       ├── analysis.py
 │   │       ├── customer.py
-│   │       ├── graph.py      (Arhit owns)
+│   │       ├── graph.py      (Developer B owns)
 │   │       ├── health.py
 │   │       ├── memory.py
 │   │       ├── metrics.py
@@ -41,24 +41,24 @@ backend/
 │   │       ├── queue.py
 │   │       ├── router.py     (SHARED — only add import lines)
 │   │       └── similar_cases.py
-│   ├── explainability/     (Subarta owns)
-│   ├── ml/                 (Arhit owns)
-│   ├── rules/              (Arhit owns)
+│   ├── explainability/     (Developer A owns)
+│   ├── ml/                 (Developer B owns)
+│   ├── rules/              (Developer B owns)
 │   ├── services/
-│   │   ├── graph_analysis.py  (Arhit owns)
+│   │   ├── graph_analysis.py  (Developer B owns)
 │   │   ├── pipeline.py       (Shared — careful)
 │   │   └── ...others
-│   └── db/                 (Arhit owns)
+│   └── db/                 (Developer B owns)
 frontend/
 ├── src/
 │   ├── pages/
-│   │   ├── InvestigationWorkspace.tsx  (Subarta owns)
-│   │   ├── Dashboard.tsx              (Subarta owns)
-│   │   └── PlannerPlayground.tsx      (Subarta owns)
+│   │   ├── InvestigationWorkspace.tsx  (Developer A owns)
+│   │   ├── Dashboard.tsx              (Developer A owns)
+│   │   └── PlannerPlayground.tsx      (Developer A owns)
 │   └── components/investigation/
-│       ├── AgentSwarmView.tsx            (Subarta owns)
-│       ├── EvidenceConsensusBoard.tsx    (Subarta owns)
-│       ├── KnowledgeGraph.tsx           (Arhit owns)
+│       ├── AgentSwarmView.tsx            (Developer A owns)
+│       ├── EvidenceConsensusBoard.tsx    (Developer A owns)
+│       ├── KnowledgeGraph.tsx           (Developer B owns)
 │       └── ... (new components below)
 ```
 
@@ -66,7 +66,7 @@ frontend/
 
 # 🔵 SUBARTA'S TRACKS (Track S)
 
-Everything below is **Subarta's** work. Arhit must NOT touch these files.
+Everything below is **Developer A's** work. Developer B must NOT touch these files.
 
 ---
 
@@ -83,7 +83,7 @@ Split the `compliance_agent()` function into 3 separate agents:
 
 ### How — Exact Implementation
 
-**File:** `backend/app/agent/graph.py` (Subarta owns)
+**File:** `backend/app/agent/graph.py` (Developer A owns)
 
 ```python
 # Replace the single compliance_agent with 3 agents:
@@ -212,7 +212,7 @@ A new `monitoring_agent` that runs as a background check. After a case is invest
 
 ### How
 
-**File:** `backend/app/agent/monitoring.py` (**NEW FILE** — Subarta owns)
+**File:** `backend/app/agent/monitoring.py` (**NEW FILE** — Developer A owns)
 
 ```python
 """Monitoring Agent — Continuous case lifecycle management."""
@@ -255,7 +255,7 @@ class MonitoringAgent:
         return [{"customer_id": k, **v} for k, v in self._watchlist.items()]
 ```
 
-**File:** `backend/app/api/v1/routers/monitoring.py` (**NEW FILE** — Subarta owns)
+**File:** `backend/app/api/v1/routers/monitoring.py` (**NEW FILE** — Developer A owns)
 
 Expose endpoints:
 - `GET /api/v1/monitoring/watchlist` — Returns all monitored customers
@@ -281,7 +281,7 @@ Update `AgentState` in `state.py` to track:
 
 ### How
 
-**File:** `backend/app/agent/state.py` (Subarta owns)
+**File:** `backend/app/agent/state.py` (Developer A owns)
 
 ```python
 class AgentMemoryEntry(TypedDict):
@@ -375,7 +375,7 @@ Parse the `planner_timeline` from the API response and animate each agent's stat
 
 ### How
 
-**File:** `frontend/src/components/investigation/AgentSwarmView.tsx` (Subarta owns)
+**File:** `frontend/src/components/investigation/AgentSwarmView.tsx` (Developer A owns)
 
 - Parse `planner_timeline` array from investigation result
 - Map each `ActionLog.tool` to an agent badge
@@ -401,7 +401,7 @@ Consume the evidence graph JSON from the investigation result and render:
 
 ### How
 
-**File:** `frontend/src/components/investigation/EvidenceConsensusBoard.tsx` (Subarta owns)
+**File:** `frontend/src/components/investigation/EvidenceConsensusBoard.tsx` (Developer A owns)
 
 ### Files Touched
 - `frontend/src/components/investigation/EvidenceConsensusBoard.tsx`
@@ -418,7 +418,7 @@ Build a new `CaseLifecycleTimeline.tsx` component that shows the case status and
 
 ### How
 
-**File:** `frontend/src/components/investigation/CaseLifecycleTimeline.tsx` (**NEW** — Subarta owns)
+**File:** `frontend/src/components/investigation/CaseLifecycleTimeline.tsx` (**NEW** — Developer A owns)
 
 - Show a horizontal timeline of case state transitions
 - Color-coded states: 🟢 Open, 🔵 Monitoring, 🟡 Update, 🔴 Escalated, ⚪ Closed
@@ -441,7 +441,7 @@ Update the explainability pipeline to consume the structured evidence graph from
 
 ### How
 
-**File:** `backend/app/explainability/evidence_extractor.py` (Subarta owns)
+**File:** `backend/app/explainability/evidence_extractor.py` (Developer A owns)
 
 - Accept the new `evidence_bundle` with per-agent attribution
 - Generate natural language explanations for each evidence layer
@@ -455,7 +455,7 @@ Update the explainability pipeline to consume the structured evidence graph from
 
 # 🟢 ARHIT'S TRACKS (Track A)
 
-Everything below is **Arhit's** work. Subarta must NOT touch these files.
+Everything below is **Developer B's** work. Developer A must NOT touch these files.
 
 ---
 
@@ -469,7 +469,7 @@ Expand `GraphAnalyzer.get_ego_graph()` to detect and categorize more entity type
 
 ### How
 
-**File:** `backend/app/services/graph_analysis.py` (Arhit owns)
+**File:** `backend/app/services/graph_analysis.py` (Developer B owns)
 
 The current `get_ego_graph` method only uses sender/receiver columns. Expand it to:
 1. Scan for IP columns (e.g., `ip_address`, `login_ip`)
@@ -508,7 +508,7 @@ Add query parameters and richer response:
 
 ### How
 
-**File:** `backend/app/api/v1/routers/graph.py` (Arhit owns)
+**File:** `backend/app/api/v1/routers/graph.py` (Developer B owns)
 
 ```python
 @router.get("/graph/{customer_id}")
@@ -550,7 +550,7 @@ Implement a simple Graph Convolutional Network (GCN) that takes the transaction 
 
 ### How
 
-**File:** `backend/app/ml/gnn_model.py` (**NEW** — Arhit owns)
+**File:** `backend/app/ml/gnn_model.py` (**NEW** — Developer B owns)
 
 ```python
 """Graph Neural Network for relational risk scoring."""
@@ -621,7 +621,7 @@ The GCN output is combined in the hybrid risk engine:
 final_risk = 0.3 * rule_score + 0.3 * isolation_forest_score + 0.4 * gnn_score
 ```
 
-**File:** `backend/app/ml/hybrid_risk_engine.py` (Arhit owns) — Add GNN score fusion
+**File:** `backend/app/ml/hybrid_risk_engine.py` (Developer B owns) — Add GNN score fusion
 
 ### Files Touched
 - `backend/app/ml/gnn_model.py` (NEW)
@@ -639,7 +639,7 @@ Extend the GCN with time-windowed snapshots. Build separate adjacency matrices f
 
 ### How
 
-**File:** `backend/app/ml/gnn_model.py` (Arhit owns)
+**File:** `backend/app/ml/gnn_model.py` (Developer B owns)
 
 Add a `TemporalGCN` class that:
 1. Splits transactions into time windows (e.g., 7-day buckets)
@@ -661,7 +661,7 @@ Build a `RuleSuggestionEngine` that analyzes the feature distribution and propos
 
 ### How
 
-**File:** `backend/app/rules/rule_suggestion_engine.py` (**NEW** — Arhit owns)
+**File:** `backend/app/rules/rule_suggestion_engine.py` (**NEW** — Developer B owns)
 
 ```python
 """AI-driven rule suggestion engine — proposes new deterministic rules."""
@@ -716,7 +716,7 @@ class RuleSuggestionEngine:
         return sorted(suggestions, key=lambda s: s.confidence, reverse=True)[:10]
 ```
 
-**File:** `backend/app/api/v1/routers/rules.py` (**NEW** — Arhit owns)
+**File:** `backend/app/api/v1/routers/rules.py` (**NEW** — Developer B owns)
 
 Expose endpoint:
 - `GET /api/v1/rules/suggestions` — Returns AI-suggested rules for human review
@@ -739,7 +739,7 @@ Add a filter panel, color nodes by risk level (green/yellow/red), and implement 
 
 ### How
 
-**File:** `frontend/src/components/investigation/KnowledgeGraph.tsx` (Arhit owns)
+**File:** `frontend/src/components/investigation/KnowledgeGraph.tsx` (Developer B owns)
 
 - Add filter checkboxes for entity types (Customer, Company, IP, etc.)
 - Color nodes by risk: green (<30), yellow (30-70), red (>70)
@@ -761,7 +761,7 @@ Build a new page or widget that shows AI-suggested rules with approve/reject but
 
 ### How
 
-**File:** `frontend/src/components/investigation/RuleSuggestionsWidget.tsx` (**NEW** — Arhit owns)
+**File:** `frontend/src/components/investigation/RuleSuggestionsWidget.tsx` (**NEW** — Developer B owns)
 
 - Fetch from `GET /api/v1/rules/suggestions`
 - Show each suggestion as a card with: rule name, description, confidence %, column, threshold
@@ -786,14 +786,14 @@ Extend the existing counterfactual simulator to:
 
 ### How
 
-**File:** `backend/app/services/counterfactual_simulator.py` (Arhit owns — already exists)
+**File:** `backend/app/services/counterfactual_simulator.py` (Developer B owns — already exists)
 
 - Add a `simulate_transaction()` method
 - Inject hypothetical transaction into a copy of the dataframe
 - Run through the rule engine, isolation forest, and GNN
 - Return: which rules would trigger, ML anomaly delta, graph risk delta
 
-**File:** `backend/app/api/v1/routers/simulation.py` (**NEW** — Arhit owns)
+**File:** `backend/app/api/v1/routers/simulation.py` (**NEW** — Developer B owns)
 
 Expose endpoint:
 - `POST /api/v1/simulation/what-if` 
@@ -813,7 +813,7 @@ These are the **contracts** both of you agree on upfront. Build your code agains
 
 ## Contract 1: Evidence Bundle Format
 
-Both Subarta's agent system and Arhit's UI components must agree on this shape:
+Both Developer A's agent system and Developer B's UI components must agree on this shape:
 
 ```typescript
 // TypeScript interface for frontend
@@ -883,8 +883,8 @@ interface RuleSuggestion {
 
 Once both tracks are complete, the merge is simple:
 
-### Step 1: Arhit pushes his branch `arhit-v2`
-### Step 2: Subarta pulls and merges
+### Step 1: Developer B pushes his branch `arhit-v2`
+### Step 2: Developer A pulls and merges
 ```bash
 git fetch origin
 git merge origin/arhit-v2
@@ -902,8 +902,8 @@ v1_router.include_router(rules_router)
 v1_router.include_router(simulation_router)
 ```
 
-### Step 4: Wire Arhit's components into Subarta's pages
-Subarta drops Arhit's new components into `InvestigationWorkspace.tsx`:
+### Step 4: Wire Developer B's components into Developer A's pages
+Developer A drops Developer B's new components into `InvestigationWorkspace.tsx`:
 ```tsx
 import { RuleSuggestionsWidget } from '../components/investigation/RuleSuggestionsWidget';
 // Add to the workspace layout
@@ -919,7 +919,7 @@ cd frontend && npm run dev
 
 # 📊 COMPLETE TASK SUMMARY
 
-## Subarta's Tasks (9 items)
+## Developer A's Tasks (9 items)
 | ID | Task | New Files | Modified Files |
 |----|------|-----------|----------------|
 | S1 | Split Rule Agent & ML Agent | — | `agent/graph.py` |
@@ -932,7 +932,7 @@ cd frontend && npm run dev
 | S8 | Case Lifecycle Timeline UI | `CaseLifecycleTimeline.tsx` | `InvestigationWorkspace.tsx` |
 | S9 | Explainability Engine Enhancement | — | `explainability/*.py` |
 
-## Arhit's Tasks (8 items)
+## Developer B's Tasks (8 items)
 | ID | Task | New Files | Modified Files |
 |----|------|-----------|----------------|
 | A1 | Expand Knowledge Graph Entities | — | `services/graph_analysis.py` |
@@ -945,7 +945,7 @@ cd frontend && npm run dev
 | A8 | Simulation Engine Backend | `routers/simulation.py` | `counterfactual_simulator.py` |
 
 ## Zero File Conflicts ✅
-No file appears in both Subarta's and Arhit's columns (except `router.py` which only needs import lines added).
+No file appears in both Developer A's and Developer B's columns (except `router.py` which only needs import lines added).
 
 ---
 

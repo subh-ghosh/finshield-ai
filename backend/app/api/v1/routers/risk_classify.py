@@ -76,7 +76,7 @@ def get_risk_classification(
     rule_res = rule_map.get(customer_id)
     rule_contribution = {
         "rule_score": _safe(rule_res.total_rule_score) if rule_res else 0,
-        "triggered_rules": [str(r) for r in getattr(rule_res, "triggered_rules", [])] if rule_res else [],
+        "triggered_rules": [r.__dict__ if hasattr(r, "__dict__") else str(r) for r in getattr(rule_res, "triggered_rules", [])] if rule_res else [],
         "rule_severity": str(rule_res.severity) if rule_res else "LOW",
     }
 

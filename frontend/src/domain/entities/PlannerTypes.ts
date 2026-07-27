@@ -1,7 +1,11 @@
 export interface Evidence {
   readonly title: string;
   readonly description: string;
+  readonly desc?: string;
   readonly source: string;
+  readonly timestamp?: string;
+  readonly confidence?: number;
+  readonly severity?: 'critical' | 'high' | 'medium' | 'low';
   readonly type: 'transaction' | 'connection' | 'historical' | 'rule' | 'anomaly';
   readonly risk_level: 'High' | 'Medium' | 'Low';
 }
@@ -9,8 +13,12 @@ export interface Evidence {
 export interface ExecutionStep {
   readonly id: string;
   readonly message: string;
-  readonly status: 'pending' | 'running' | 'completed' | 'error';
+  readonly tool_name?: string;
+  readonly output?: string;
+  readonly error?: string;
+  readonly status: 'pending' | 'running' | 'completed' | 'error' | 'failed';
   readonly duration?: string;
+  readonly duration_ms?: number;
   readonly evidence?: ReadonlyArray<Evidence>;
 }
 

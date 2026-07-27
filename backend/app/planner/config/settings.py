@@ -17,7 +17,7 @@ class PlannerSettings(BaseSettings):
     FINSHIELD_API_BASE_URL: str = "http://localhost:8000"
 
     # LLM
-    PLANNER_LLM_MODEL: str = "gemini-2.5-pro"
+    PLANNER_LLM_MODEL: str = "gemini-2.5-flash"
     PLANNER_LLM_TEMPERATURE: float = 0.0
 
     # HTTP Client

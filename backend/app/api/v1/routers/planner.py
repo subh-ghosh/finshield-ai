@@ -93,6 +93,13 @@ async def investigate(
     planner_timeline = None
     evidence_graph = None
     filters_extracted = {}
+    
+    # Defaults fallback to deterministic pipeline
+    final_recommendation = result.recommendation
+    final_confidence = str(result.confidence)
+    final_report = result.executive_summary or "Report generation failed."
+    final_reasoning = [f"{evt['action']}: {evt['description']}" for evt in result.timeline]
+    
     try:
         from app.agent.graph import get_agent_executor
         from langchain_core.messages import HumanMessage
@@ -106,14 +113,34 @@ async def investigate(
             "user_request": user_request_text,
         }
         agent_result = await agent.ainvoke(agent_input, config=thread_cfg)
-        # planner_timeline is a list of ActionLog TypedDicts
+        
+        # Extract Timeline
         raw_timeline = agent_result.get("planner_timeline", [])
         planner_timeline = [dict(t) for t in raw_timeline]
-        # Extract filters from the timeline entry
         if planner_timeline:
-            filters_extracted = planner_timeline[0].get("filters_extracted", {})
-        # evidence_graph is embedded in the last Evidence Aggregator AIMessage
-        for msg in reversed(agent_result.get("messages", [])):
+            final_reasoning = [f"{t.get('tool', 'Agent')}: {t.get('result', '')}" for t in planner_timeline]
+            
+            # Extract filters from the timeline entry (from Supervisor)
+            # We don't have filters_extracted explicitly in planner_timeline anymore,
+            # but we can grab it from agent_result if it was placed there.
+            pass
+            
+        # Extract Recommendation & Report
+        rec = agent_result.get("final_recommendation")
+        if rec:
+            final_recommendation = rec.get("risk_level", final_recommendation)
+            final_confidence = rec.get("confidence", final_confidence)
+            
+        # The summary message is usually the second to last AI message (before audit)
+        messages = agent_result.get("messages", [])
+        for msg in reversed(messages):
+            content = getattr(msg, "content", "")
+            if "Consensus Reached:" in content:
+                final_report = content
+                break
+                
+        # evidence_graph is embedded in the Evidence Aggregator AIMessage
+        for msg in reversed(messages):
             content = getattr(msg, "content", "")
             if "Evidence Graph:" in content:
                 try:
@@ -130,12 +157,12 @@ async def investigate(
         correlation_id=result.correlation_id,
         planner_status="COMPLETED",
         investigation_complete=True,
-        recommendation=result.recommendation,
-        confidence=str(result.confidence),
-        final_report=result.executive_summary or "Report generation failed.",
+        recommendation=final_recommendation,
+        confidence=final_confidence,
+        final_report=final_report,
         tool_calls=["LoadCustomerStage", "RuleEngineStage", "IsolationForestStage", "HybridRiskStage", "EvidenceAggregationStage"],
         api_calls=1,
-        reasoning_steps=[f"{evt['action']}: {evt['description']}" for evt in result.timeline],
+        reasoning_steps=final_reasoning,
         execution_time_ms=result.execution_time_ms,
         errors=[],
         filters_extracted=filters_extracted or {},

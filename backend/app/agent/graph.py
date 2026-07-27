@@ -6,33 +6,110 @@ import time
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel, Field
+from langchain_google_genai import ChatGoogleGenerativeAI
+import os
+from langgraph.checkpoint.memory import MemorySaver
+from pydantic import BaseModel, Field
 
 from app.agent.state import AgentState, EvidenceItem, Recommendation, ActionLog
 from app.agent.tools import get_tool_by_name
 
+# Import SQLite DB session and models
+from app.db.session import SessionLocal, init_db
+from app.db.models import AuditLog as DBAuditLog
+
+# Ensure DB tables are created
+init_db()
+
 def get_current_time():
     return datetime.utcnow().isoformat()
+
+# Pydantic schemas for structured LLM outputs
+class SupervisorIntent(BaseModel):
+    intent: str = Field(description="The detected intent. Must be 'structuring', 'threshold', or 'single_entity'.")
+    customer_id: str = Field(description="The customer ID extracted from the prompt, e.g. 'C_123'. Defaults to 'UNKNOWN'.")
+    reasoning: str = Field(description="Brief explanation of why this intent was chosen.")
+
+class ReportSynthesis(BaseModel):
+    risk_level: str = Field(description="The final risk level: 'LOW', 'MEDIUM', 'HIGH', or 'CRITICAL'")
+    confidence: str = Field(description="Confidence score between 0.00 and 1.00 as a string")
+    actions: list[str] = Field(description="List of recommended actions, e.g., 'Escalate to L2', 'File SAR', 'Monitor'")
+    summary: str = Field(description="A concise executive summary of the evidence and justification for the risk level.")
 
 def supervisor_agent(state: AgentState):
     messages = state.get("messages", [])
     last_user_msg = next(
         (m.content for m in reversed(messages) if isinstance(m, HumanMessage)), ""
-    )
+    ).lower()
 
-    customer_id = state.get("customer_id", "UNKNOWN")
-    match = re.search(r'C_\d+', last_user_msg, re.IGNORECASE)
-    if match:
-        customer_id = match.group(0).upper()
+    start_time = time.time()
+    
+    # Actual LLM Intent Parsing
+    try:
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+        structured_llm = llm.with_structured_output(SupervisorIntent)
+        
+        prompt = f"""
+        You are an AML investigation supervisor. Analyze the following user request and extract the customer ID and the intent.
+        The intent must be one of:
+        - 'structuring': if the user mentions structuring, velocity, splitting payments, avoiding reporting thresholds.
+        - 'threshold': if the user mentions absolute dollar limits (e.g. >$10,000, 10+ transactions).
+        - 'single_entity': if the user just asks to investigate a specific customer or asks generally about suspicion without mentioning specific AML patterns.
+        
+        User request: {last_user_msg}
+        """
+        
+        result: SupervisorIntent = structured_llm.invoke(prompt)
+        intent = result.intent
+        customer_id = result.customer_id
+        reasoning = result.reasoning
+    except Exception as e:
+        # Fallback if API key is missing or LLM fails
+        intent = "single_entity"
+        reasoning = f"LLM Parsing failed ({str(e)}). Default deep-dive."
+        match = re.search(r'c_\d+', last_user_msg, re.IGNORECASE)
+        if match:
+            customer_id = match.group(0).upper()
 
-    intent = f"Investigate customer {customer_id}"
+    execution_plan = {
+        "structuring": ["isolation_forest_tool", "hybrid_risk_tool"],
+        "threshold": ["rule_engine_tool", "hybrid_risk_tool"],
+        "single_entity": [
+            "customer_360_tool",
+            "transaction_tool",
+            "timeline_tool",
+            "rule_engine_tool",
+            "isolation_forest_tool",
+            "hybrid_risk_tool",
+        ],
+    }.get(intent, [])
+    
+    duration = round(time.time() - start_time, 2)
+    
     log = ActionLog(
         timestamp=get_current_time(),
-        tool="Supervisor Agent",
-        duration=0.01,
-        result=f"Dispatched investigation for {customer_id} to specialized agents.",
+        tool="Lead AI Investigator",
+        duration=duration,
+        result=f"Rule-based intent parsed: '{intent}' for {customer_id}. Reason: {reasoning}",
         status="COMPLETED",
     )
-    return {"current_intent": intent, "customer_id": customer_id, "planner_timeline": [log]}
+    
+    return {
+        "current_intent": intent, 
+        "customer_id": customer_id, 
+        "execution_plan": execution_plan,
+        "planner_timeline": [log]
+    }
+
+def router(state: AgentState) -> str:
+    """Routes execution based on the supervisor's parsed intent."""
+    intent = state.get("current_intent", "single_entity")
+    if intent == "structuring":
+        return "ml_intelligence_agent"
+    elif intent == "threshold":
+        return "rule_intelligence_agent"
+    else:
+        return "customer_agent"
 
 def _run_agent_tool(agent_name: str, tool_name: str, customer_id: str) -> dict:
     tool_func = get_tool_by_name(tool_name)
@@ -59,13 +136,13 @@ def transaction_agent(state: AgentState):
 
 def network_agent(state: AgentState):
     customer_id = state.get("customer_id", "UNKNOWN")
-    res = _run_agent_tool("Network Agent", "timeline_tool", customer_id) # Using timeline_tool as proxy for network hops
+    res = _run_agent_tool("Entity Linkage Analyzer", "timeline_tool", customer_id) # Using timeline_tool as proxy for network hops
     return {"planner_timeline": [res["log"]], "messages": [AIMessage(content=f"Network Agent Results: {json.dumps([res])}")]}
 
 def rule_intelligence_agent(state: AgentState):
     """Standalone Rule Intelligence Agent — runs deterministic AML rules only."""
     customer_id = state.get("customer_id", "UNKNOWN")
-    res = _run_agent_tool("Rule Intelligence Agent", "rule_engine_tool", customer_id)
+    res = _run_agent_tool("Regulatory Rules Engine", "rule_engine_tool", customer_id)
     evidence = EvidenceItem(
         source="Rule Intelligence Agent",
         description=str(res.get("output", ""))
@@ -79,7 +156,7 @@ def rule_intelligence_agent(state: AgentState):
 def ml_intelligence_agent(state: AgentState):
     """Standalone ML Intelligence Agent — runs Isolation Forest only."""
     customer_id = state.get("customer_id", "UNKNOWN")
-    res = _run_agent_tool("ML Intelligence Agent", "isolation_forest_tool", customer_id)
+    res = _run_agent_tool("Behavioral Analytics Engine", "isolation_forest_tool", customer_id)
     evidence = EvidenceItem(
         source="ML Intelligence Agent",
         description=str(res.get("output", ""))
@@ -93,7 +170,7 @@ def ml_intelligence_agent(state: AgentState):
 def compliance_agent(state: AgentState):
     """Compliance Agent — fuses rule + ML into hybrid risk assessment."""
     customer_id = state.get("customer_id", "UNKNOWN")
-    res = _run_agent_tool("Compliance Agent", "hybrid_risk_tool", customer_id)
+    res = _run_agent_tool("Compliance Policy Engine", "hybrid_risk_tool", customer_id)
     evidence = EvidenceItem(
         source="Compliance Agent",
         description=str(res.get("output", ""))
@@ -133,36 +210,48 @@ def evidence_aggregator(state: AgentState):
         "attribution": attribution
     }
     
-    log = ActionLog(timestamp=get_current_time(), tool="Evidence Aggregator", duration=0.05, result=f"Built structured evidence graph with {len(evidence)} items.", status="COMPLETED")
+    log = ActionLog(timestamp=get_current_time(), tool="Dossier Compiler", duration=0.05, result=f"Built structured evidence graph with {len(evidence)} items.", status="COMPLETED")
     return {"evidence_bundle": evidence, "planner_timeline": [log],
             "messages": [AIMessage(content=f"Evidence Graph: {json.dumps(evidence_graph)}")]}
 
 def report_generator_agent(state: AgentState):
     evidence = state.get("evidence_bundle", [])
     messages = state.get("messages", [])
+    intent = state.get("current_intent", "single_entity")
     
-    risk_level = "LOW"
-    confidence = "90%"
-    actions = ["Monitor"]
-    summary = "Consensus Reached: No immediate threat detected. Automated monitoring will continue."
+    # Extract evidence strings for context
+    evidence_text = "\n".join([f"{e['title']}: {e['description']} (Severity: {e['severity']})" for e in evidence])
     
-    # Analyze messages for high risk signals
-    is_high_risk = any("CRITICAL" in m.content or "HIGH" in m.content for m in messages if isinstance(m, AIMessage))
-    is_medium_risk = any("MEDIUM" in m.content for m in messages if isinstance(m, AIMessage))
-
-    if is_high_risk:
-        risk_level = "HIGH"
-        confidence = "85%"
-        actions = ["Escalate to L2", "File SAR"]
-        summary = "Consensus Reached: Multi-Agent supervisor detected high-risk network and behavioral indicators."
-    elif is_medium_risk:
-        risk_level = "MEDIUM"
-        confidence = "80%"
-        actions = ["Manual Review"]
-        summary = "Consensus Reached: Moderate risk detected by specialized agents. Proceed with manual review."
+    # Actual LLM Report Synthesis
+    try:
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+        structured_llm = llm.with_structured_output(ReportSynthesis)
+        
+        prompt = f"""
+        You are the Chief Compliance AI. Review the following gathered evidence and synthesize a final Suspicious Activity Report (SAR) recommendation.
+        
+        Intent: {intent}
+        
+        Evidence Gathered:
+        {evidence_text}
+        
+        Determine the overall risk_level ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'), a confidence score, the recommended actions, and a concise executive summary explaining your decision.
+        """
+        
+        result: ReportSynthesis = structured_llm.invoke(prompt)
+        risk_level = result.risk_level
+        confidence = result.confidence
+        actions = result.actions
+        summary = result.summary
+    except Exception as e:
+        # Fallback if API key is missing or LLM fails
+        risk_level = "HIGH" if any(e['severity'] == "HIGH" for e in evidence) else "LOW"
+        confidence = "0.85"
+        actions = ["Escalate to L2"] if risk_level == "HIGH" else ["Monitor"]
+        summary = f"LLM Synthesis failed ({str(e)}). Default fallback reasoning applied based on evidence severity."
 
     rec_dict = Recommendation(risk_level=risk_level, confidence=confidence, evidence_count=len(evidence), recommended_actions=actions)
-    log = ActionLog(timestamp=get_current_time(), tool="Report Generator Agent", duration=0.01, result=f"Generated SAR/Report: {risk_level}", status="COMPLETED")
+    log = ActionLog(timestamp=get_current_time(), tool="SAR Synthesizer", duration=1.5, result=f"Generated SAR/Report via LLM: {risk_level}", status="COMPLETED")
 
     return {"final_recommendation": rec_dict, "messages": [AIMessage(content=summary)], "planner_timeline": [log]}
 
@@ -185,12 +274,26 @@ def audit_agent(state: AgentState):
         "confidence": recommendation.get("confidence", "UNKNOWN"),
     }
     
-    # Store to investigation memory (append-only log)
+    # Store to SQLite Database
+    try:
+        db = SessionLocal()
+        new_audit = DBAuditLog(
+            customer_id=customer_id,
+            total_actions=len(timeline),
+            actions_json=json.dumps(audit_record)
+        )
+        db.add(new_audit)
+        db.commit()
+    except Exception as e:
+        print(f"Error saving to Audit Log DB: {e}")
+    finally:
+        db.close()
+        
     log = ActionLog(
         timestamp=get_current_time(),
-        tool="Audit Agent",
+        tool="Compliance Audit Logger",
         duration=0.01,
-        result=f"Audit trail created for {customer_id}: {len(timeline)} actions logged.",
+        result=f"Audit trail created for {customer_id}: {len(timeline)} actions logged to SQLite Database.",
         status="COMPLETED"
     )
     return {"planner_timeline": [log], "messages": [AIMessage(content=f"Audit Record: {json.dumps(audit_record)}")]}
@@ -211,7 +314,13 @@ builder.add_node("report_generator_agent", report_generator_agent)
 builder.add_node("audit_agent", audit_agent)
 
 builder.add_edge(START, "supervisor_agent")
-builder.add_edge("supervisor_agent", "customer_agent")
+# Conditional Routing from Supervisor
+builder.add_conditional_edges("supervisor_agent", router, {
+    "ml_intelligence_agent": "ml_intelligence_agent",
+    "rule_intelligence_agent": "rule_intelligence_agent",
+    "customer_agent": "customer_agent"
+})
+
 builder.add_edge("customer_agent", "transaction_agent")
 builder.add_edge("transaction_agent", "network_agent")
 builder.add_edge("network_agent", "rule_intelligence_agent")

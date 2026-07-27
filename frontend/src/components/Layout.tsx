@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell, X, ChevronRight, UserSquare2 } from 'lucide-react'
+import { LayoutDashboard, Briefcase, PlaySquare, LogOut, Settings, HelpCircle, Bell, X, ChevronRight, UserSquare2, Activity } from 'lucide-react'
 
 export function Layout() {
   const location = useLocation()
@@ -20,7 +20,9 @@ export function Layout() {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Investigation Queue', path: '/queue', icon: Briefcase },
     { name: 'Customer 360', path: '/customer', icon: UserSquare2 },
-    { name: 'Planner Playground', path: '/playground', icon: PlaySquare },
+    { name: 'Global Insights', path: '/insights', icon: Activity },
+    { name: 'System Admin', path: '/system', icon: Settings },
+    { name: 'AI Investigator Copilot', path: '/playground', icon: PlaySquare },
   ]
 
   const currentPage = navItems.find(n => location.pathname.startsWith(n.path))

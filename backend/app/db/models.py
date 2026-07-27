@@ -1,8 +1,19 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text
 from sqlalchemy.orm import declarative_base
-from pgvector.sqlalchemy import Vector
+from datetime import datetime
+
+# from pgvector.sqlalchemy import Vector # Disabled for SQLite compatibility
 
 Base = declarative_base()
+
+class AuditLog(Base):
+    __tablename__ = 'audit_logs'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    customer_id = Column(String, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    total_actions = Column(Integer)
+    actions_json = Column(Text)
 
 class Transaction(Base):
     __tablename__ = 'transactions'
@@ -28,4 +39,4 @@ class HistoricalCase(Base):
     risk_score = Column(Float)
     resolution = Column(String)
     case_summary = Column(String)
-    vector_embedding = Column(Vector(12)) # 12 dimensional vector based on features
+    # vector_embedding = Column(Vector(12)) # 12 dimensional vector based on features

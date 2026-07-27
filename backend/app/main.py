@@ -1,4 +1,4 @@
-"""FastAPI main application entrypoint with middleware, OpenAPI metadata, and exception handling."""
+﻿"""FastAPI main application entrypoint with middleware, OpenAPI metadata, and exception handling."""
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -15,16 +15,16 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Pre-warm the pipeline cache at startup so all first user requests are instant."""
-    logger.info("🔥 FinShield AI: Pre-warming pipeline cache on startup...")
+    logger.info("FinShield AI: Pre-warming pipeline cache on startup...")
     try:
         # Run blocking pipeline load in a thread pool to not block the event loop
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, _prewarm_pipeline)
-        logger.info("✅ FinShield AI: Pipeline cache warm — server ready for requests.")
+        logger.info("FinShield AI: Pipeline cache warm - server ready for requests.")
     except Exception as e:
-        logger.warning(f"⚠️  Pipeline pre-warm failed (will load on first request): {e}")
+        logger.warning(f"Pipeline pre-warm failed (will load on first request): {e}")
     yield  # Server is running
-    logger.info("🛑 FinShield AI: Shutting down.")
+    logger.info("FinShield AI: Shutting down.")
 
 
 def _prewarm_pipeline():
@@ -76,3 +76,4 @@ app.include_router(api_router, prefix="/api", dependencies=[Depends(verify_api_k
 def health_check():
     """Root health check endpoint."""
     return {"status": "ok", "service": "FinShield AI Intelligence API", "version": "1.0.0"}
+

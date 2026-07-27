@@ -2,7 +2,8 @@ export class ApplicationError extends Error {
   constructor(public message: string, public code?: string) {
     super(message);
     this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
+    (Error as ErrorConstructor & { captureStackTrace?: (target: object, constructor?: Function) => void })
+      .captureStackTrace?.(this, this.constructor);
   }
 }
 
