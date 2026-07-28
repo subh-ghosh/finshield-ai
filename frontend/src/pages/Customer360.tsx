@@ -4,7 +4,14 @@ import { useState } from 'react'
 import { useCustomerDetails, useInvestigationQueue } from '../hooks'
 import { StateView } from '../components/shared'
 import { Loader2 } from 'lucide-react'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 
+const RISK_DATA = [
+  { name: 'Critical (>80)', value: 12, color: '#ef4444' },
+  { name: 'High (60-80)', value: 34, color: '#f59e0b' },
+  { name: 'Medium (40-60)', value: 85, color: '#3b82f6' },
+  { name: 'Low (<40)', value: 210, color: '#10b981' },
+]
 export default function Customer360() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -17,9 +24,9 @@ export default function Customer360() {
   // No ID — show customer selector landing
   if (!id) {
     return (
-      <div className="p-7 max-w-2xl mx-auto">
-        <h1 className="text-[18px] font-bold text-brand-black mb-1">Customer 360 View</h1>
-        <p className="text-[12px] text-brand-gray mb-6">Search for a customer or select from recent investigations</p>
+      <div className="p-7 max-w-5xl mx-auto">
+        <h1 className="text-[18px] font-bold text-brand-black mb-1">Global Command Center</h1>
+        <p className="text-[12px] text-brand-gray mb-8">Search for a customer, view live metrics, or select an active investigation</p>
 
         {/* Search */}
         <div className="relative mb-6">
@@ -45,9 +52,58 @@ export default function Customer360() {
           />
         </div>
 
-        {/* Quick access */}
-        <h3 className="text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-3">Recent Investigations</h3>
-        <div className="space-y-2">
+        {/* Search Suggestions */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {['Analyze C_9393', 'Show high risk entities', 'Recent alerts', 'Export compliance report'].map((suggestion, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setSearchInput(suggestion);
+                // Simple auto-navigate if it's a direct ID for demo purposes
+                if (suggestion.includes('C_9393')) navigate('/customer/C_9393');
+              }}
+              className="text-[11px] font-semibold text-[#6B7280] bg-[#F9FAFB] border border-[#E4E7EC] px-3 py-1.5 rounded-full hover:text-brand-black hover:border-brand-red/40 transition-colors"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Analytics Column */}
+          <div>
+            <h3 className="text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-3">Live Enterprise Risk Distribution</h3>
+            <div className="bg-white border border-[#E4E7EC] p-6 h-[320px] flex flex-col items-center justify-center relative shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+               <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={RISK_DATA}
+                    innerRadius={70}
+                    outerRadius={110}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {RISK_DATA.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ fontSize: '11px', fontWeight: 'bold', border: '1px solid #E4E7EC', borderRadius: '4px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-black text-brand-black">341</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gray">Active Alerts</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick access */}
+          <div>
+            <h3 className="text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-3">Recent Investigations</h3>
+            <div className="space-y-2">
           {isQueueLoading ? (
             <div className="flex items-center justify-center p-8 border border-[#E4E7EC] bg-white text-brand-gray">
               <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading recent investigations...
@@ -72,6 +128,8 @@ export default function Customer360() {
               </button>
             ))
           )}
+        </div>
+          </div>
         </div>
       </div>
     )

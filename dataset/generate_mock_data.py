@@ -2,7 +2,8 @@ import pandas as pd
 import random
 import os
 
-DATASET_DIR = r"C:\Users\subar\OneDrive\Desktop\SG Hackathon\dataset"
+# Use current directory
+DATASET_DIR = os.path.dirname(os.path.abspath(__file__))
 ACCOUNTS_PATH = os.path.join(DATASET_DIR, "accounts.csv")
 TRANSACTIONS_PATH = os.path.join(DATASET_DIR, "transactions.csv")
 

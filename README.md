@@ -1,8 +1,15 @@
-# FinShield AI 🛡️
+# FinShield AI
 **An Enterprise Agentic AI-Powered Anti-Money Laundering (AML) Investigation Platform**
 
+> [!IMPORTANT]
+> **Note for Hackathon Judges**  
+> For your convenience, we have fully deployed our submission to the cloud:
+> - **Live Demo (Frontend):** [https://finshield-ai.pages.dev/](https://finshield-ai.pages.dev/)  
+> - **Live API Docs (Backend):** [http://98.91.200.199/docs](http://98.91.200.199/docs)  
+> *(Note: The backend is hosted on an AWS Free Tier instance and the frontend is on Cloudflare Pages. Please allow a few seconds for the dashboard to establish its secure tunnel connection on the first load.)*
+
 ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20Orchestration-orange)
-![Gemini AI](https://img.shields.io/badge/Gemini%202.5%20Flash-Generative%20AI-blue)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Isolation%20Forest-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688)
 ![React](https://img.shields.io/badge/React%2BVite-Frontend-61DAFB)
 ![AML](https://img.shields.io/badge/AML-Compliance-red)
@@ -10,61 +17,147 @@
 
 ---
 
-## 📖 Table of Contents
-1. [Problem Statement](#-problem-statement)
-2. [Our Solution](#-our-solution)
-3. [Agentic Swarm Architecture](#-agentic-swarm-architecture)
-4. [Dataset & Scale](#-dataset--scale)
-5. [Tech Stack](#-tech-stack)
-6. [Getting Started (Docker)](#-getting-started)
-7. [API Documentation](#-api-documentation)
+## Table of Contents
+1. [Problem Statement](#problem-statement)
+2. [Our Solution](#our-solution)
+3. [System Architecture](#system-architecture)
+4. [Dataset & Scale](#dataset--scale)
+5. [Tech Stack](#tech-stack)
+6. [Getting Started (Docker)](#getting-started)
+7. [API Documentation](#api-documentation)
 
 ---
 
-## 🚨 Problem Statement
+## Problem Statement
 **Targeting Problem Statement 1: AI-Powered Suspicious Activity Detection**
 
-Financial institutions face strict mandates from regulatory bodies (FinCEN, FATF) to maintain robust AML compliance programs. However, traditional legacy systems suffer from two major flaws:
-1. **Rule-Based Rigidity:** Simple thresholds generate a flood of false positives, exhausting compliance analysts.
-2. **Evasion by Design:** Sophisticated laundering networks use *structuring*, *smurfing*, and *layering* to intentionally bypass traditional rules.
+Financial institutions face strict mandates from regulatory bodies (e.g., FinCEN, FATF) to maintain robust AML compliance programs. However, traditional legacy systems suffer from two major architectural flaws:
+1. **Rule-Based Rigidity:** Static thresholds generate a flood of false positives, exhausting compliance analysts.
+2. **Evasion by Design:** Sophisticated laundering networks utilize structuring, smurfing, and layering to intentionally bypass traditional deterministic rules.
 
-**The result:** A "Black Box" where compliance teams cannot explain why an AI flagged a transaction, leading to regulatory friction.
-
----
-
-## 💡 Our Solution
-FinShield AI solves this by deploying an **Autonomous Agentic Swarm**. 
-
-Instead of a black-box model, FinShield acts as an AI Investigation Partner. It parses natural language queries using **Gemini 2.5 Flash**, dynamically coordinates 9 specialized AI Agents via **LangGraph**, and generates a fully transparent, evidence-backed Suspicious Activity Report (SAR). 
-
-FinShield fuses deterministic rules (for regulatory compliance) with unsupervised machine learning (Isolation Forests) into a hybrid risk engine.
+**The Result:** A reliance on "Black Box" models where compliance teams cannot explain the underlying rationale of flagged transactions, leading to regulatory friction and prolonged investigations.
 
 ---
 
-## 🤖 Agentic Swarm Architecture
-FinShield AI abandons the concept of a "fixed pipeline". Instead, it utilizes an advanced **LangGraph Multi-Agent Topology**.
+## Our Solution
+FinShield AI resolves these challenges by deploying an **Autonomous Agentic Swarm**. 
 
-### The 9-Agent Swarm
-When an investigation is triggered, the **Supervisor Agent** coordinates:
-1. 👤 **Customer Agent**: Analyzes KYC profile, risk history, and jurisdiction.
-2. 💸 **Transaction Agent**: Calculates velocity, rolling sums, and temporal cash flows.
-3. 🕸️ **Network Agent**: Traces entity linkage and graph connectivity risk.
-4. 📜 **Rule Intelligence Agent**: Executes deterministic AML regulations (e.g., structuring alerts, FATF lists).
-5. 🧠 **ML Intelligence Agent**: Runs unsupervised anomaly detection (Isolation Forest) on engineered features.
-6. ⚖️ **Compliance Agent**: Fuses ML scores and Rule triggers into a final Hybrid Risk Score.
-7. 🧩 **Evidence Aggregator**: Compiles a structured evidence graph with attribution percentages.
-8. 📝 **Report Generator**: Synthesizes the evidence via Gemini into a human-readable SAR.
-9. 🗄️ **Audit Agent**: Logs all immutable actions to the SQLite database.
+Rather than serving as a thin wrapper around a Large Language Model, FinShield operates as a deeply integrated AI Investigation Partner. It parses intents via an orchestrator LLM to dynamically coordinate nine specialized, deterministic, and mathematical AI Agents (via **LangGraph**), ultimately generating a fully transparent, evidence-backed Suspicious Activity Report (SAR). 
 
-### Detection Techniques
-- **Structuring / Smurfing:** Rule-004 detects split payments avoiding reporting thresholds.
-- **High-Risk Jurisdiction:** Rule-012 flags transfers to FATF grey/black-list countries.
-- **Rapid Cash-Out:** Rule-008 detects high-velocity cash withdrawals.
-- **Unsupervised Anomalies:** Machine learning identifies unknown threat vectors.
+FinShield fundamentally fuses deterministic rules (for strict regulatory compliance), Graph Network Analysis (for counterparty risk), and unsupervised machine learning (Isolation Forests) into a proprietary hybrid risk engine.
 
 ---
 
-## 📊 Dataset & Scale
+## System Architecture
+FinShield AI abandons the concept of a fixed, linear pipeline. Our system architecture is categorized into three core pillars: The Agentic Swarm, the Hybrid Risk Data Pipeline, and our Global Edge Cloud Deployment.
+
+### Agentic Swarm Architecture
+FinShield AI utilizes an advanced **LangGraph Multi-Agent Topology**.
+
+**The 9-Agent Swarm**
+When an investigation is triggered, the **Supervisor Agent** coordinates a decentralized network of specialized workers:
+
+```mermaid
+flowchart LR
+    %% Styles
+    classDef supervisor fill:#ef4444,stroke:#b91c1c,color:#fff;
+    classDef worker fill:#8b5cf6,stroke:#6d28d9,color:#fff;
+    classDef output fill:#10b981,stroke:#047857,color:#fff;
+
+    User(["User Query<br/>Investigate C_1"]) --> Supervisor
+    
+    Supervisor{Supervisor Agent}:::supervisor
+    
+    Supervisor -- "Delegate: Check rules" --> RuleAgent[Rule Intelligence Agent]:::worker
+    Supervisor -- "Delegate: Check ML anomalies" --> MLAgent[ML Insights Agent]:::worker
+    Supervisor -- "Delegate: Check counterparties" --> NetworkAgent[Network Analysis Agent]:::worker
+    
+    RuleAgent -. "Returns Rules" .-> Supervisor
+    MLAgent -. "Returns ML Score" .-> Supervisor
+    NetworkAgent -. "Returns Graph" .-> Supervisor
+    
+    Supervisor -- "Synthesize Findings" --> ReportAgent[Report Generator Agent]:::worker
+    ReportAgent --> FinalReport([Final Executable Report]):::output
+```
+
+**Agent Breakdown:**
+1. **Customer Agent**: Analyzes KYC profile, risk history, and jurisdictional risk.
+2. **Transaction Agent**: Calculates velocity, rolling sums, and temporal cash flows.
+3. **Network Agent**: Traces entity linkage and graph connectivity risk.
+4. **Rule Intelligence Agent**: Executes deterministic AML regulations (e.g., structuring alerts, FATF lists).
+5. **ML Intelligence Agent**: Runs unsupervised anomaly detection (Isolation Forest) on engineered features.
+6. **Compliance Agent**: Fuses ML scores and Rule triggers into a final Hybrid Risk Score.
+7. **Evidence Aggregator**: Compiles a structured evidence graph with attribution percentages.
+8. **Report Generator**: Synthesizes the structured evidence graph into a human-readable SAR.
+9. **Audit Agent**: Logs all immutable actions to the SQLite database.
+
+### Data Pipeline & Hybrid Risk Engine
+To process our massive dataset (1.3M+ rows) in real-time, FinShield uses an advanced Hybrid Risk Engine that fuses deterministic rules with machine learning.
+
+```mermaid
+graph TD
+    classDef process fill:#3b82f6,color:#fff;
+    classDef data fill:#f59e0b,color:#fff;
+    classDef fusion fill:#ef4444,color:#fff;
+
+    TxData[(Raw 1.3M Transactions)]:::data
+    FE[Feature Engineering<br/>Velocity, Volume, Variance]:::process
+    
+    TxData --> FE
+    
+    FE --> Rules[Deterministic Rules<br/>e.g. >$10k, Structuring]:::process
+    FE --> ISO[Isolation Forest Model<br/>Outlier Detection]:::process
+    
+    Rules -->|Rule Severity Score| Fusion{Hybrid Fusion Engine}:::fusion
+    ISO -->|Anomaly Probability| Fusion
+    
+    Fusion -->|Weights: 60% Rule, 40% ML| FinalScore[Composite Risk Score<br/>0 - 100]:::data
+    
+    FinalScore --> Triage[Alert Prioritization<br/>Critical, High, Med, Low]:::process
+```
+
+### Cloud Deployment Architecture
+Our platform is deployed using a secure, production-grade cloud architecture leveraging **Amazon Web Services (AWS)** and the **Cloudflare Zero Trust Edge Network**. This hybrid topology ensures high availability while circumventing strict mixed-content and cross-origin resource sharing (CORS) constraints.
+
+```mermaid
+graph TD
+    classDef cf fill:#f38020,stroke:#d97706,color:#fff;
+    classDef aws fill:#FF9900,stroke:#232f3e,color:#232f3e;
+    classDef user fill:#3b82f6,stroke:#1d4ed8,color:#fff;
+
+    Client([End User Client]):::user
+    
+    subgraph Cloudflare Edge Network
+        CF_Pages[Cloudflare Pages<br/>React 18 SPA]:::cf
+        CF_Tunnel[Cloudflare Tunnel<br/>Zero Trust Proxy]:::cf
+    end
+    
+    subgraph AWS Cloud [Amazon Web Services]
+        subgraph VPC [Amazon VPC]
+            subgraph Public Subnet
+                SecGroup[AWS Security Groups<br/>Inbound Restrictions]:::aws
+                EC2[Amazon EC2 Instance<br/>t3.micro Ubuntu Linux]:::aws
+                
+                subgraph Docker Engine
+                    Uvicorn[Uvicorn ASGI Server<br/>FastAPI Backend]:::aws
+                    SQLite[(Local Mount<br/>SQLite Data)]:::aws
+                end
+            end
+        end
+    end
+
+    Client -- "HTTPS (Static Assets)" --> CF_Pages
+    Client -- "HTTPS (REST API)" --> CF_Tunnel
+    
+    CF_Tunnel -- "Encrypted Argo Tunnel" --> SecGroup
+    SecGroup --> EC2
+    EC2 --> Uvicorn
+    Uvicorn --> SQLite
+```
+
+---
+
+## Dataset & Scale
 We utilize the **IBM AML Simulation Dataset** (1.3M+ rows), which provides highly realistic, imbalanced fraud data containing fan-in, fan-out, and bipartite laundering topologies.
 
 | File | Rows | Description |
@@ -75,25 +168,25 @@ We utilize the **IBM AML Simulation Dataset** (1.3M+ rows), which provides highl
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, Framer Motion |
 | **Backend** | Python 3.11, FastAPI, Uvicorn |
-| **Agentic AI** | LangGraph, LangChain, Google Gemini API (`gemini-2.5-flash`) |
+| **Agentic AI** | LangGraph, LangChain, Large Language Model (Orchestration) |
 | **Machine Learning** | scikit-learn (Isolation Forest), Pandas, NumPy |
 | **Database** | SQLite (Immutable Audit Trails) |
 | **DevOps** | Docker, Docker Compose |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-The platform is fully containerized. You do not need to install Python or Node locally!
+The platform is fully containerized. You do not need to install Python or Node locally.
 
 ### Prerequisites
 - [Docker & Docker Compose](https://www.docker.com/)
-- A free **Google Gemini API Key** from [Google AI Studio](https://aistudio.google.com).
+- An **LLM API Key** (We default to Google Gemini `gemini-2.5-flash` for the hackathon).
 
 ### 1. Clone & Configure
 ```bash
@@ -109,7 +202,7 @@ cp backend/.env.example backend/.env
 ```bash
 docker-compose up --build
 ```
-*Note: On the first boot, the backend will process the 1.3M row dataset and build the ML models. This takes ~60 seconds. Subsequent boots use the cache instantly.*
+*Note: On the first boot, the backend will process the 1.3M row dataset and build the ML models. This takes ~60 seconds. Subsequent boots utilize the cache instantly.*
 
 ### 3. Access
 - **Investigation Dashboard (Frontend)**: [http://localhost:5173](http://localhost:5173)
@@ -117,8 +210,8 @@ docker-compose up --build
 
 ---
 
-## 🌐 API Documentation
-FinShield exposes a rich REST API for enterprise integration.
+## API Documentation
+FinShield exposes a comprehensive REST API for enterprise integration.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -130,9 +223,10 @@ FinShield exposes a rich REST API for enterprise integration.
 
 ---
 
-### External Tools Disclosure
+### AI Assistance & External Tools Disclosure
 *As required by Hackathon rules:*
-- **Google Gemini API (`gemini-2.5-flash`)**: Powers agent intent parsing, reasoning, and report synthesis.
+- **Generative AI / LLM APIs (e.g. Gemini / OpenAI)**: Used as the core orchestrator for agent intent parsing, reasoning, and report synthesis within our platform.
+- **AI Coding Assistants**: We leveraged AI coding assistants (like GitHub Copilot and Agentic Ideation Tools) for brainstorming, accelerating boilerplate generation, debugging, and polishing documentation during the hackathon sprint.
 - **LangGraph & LangChain**: Open-source framework used for Multi-Agent Orchestration.
 - **react-force-graph-2d**: Open-source visualization for the Knowledge Graph.
 - **scikit-learn**: Open-source library used for the Isolation Forest ML model.

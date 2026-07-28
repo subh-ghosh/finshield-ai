@@ -55,7 +55,8 @@ export default function PlannerPlayground() {
     }])
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/planner/investigate', {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${baseUrl}/v1/planner/investigate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer_id: customerId, request: userMsg })
@@ -88,7 +89,7 @@ export default function PlannerPlayground() {
         const n = [...prev]
         const last = n[n.length - 1]
         last.status = 'error'
-        last.error = 'Cannot connect to FinShield backend at localhost:8000. Ensure the backend is running.'
+        last.error = 'Cannot connect to FinShield backend. Ensure the backend is running.'
         return n
       })
     } finally {
@@ -267,7 +268,7 @@ export default function PlannerPlayground() {
                         {/* Download SAR Button */}
                         <div className="mt-4 flex justify-end">
                            <a 
-                             href={`http://localhost:8000/api/v1/report/sar/${msg.customerId || 'C_1'}`} 
+                             href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/v1/report/sar/${msg.customerId || 'C_1'}`} 
                              target="_blank" 
                              rel="noopener noreferrer"
                              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-red text-white text-[11px] font-bold uppercase tracking-wider hover:bg-red-700 transition-colors shadow-sm"

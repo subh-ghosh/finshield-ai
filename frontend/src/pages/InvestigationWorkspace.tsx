@@ -39,6 +39,7 @@ export default function InvestigationWorkspace() {
 
   type ChatMessage = { role: 'user' | 'agent', content: string }
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+  const [isAgentTyping, setIsAgentTyping] = useState(false)
 
   const [leftTab, setLeftTab] = useState<'risk' | 'evidence' | 'similar' | 'lifecycle' | 'simulation'>('risk')
 
@@ -50,19 +51,21 @@ export default function InvestigationWorkspace() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [enterpriseData, chatHistory, enterpriseError, mode])
 
-  const handleChat = async () => {
-    if (!chatInput.trim() || isEnterprisePending) return
-    const msg = chatInput
+  const handleChat = async (msgOverride?: string) => {
+    const msg = msgOverride || chatInput
+    if (!msg.trim() || isEnterprisePending || isAgentTyping) return
     setChatInput('')
     
     setChatHistory(prev => [...prev, { role: 'user', content: msg }])
+    setIsAgentTyping(true)
     
     setTimeout(() => {
       setChatHistory(prev => [...prev, { 
         role: 'agent', 
         content: generateAnalystChatAnswer(msg, customerId, enterpriseData || investigation, customer) 
       }])
-    }, 600)
+      setIsAgentTyping(false)
+    }, 1200) // Slightly longer to show off the animation
   }
 
   const handleRunEnterprise = () => {
@@ -91,8 +94,8 @@ export default function InvestigationWorkspace() {
     : (investigation as any)?.evidences ?? []
 
   const currentRiskScore = riskClassData?.risk_score_pct ?? (investigation as any)?.risk_profile?.composite_score ?? customer?.risk_score ?? 0;
-  const aiRiskLevel = (enterpriseData as any)?.final_recommendation?.risk_level;
-  const isAiHighRisk = aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL';
+  const aiRiskLevel = riskClassData?.risk_category;
+  const isAiHighRisk = aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL' || enterpriseData?.recommendation === 'FILE_SAR' || enterpriseData?.recommendation === 'ESCALATE';
   const disableSarBtn = sarConfirmed || (!isAiHighRisk && !isEnterprisePending);
 
   return (
@@ -428,6 +431,20 @@ export default function InvestigationWorkspace() {
                   </div>
                 </div>
               ))}
+              {isAgentTyping && (
+                <div className="flex w-full mb-6 justify-start">
+                  <div className="flex gap-4 max-w-[80%]">
+                    <div className="w-8 h-8 rounded-full bg-brand-red flex items-center justify-center shrink-0">
+                      <Globe className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="p-4 bg-white border border-[#E4E7EC] rounded-r-xl rounded-bl-xl shadow-sm text-[13px] flex items-center gap-1.5 h-[46px]">
+                      <div className="w-1.5 h-1.5 bg-brand-red/60 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-1.5 h-1.5 bg-brand-red/60 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-1.5 h-1.5 bg-brand-red/60 rounded-full animate-bounce"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div ref={chatEndRef} />
 
               {enterpriseError && (
@@ -442,9 +459,22 @@ export default function InvestigationWorkspace() {
             </div>
 
             <div className="p-4 bg-white border-t border-[#E4E7EC] flex-shrink-0">
+              {/* Chat Suggestions */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {['Why is the risk score high?', 'Show me triggered rules', 'Analyze transaction patterns', 'Explain the network graph'].map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleChat(suggestion)}
+                    disabled={isAgentTyping || isEnterprisePending}
+                    className="text-[11px] font-semibold text-[#6B7280] bg-[#F9FAFB] border border-[#E4E7EC] px-3 py-1.5 rounded-full hover:text-brand-black hover:border-brand-red/40 transition-colors disabled:opacity-50"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
               <div className="relative flex items-center">
-                <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChat()} placeholder="Ask about this investigation..." className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-4 pr-12 py-3 text-[13px] focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all" disabled={isEnterprisePending} />
-                <button className="absolute right-2 p-2 text-brand-red hover:bg-[#FEF2F2] transition-colors disabled:opacity-30" onClick={handleChat} disabled={isEnterprisePending || !chatInput.trim()}>
+                <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChat()} placeholder="Ask about this investigation..." className="w-full bg-[#F9FAFB] border border-[#E4E7EC] pl-4 pr-12 py-3 text-[13px] focus:outline-none focus:border-brand-red/40 focus:shadow-[0_0_0_3px_rgba(225,0,15,0.06)] placeholder:text-brand-gray transition-all" disabled={isEnterprisePending || isAgentTyping} />
+                <button className="absolute right-2 p-2 text-brand-red hover:bg-[#FEF2F2] transition-colors disabled:opacity-30" onClick={() => handleChat()} disabled={isEnterprisePending || isAgentTyping || !chatInput.trim()}>
                   <Send className="h-4 w-4" />
                 </button>
               </div>

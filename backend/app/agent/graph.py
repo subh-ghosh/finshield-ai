@@ -28,6 +28,10 @@ def get_current_time():
 class SupervisorIntent(BaseModel):
     intent: str = Field(description="The detected intent. Must be 'structuring', 'threshold', or 'single_entity'.")
     customer_id: str = Field(description="The customer ID extracted from the prompt, e.g. 'C_123'. Defaults to 'UNKNOWN'.")
+    time_filter: str = Field(description="Any date range or time filter mentioned (e.g. 'last 30 days'). Defaults to 'None'.", default="None")
+    country_filter: str = Field(description="Any specific country segment mentioned. Defaults to 'None'.", default="None")
+    transaction_type: str = Field(description="Any specific transaction type mentioned (e.g. 'transfer'). Defaults to 'None'.", default="None")
+    target_aml_pattern: str = Field(description="The specific AML pattern targeted (e.g. 'structuring', 'smurfing'). Defaults to 'None'.", default="None")
     reasoning: str = Field(description="Brief explanation of why this intent was chosen.")
 
 class ReportSynthesis(BaseModel):
@@ -63,10 +67,15 @@ def supervisor_agent(state: AgentState):
         intent = result.intent
         customer_id = result.customer_id
         reasoning = result.reasoning
+        time_filter = result.time_filter
+        country_filter = result.country_filter
+        tx_type = result.transaction_type
+        pattern = result.target_aml_pattern
     except Exception as e:
         # Fallback if API key is missing or LLM fails
         intent = "single_entity"
         reasoning = f"LLM Parsing failed ({str(e)}). Default deep-dive."
+        time_filter = country_filter = tx_type = pattern = "None"
         match = re.search(r'c_\d+', last_user_msg, re.IGNORECASE)
         if match:
             customer_id = match.group(0).upper()
@@ -90,7 +99,7 @@ def supervisor_agent(state: AgentState):
         timestamp=get_current_time(),
         tool="Lead AI Investigator",
         duration=duration,
-        result=f"Rule-based intent parsed: '{intent}' for {customer_id}. Reason: {reasoning}",
+        result=f"Intent: '{intent}'. Filters -> Time: {time_filter}, Country: {country_filter}, TxType: {tx_type}, Pattern: {pattern}. Customer: {customer_id}. Reason: {reasoning}",
         status="COMPLETED",
     )
     
@@ -220,7 +229,7 @@ def report_generator_agent(state: AgentState):
     intent = state.get("current_intent", "single_entity")
     
     # Extract evidence strings for context
-    evidence_text = "\n".join([f"{e['title']}: {e['description']} (Severity: {e['severity']})" for e in evidence])
+    evidence_text = "\n".join([f"[{e.get('source', 'System')}]: {e.get('description', '')}" for e in evidence])
     
     # Actual LLM Report Synthesis
     try:
@@ -245,7 +254,7 @@ def report_generator_agent(state: AgentState):
         summary = result.summary
     except Exception as e:
         # Fallback if API key is missing or LLM fails
-        risk_level = "HIGH" if any(e['severity'] == "HIGH" for e in evidence) else "LOW"
+        risk_level = "HIGH" if any(e.get('severity') == "HIGH" for e in evidence) else "LOW"
         confidence = "0.85"
         actions = ["Escalate to L2"] if risk_level == "HIGH" else ["Monitor"]
         summary = f"LLM Synthesis failed ({str(e)}). Default fallback reasoning applied based on evidence severity."

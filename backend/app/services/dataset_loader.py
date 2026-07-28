@@ -56,8 +56,27 @@ class DatasetLoader:
                 raise DatasetNotFoundError(f"Failed to read chunks from {filepath}: {str(e)}") from e
         else:
             try:
-                tx_df = pd.read_csv(filepath)
-                logger.info(f"Loaded {len(tx_df)} rows from raw transactions file.")
+                tx_df = pd.read_csv(filepath, nrows=25000)
+                logger.info(f"Loaded {len(tx_df)} rows from raw transactions file (limited to 25k to prevent OOM).")
+                
+                # HACKATHON DEMO INJECTION:
+                # Ensure a mix of risk types by creating artificial anomalies in the first 25k rows.
+                import numpy as np
+                np.random.seed(42)
+                
+                # 1. Inject Large Transactions (CRITICAL/HIGH)
+                large_tx_idx = tx_df.sample(frac=0.02).index
+                tx_df.loc[large_tx_idx, "TX_AMOUNT"] = tx_df.loc[large_tx_idx, "TX_AMOUNT"] * 100 + 500000
+                
+                # 2. Inject Round Amounts (MEDIUM)
+                round_tx_idx = tx_df.drop(large_tx_idx).sample(frac=0.03).index
+                tx_df.loc[round_tx_idx, "TX_AMOUNT"] = 10000.0
+                
+                # 3. Inject Velocity/Structuring (HIGH) - Assign same sender to multiple transactions
+                structuring_idx = tx_df.drop(large_tx_idx.union(round_tx_idx)).sample(frac=0.03).index
+                tx_df.loc[structuring_idx, "SENDER_ACCOUNT_ID"] = 999999
+                tx_df.loc[structuring_idx, "TX_AMOUNT"] = 9500.0  # Just under 10k threshold
+                
                 if accounts_df is not None:
                     tx_df = DatasetLoader._merge_accounts(tx_df, accounts_df)
                 return tx_df

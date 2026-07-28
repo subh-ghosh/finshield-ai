@@ -203,7 +203,7 @@ export function Layout() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Backend API</span>
-                    <span className="text-[12px] font-mono text-[#10B981]">http://localhost:8000 ✓</span>
+                    <span className="text-[12px] font-mono text-[#10B981] truncate max-w-[200px]">{import.meta.env.VITE_API_URL || 'http://localhost:8000/api'} ✓</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <span className="text-[13px] text-[#374151]">Investigation Engine</span>
