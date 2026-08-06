@@ -43,7 +43,7 @@ class DatasetLoader:
                 accounts_df = pd.read_csv(
                     accounts_path,
                     usecols=["ACCOUNT_ID", "CUSTOMER_ID", "COUNTRY"],
-                    nrows=50000
+                    nrows=5000
                 )
                 logger.info(f"Loaded {len(accounts_df)} rows from accounts.csv for customer resolution.")
             except Exception as e:
@@ -57,7 +57,7 @@ class DatasetLoader:
                 raise DatasetNotFoundError(f"Failed to read chunks from {filepath}: {str(e)}") from e
         else:
             try:
-                tx_df = pd.read_csv(filepath, nrows=25000)
+                tx_df = pd.read_csv(filepath, nrows=2500)
                 logger.info(f"Loaded {len(tx_df)} rows from raw transactions file (limited to 25k to prevent OOM).")
                 
                 # HACKATHON DEMO INJECTION:
