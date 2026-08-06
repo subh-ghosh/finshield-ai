@@ -12,7 +12,10 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 
 # Use environment variable if running inside Docker
 if os.environ.get("DOCKER_ENV"):
-    DATASET_DIR = "/app/dataset"
+    if os.path.exists("/app/backend/dataset"):
+        DATASET_DIR = "/app/backend/dataset"
+    else:
+        DATASET_DIR = "/app/dataset"
 
 ACCOUNTS_PATH = os.path.join(DATASET_DIR, "accounts.csv")
 TRANSACTIONS_PATH = os.path.join(DATASET_DIR, "transactions.csv")
@@ -99,10 +102,12 @@ def rule_engine_tool(customer_id: str) -> str:
     """Run AML deterministic rules against the customer using live Pipeline results."""
     time.sleep(0.1)
     
-    if customer_id not in pipeline_result_cache:
+    try:
+        from app.api.v1.dependencies import get_pipeline_result
+        pipeline_res = get_pipeline_result()
+    except Exception as e:
         return json.dumps({"status": "error", "data": "Pipeline results not found. Ensure pipeline has run."})
-        
-    pipeline_res = pipeline_result_cache[customer_id]
+
     rule_map = {res.customer_id: res for res in pipeline_res.rule_analysis}
     
     if customer_id not in rule_map or not getattr(rule_map[customer_id], "triggered_rules", []):
@@ -122,10 +127,12 @@ def isolation_forest_tool(customer_id: str) -> str:
     """Run anomaly detection dynamically based on the live ML Pipeline Isolation Forest score."""
     time.sleep(0.1)
     
-    if customer_id not in pipeline_result_cache:
+    try:
+        from app.api.v1.dependencies import get_pipeline_result
+        pipeline_res = get_pipeline_result()
+    except Exception as e:
         return json.dumps({"status": "error", "data": "Pipeline results not found. Ensure pipeline has run."})
-        
-    pipeline_res = pipeline_result_cache[customer_id]
+
     anom_map = {res.customer_id: res for res in pipeline_res.anomaly_analysis}
     
     if customer_id not in anom_map:
