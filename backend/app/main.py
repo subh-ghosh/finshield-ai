@@ -8,6 +8,7 @@ from app.api.v1.middleware.logging import RequestLoggingMiddleware
 from app.api.v1.middleware.exception_handlers import register_exception_handlers
 import logging
 import asyncio
+import os
 
 logger = logging.getLogger(__name__)
 
