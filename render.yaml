@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: finshield-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: "https://finshield-ai.pages.dev,http://localhost:5173,http://localhost:3000"
