@@ -27,5 +27,5 @@ ENV DISABLE_PREWARM=1
 # Expose port
 EXPOSE 8000
 
-# Start with $PORT environment variable assigned by Render cloud platform. If it fails, serve the crash log.
-CMD sh -c 'uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 > crash.log 2>&1 || python -m http.server ${PORT:-8000}'
+# Start with $PORT environment variable assigned by Render cloud platform
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]

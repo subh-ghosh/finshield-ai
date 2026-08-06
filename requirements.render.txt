@@ -14,3 +14,4 @@ httpx
 PyYAML
 python-multipart
 networkx==3.2.1
+sqlalchemy
