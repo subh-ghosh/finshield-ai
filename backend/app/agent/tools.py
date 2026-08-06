@@ -20,8 +20,8 @@ ALERTS_PATH = os.path.join(DATASET_DIR, "alerts.csv")
 
 try:
     print("Loading IBM AML Dataset into memory (capped for cloud free tier)...")
-    # accounts.csv: load only needed columns to save memory
-    df_accounts = pd.read_csv(ACCOUNTS_PATH, usecols=["ACCOUNT_ID", "CUSTOMER_ID", "COUNTRY", "IS_FRAUD"])
+    # accounts.csv: load needed columns to save memory
+    df_accounts = pd.read_csv(ACCOUNTS_PATH, usecols=["ACCOUNT_ID", "CUSTOMER_ID", "INIT_BALANCE", "COUNTRY", "IS_FRAUD"])
     # transactions.csv: limit to 50k rows to fit in 512MB Render free tier
     df_transactions = pd.read_csv(TRANSACTIONS_PATH, nrows=50000)
     # alerts.csv: load fully (it's small ~88KB)
