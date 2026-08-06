@@ -42,7 +42,8 @@ class DatasetLoader:
                 # Load only required columns from accounts file to keep memory footprint low
                 accounts_df = pd.read_csv(
                     accounts_path,
-                    usecols=["ACCOUNT_ID", "CUSTOMER_ID", "COUNTRY"]
+                    usecols=["ACCOUNT_ID", "CUSTOMER_ID", "COUNTRY"],
+                    nrows=50000
                 )
                 logger.info(f"Loaded {len(accounts_df)} rows from accounts.csv for customer resolution.")
             except Exception as e:
