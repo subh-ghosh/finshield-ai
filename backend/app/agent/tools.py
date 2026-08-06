@@ -19,14 +19,14 @@ TRANSACTIONS_PATH = os.path.join(DATASET_DIR, "transactions.csv")
 ALERTS_PATH = os.path.join(DATASET_DIR, "alerts.csv")
 
 try:
-    print("Loading IBM AML Dataset into memory...")
-    # accounts.csv: ACCOUNT_ID, CUSTOMER_ID, INIT_BALANCE, COUNTRY, ACCOUNT_TYPE, IS_FRAUD, TX_BEHAVIOR_ID
-    df_accounts = pd.read_csv(ACCOUNTS_PATH)
-    # transactions.csv: TX_ID, SENDER_ACCOUNT_ID, RECEIVER_ACCOUNT_ID, TX_TYPE, TX_AMOUNT, TIMESTAMP, IS_FRAUD, ALERT_ID
-    df_transactions = pd.read_csv(TRANSACTIONS_PATH)
-    # alerts.csv: ALERT_ID, ALERT_TYPE, IS_FRAUD, TX_ID, SENDER_ACCOUNT_ID, RECEIVER_ACCOUNT_ID, TX_TYPE, TX_AMOUNT, TIMESTAMP
+    print("Loading IBM AML Dataset into memory (capped for cloud free tier)...")
+    # accounts.csv: load only needed columns to save memory
+    df_accounts = pd.read_csv(ACCOUNTS_PATH, usecols=["ACCOUNT_ID", "CUSTOMER_ID", "COUNTRY", "IS_FRAUD"])
+    # transactions.csv: limit to 50k rows to fit in 512MB Render free tier
+    df_transactions = pd.read_csv(TRANSACTIONS_PATH, nrows=50000)
+    # alerts.csv: load fully (it's small ~88KB)
     df_alerts = pd.read_csv(ALERTS_PATH)
-    print("Dataset loaded successfully.")
+    print(f"Dataset loaded: {len(df_accounts)} accounts, {len(df_transactions)} transactions, {len(df_alerts)} alerts.")
 except Exception as e:
     print(f"Error loading dataset: {e}")
     df_accounts = pd.DataFrame()
