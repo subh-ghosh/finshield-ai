@@ -7,7 +7,7 @@ MAX_SAMPLES: str = "auto"
 MAX_FEATURES: float = 1.0
 BOOTSTRAP: bool = False
 RANDOM_STATE: int = 42
-N_JOBS: int = -1
+N_JOBS: int = 1
 
 # Feature scaling configuration options
 SCALER_TYPE: str = "standard"  # Support "standard" scaling (via StandardScaler)
