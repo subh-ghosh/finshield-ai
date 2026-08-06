@@ -27,5 +27,5 @@ ENV DISABLE_PREWARM=1
 # Expose port
 EXPOSE 8000
 
-# Start with 1 worker to minimize memory usage
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Start with $PORT environment variable assigned by Render cloud platform
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
