@@ -15,8 +15,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend source code
 COPY backend/ ./backend/
 
-# Copy dataset files
-COPY dataset/ ./dataset/
 
 # Set working directory to backend
 WORKDIR /app/backend
