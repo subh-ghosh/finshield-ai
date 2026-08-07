@@ -1,7 +1,7 @@
-﻿export function RiskBadge({ score }: { score: number }) {
-  if (score >= 90) return <span className="fs-badge fs-badge-critical">CRITICAL ({score})</span>;
-  if (score >= 75) return <span className="fs-badge fs-badge-high">HIGH ({score})</span>;
-  if (score >= 50) return <span className="fs-badge fs-badge-medium">MEDIUM ({score})</span>;
+export function RiskBadge({ score }: { score: number }) {
+  if (score >= 75) return <span className="fs-badge fs-badge-critical">CRITICAL ({score})</span>;
+  if (score >= 50) return <span className="fs-badge fs-badge-high">HIGH ({score})</span>;
+  if (score >= 35) return <span className="fs-badge fs-badge-medium">MEDIUM ({score})</span>;
   return <span className="fs-badge fs-badge-low">LOW ({score})</span>;
 }
 
