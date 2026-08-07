@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X, Download } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Activity, Send, Terminal, Database, Code2, CheckCircle2, AlertTriangle, Info, X, Download, ExternalLink, Shield, ArrowRight } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -81,6 +82,9 @@ export default function PlannerPlayground() {
         last.status = 'done'
         last.steps = data.reasoning_steps || []
         last.result = data
+        if (data.customer_id) {
+          last.customerId = data.customer_id
+        }
         setLastResult(data)
         return n
       })
@@ -177,9 +181,17 @@ export default function PlannerPlayground() {
                     </span>
                   </div>
                   {msg.customerId && (
-                    <span className="text-[10px] font-mono bg-[#F3F4F6] px-2 py-0.5 text-[#6B7280] border border-[#E4E7EC]">
-                      {msg.customerId}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono bg-[#F3F4F6] px-2 py-0.5 text-[#6B7280] border border-[#E4E7EC]">
+                        {msg.customerId}
+                      </span>
+                      <Link 
+                        to={`/investigation/${msg.customerId === 'UNKNOWN' ? 'C_1' : msg.customerId}`}
+                        className="text-[10px] font-bold text-brand-red hover:text-red-700 flex items-center gap-1 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" /> Open 360 Workspace
+                      </Link>
+                    </div>
                   )}
                 </div>
 
@@ -265,8 +277,14 @@ export default function PlannerPlayground() {
                           </div>
                         </div>
                         
-                        {/* Download SAR Button */}
-                        <div className="mt-4 flex justify-end">
+                        {/* Download SAR & Open Workspace Buttons */}
+                        <div className="mt-4 flex flex-wrap justify-end gap-2.5">
+                           <Link 
+                             to={`/investigation/${msg.customerId === 'UNKNOWN' ? 'C_1' : msg.customerId}`}
+                             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-[#E4E7EC] text-brand-black text-[11px] font-bold uppercase tracking-wider hover:bg-[#F9FAFB] hover:border-brand-red/40 transition-colors shadow-xs"
+                           >
+                             <Shield className="h-3.5 w-3.5 text-brand-red" /> Launch 360 Investigation Workspace <ArrowRight className="h-3.5 w-3.5" />
+                           </Link>
                            <a 
                              href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/v1/report/sar/${msg.customerId || 'C_1'}`} 
                              target="_blank" 

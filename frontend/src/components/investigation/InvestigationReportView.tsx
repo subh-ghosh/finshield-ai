@@ -1,4 +1,4 @@
-﻿import type { PlannerResult } from '../../types/planner';
+import type { PlannerResult } from '../../types/planner';
 import { LoadingInvestigation } from './LoadingInvestigation';
 import { InvestigationHeader } from './InvestigationHeader';
 import { RecommendationCard } from './RecommendationCard';
@@ -40,26 +40,36 @@ export function InvestigationReportView({ result, isPending, error, onRetry }: P
 
   if (!result) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-8">
-        <div className="w-14 h-14 rounded-full bg-white border border-[#E4E7EC] flex items-center justify-center mb-4 shadow-sm">
-          <Activity className="h-6 w-6 text-brand-gray" />
+      <div className="p-4 bg-white">
+        <div className="p-3.5 bg-gradient-to-r from-[#FEF2F2] via-white to-[#F9FAFB] border border-[#FECACA] rounded-lg shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-9 h-9 rounded-full bg-white border border-[#FECACA] flex items-center justify-center shrink-0 shadow-xs">
+              <Activity className="h-4.5 w-4.5 text-brand-red animate-pulse" />
+            </div>
+            <div>
+              <div className="text-[13px] font-bold text-brand-black flex items-center gap-2">
+                Enterprise Planner Ready
+                <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-brand-red/10 text-brand-red rounded-full">LangGraph Engine</span>
+              </div>
+              <p className="text-[11px] text-[#6B7280] mt-0.5 leading-tight">
+                Trigger multi-agent orchestration for deep AI risk analysis.
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={onRetry}
+            className="shrink-0 bg-brand-red hover:bg-[#c5000d] text-white font-bold py-2.5 px-6 text-[11px] tracking-wider uppercase transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 rounded-sm active:scale-95 whitespace-nowrap"
+          >
+            <Activity className="h-3.5 w-3.5" />
+            START INVESTIGATION
+          </button>
         </div>
-        <div className="text-[14px] font-semibold text-[#6B7280]">Enterprise Planner Ready</div>
-        <div className="text-[12px] text-brand-gray max-w-sm mt-1.5 leading-relaxed">
-          Click the button below to trigger the LangGraph orchestration engine. The AI will autonomously investigate this entity.
-        </div>
-        <button 
-          onClick={onRetry}
-          className="mt-6 bg-brand-red hover:bg-[#c5000d] text-white font-bold py-2 px-6 text-[12px] tracking-wider transition-colors shadow-sm"
-        >
-          START INVESTIGATION
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-white">
+    <div className="flex flex-col h-full bg-white">
       <InvestigationHeader result={result} />
       
       <div className="p-6 space-y-6">
@@ -100,4 +110,3 @@ export function InvestigationReportView({ result, isPending, error, onRetry }: P
     </div>
   );
 }
-

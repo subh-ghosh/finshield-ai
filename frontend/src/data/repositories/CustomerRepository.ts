@@ -1,4 +1,5 @@
 import { CustomerRemoteDataSource } from '../remote/CustomerRemoteDataSource';
+
 import { CustomerMapper } from '../mappers/CustomerMapper';
 import type { CustomerProfile } from '../../domain/entities/CustomerProfile';
 import type { ICustomerRepository } from '../../domain/repositories/ICustomerRepository';

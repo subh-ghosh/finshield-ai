@@ -58,14 +58,15 @@ export default function InvestigationWorkspace() {
     
     setChatHistory(prev => [...prev, { role: 'user', content: msg }])
     setIsAgentTyping(true)
-    
+
+    // Conversational Chat Copilot in Agent Swarm view
     setTimeout(() => {
       setChatHistory(prev => [...prev, { 
         role: 'agent', 
         content: generateAnalystChatAnswer(msg, customerId, enterpriseData || investigation, customer) 
-      }])
-      setIsAgentTyping(false)
-    }, 1200) // Slightly longer to show off the animation
+      }]);
+      setIsAgentTyping(false);
+    }, 600);
   }
 
   const handleRunEnterprise = () => {
@@ -397,11 +398,11 @@ export default function InvestigationWorkspace() {
 
         {/* Dynamic Content based on Mode */}
         {mode === 'enterprise' ? (
-          <div className="flex-1 overflow-hidden flex flex-col bg-white">
-            <div className="p-6 shrink-0 border-b border-[#E4E7EC] bg-[#F9FAFB]">
+          <div className="flex-1 overflow-y-auto bg-white min-h-0">
+            <div className="p-3.5 border-b border-[#E4E7EC] bg-[#F9FAFB]">
               <KnowledgeGraph customerId={customerId} riskScore={Number(currentRiskScore)} />
             </div>
-            <div className="flex-1 overflow-auto">
+            <div className="pb-6">
               <InvestigationReportView
                 result={enterpriseData}
                 isPending={isEnterprisePending}
@@ -412,7 +413,7 @@ export default function InvestigationWorkspace() {
           </div>
         ) : (
           // S6: Agent Swarm mode â€” passes real planner_timeline from API
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden min-h-0">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 fs-page-bg">
               <AgentSwarmView
                 timeline={isEnterprisePending ? [] : agentTimeline}

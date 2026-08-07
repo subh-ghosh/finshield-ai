@@ -75,15 +75,15 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ customerId, risk
   const filterOptions = ['customer', 'company', 'ip', 'device', 'wallet', 'email', 'phone', 'merchant', 'country'];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {/* A6: Filter Panel */}
-      <div className="flex flex-wrap gap-2 p-3 bg-white rounded-lg border border-[#E4E7EC] shadow-sm items-center">
-        <span className="text-brand-black text-xs font-bold tracking-wider mr-2 uppercase">Filters:</span>
+      <div className="flex flex-wrap gap-1.5 p-1.5 bg-white rounded-lg border border-[#E4E7EC] shadow-sm items-center">
+        <span className="text-brand-black text-[9px] font-bold tracking-wider mr-1 uppercase">Filters:</span>
         {filterOptions.map(type => (
           <button
             key={type}
             onClick={() => toggleType(type)}
-            className={`px-3 py-1.5 text-[11px] font-bold tracking-wider uppercase rounded-full transition-colors ${
+            className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase rounded-full transition-colors ${
               selectedTypes.has(type) 
                 ? 'bg-brand-red text-white border border-brand-red shadow-sm' 
                 : 'bg-white text-[#6B7280] border border-[#E4E7EC] hover:bg-[#F9FAFB] hover:text-brand-black'
@@ -97,15 +97,15 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ customerId, risk
       <div
         ref={containerRef}
         className="relative w-full bg-white rounded-lg border border-[#E4E7EC] overflow-hidden shadow-sm"
-        style={{ height: 400 }}
+        style={{ height: 300 }}
       >
-        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-sm p-3 rounded-md border border-[#E4E7EC] shadow-sm">
-          <h3 className="text-brand-black text-xs font-bold mb-2 uppercase tracking-wider">Risk Legend</h3>
-          <div className="flex flex-col gap-1.5 text-xs text-[#6B7280]">
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#10b981]"></div> Low Risk (&lt;30)</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div> Medium Risk (30-70)</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#ef4444]"></div> High Risk (&gt;70)</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#94a3b8]"></div> Unknown</div>
+        <div className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-md border border-[#E4E7EC] shadow-sm">
+          <h3 className="text-brand-black text-[10px] font-bold mb-1 uppercase tracking-wider">Risk Legend</h3>
+          <div className="flex flex-col gap-1 text-[10px] text-[#6B7280]">
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></div> Low Risk (&lt;30)</div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></div> Medium Risk (30-70)</div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div> High Risk (&gt;70)</div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#94a3b8]"></div> Unknown</div>
           </div>
         </div>
         

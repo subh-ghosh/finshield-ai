@@ -1,4 +1,5 @@
 import { QueueRemoteDataSource } from '../remote/QueueRemoteDataSource';
+
 import { QueueMapper } from '../mappers/QueueMapper';
 import type { QueueItem } from '../../domain/entities/QueueItem';
 import type { IQueueRepository } from '../../domain/repositories/IQueueRepository';
