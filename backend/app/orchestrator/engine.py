@@ -45,7 +45,7 @@ class InvestigationOrchestrator:
         self.decision_engine = DecisionEngine()
         self.report_generator = ReportGenerator()
 
-    async def investigate(self, customer_id: str, pipeline_res: PipelineResult) -> InvestigationResult:
+    async def investigate(self, customer_id: str, pipeline_res: PipelineResult, user_request: str = "") -> InvestigationResult:
         correlation_id = str(uuid.uuid4())
         context = InvestigationContext(customer_id=customer_id, correlation_id=correlation_id)
         
@@ -58,7 +58,7 @@ class InvestigationOrchestrator:
         
         # Build deterministic result
         result = InvestigationResult(
-            customer_id=customer_id,
+            customer_id=context.customer_id,
             correlation_id=correlation_id,
             execution_time_ms=(time.time() - context.start_time) * 1000,
             recommendation=decision["recommendation"],
@@ -73,7 +73,7 @@ class InvestigationOrchestrator:
         )
         
         # Generate LLM Report
-        report_md = await self.report_generator.generate(result)
+        report_md = await self.report_generator.generate(result, user_req=user_request)
         result.executive_summary = report_md
         
         return result
