@@ -5,8 +5,8 @@
 > **Note for Hackathon Judges**  
 > For your convenience, we have fully deployed our submission to the cloud:
 > - **Live Demo (Frontend):** [https://finshield-ai.pages.dev/](https://finshield-ai.pages.dev/)  
-> - **Live API Docs (Backend):** [http://98.91.200.199/docs](http://98.91.200.199/docs)  
-> *(Note: The backend is hosted on an AWS Free Tier instance and the frontend is on Cloudflare Pages. Please allow a few seconds for the dashboard to establish its secure tunnel connection on the first load.)*
+> - **Live API Docs (Backend):** [https://finshield-backend-131d.onrender.com/docs](https://finshield-backend-131d.onrender.com/docs)  
+> *(Note: The backend is hosted on Render's Free Tier and the frontend is on Cloudflare Pages. Please allow up to 50 seconds for the backend to cold-start on your first request.)*
 
 ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic%20Orchestration-orange)
 ![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Isolation%20Forest-blue)
@@ -117,41 +117,29 @@ graph TD
 ```
 
 ### Cloud Deployment Architecture
-Our platform is deployed using a secure, production-grade cloud architecture leveraging **Amazon Web Services (AWS)** and the **Cloudflare Zero Trust Edge Network**. This hybrid topology ensures high availability while circumventing strict mixed-content and cross-origin resource sharing (CORS) constraints.
+Our platform is deployed using a secure cloud architecture leveraging **Render** and the **Cloudflare Edge Network**.
 
 ```mermaid
 graph TD
     classDef cf fill:#f38020,stroke:#d97706,color:#fff;
-    classDef aws fill:#FF9900,stroke:#232f3e,color:#232f3e;
+    classDef render fill:#46E3B7,stroke:#0f172a,color:#0f172a;
     classDef user fill:#3b82f6,stroke:#1d4ed8,color:#fff;
 
     Client([End User Client]):::user
     
     subgraph Cloudflare Edge Network
         CF_Pages[Cloudflare Pages<br/>React 18 SPA]:::cf
-        CF_Tunnel[Cloudflare Tunnel<br/>Zero Trust Proxy]:::cf
     end
     
-    subgraph AWS Cloud [Amazon Web Services]
-        subgraph VPC [Amazon VPC]
-            subgraph Public Subnet
-                SecGroup[AWS Security Groups<br/>Inbound Restrictions]:::aws
-                EC2[Amazon EC2 Instance<br/>t3.micro Ubuntu Linux]:::aws
-                
-                subgraph Docker Engine
-                    Uvicorn[Uvicorn ASGI Server<br/>FastAPI Backend]:::aws
-                    SQLite[(Local Mount<br/>SQLite Data)]:::aws
-                end
-            end
+    subgraph Render Cloud [Render Web Service]
+        subgraph Docker Container
+            Uvicorn[Uvicorn ASGI Server<br/>FastAPI Backend]:::render
+            SQLite[(Local Mount<br/>SQLite Data)]:::render
         end
     end
 
     Client -- "HTTPS (Static Assets)" --> CF_Pages
-    Client -- "HTTPS (REST API)" --> CF_Tunnel
-    
-    CF_Tunnel -- "Encrypted Argo Tunnel" --> SecGroup
-    SecGroup --> EC2
-    EC2 --> Uvicorn
+    Client -- "HTTPS (REST API)" --> Uvicorn
     Uvicorn --> SQLite
 ```
 
