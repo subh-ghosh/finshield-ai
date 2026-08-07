@@ -7,7 +7,38 @@ class MonitoringAgent:
     """Tracks investigated customers and flags re-emerging risk."""
     
     def __init__(self):
-        self._watchlist: Dict[str, dict] = {}  # customer_id → {risk_level, last_checked, ...}
+        self._watchlist: Dict[str, dict] = {
+            "C_1204": {
+                "risk_level": "HIGH",
+                "priority": "High",
+                "evidence_count": 3,
+                "added_at": datetime.utcnow().isoformat(),
+                "last_checked": datetime.utcnow().isoformat(),
+                "status": "MONITORING",
+                "reopen_count": 0,
+                "reason": "Multiple offshore wire transfers flagged"
+            },
+            "C_9358": {
+                "risk_level": "CRITICAL",
+                "priority": "Critical",
+                "evidence_count": 5,
+                "added_at": datetime.utcnow().isoformat(),
+                "last_checked": datetime.utcnow().isoformat(),
+                "status": "ESCALATED",
+                "reopen_count": 1,
+                "reason": "Velocity limits exceeded and shell company matches"
+            },
+            "C_4301": {
+                "risk_level": "MEDIUM",
+                "priority": "Medium",
+                "evidence_count": 1,
+                "added_at": datetime.utcnow().isoformat(),
+                "last_checked": datetime.utcnow().isoformat(),
+                "status": "MONITORING",
+                "reopen_count": 0,
+                "reason": "Sudden change in transaction behavior"
+            }
+        }  # customer_id → {risk_level, last_checked, ...}
     
     def add_to_watchlist(self, customer_id: str, risk_level: str, evidence_count: int):
         self._watchlist[customer_id] = {
