@@ -1,0 +1,17 @@
+name: Render Backend Keep-Alive
+
+on:
+  schedule:
+    # Runs every 14 minutes to prevent Render's 15-minute idle spin-down
+    - cron: "*/14 * * * *"
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API Health Endpoint
+        run: |
+          echo "Pinging backend to prevent cold start..."
+          curl -sSf https://finshield-backend-131d.onrender.com/docs > /dev/null
+          echo "Success!"
