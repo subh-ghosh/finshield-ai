@@ -56,7 +56,7 @@ export default function PlannerPlayground() {
     }])
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const baseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://finshield-backend-131d.onrender.com/api' : 'http://localhost:8000/api');
       const response = await fetch(`${baseUrl}/v1/planner/investigate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

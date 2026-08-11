@@ -108,7 +108,7 @@ export function CaseLifecycleTimeline({ customerId, sarConfirmed = false, onStat
 
   // Load from monitoring watchlist endpoint on mount
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const baseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://finshield-backend-131d.onrender.com/api' : 'http://localhost:8000/api');
     fetch(`${baseUrl}/v1/monitoring/watchlist`)
       .then(r => r.ok ? r.json() : null)
       .then((data: any[] | null) => {
@@ -145,7 +145,7 @@ export function CaseLifecycleTimeline({ customerId, sarConfirmed = false, onStat
     onStatusChange?.(to);
 
     // Call monitoring API in background
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const baseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://finshield-backend-131d.onrender.com/api' : 'http://localhost:8000/api');
     try {
       await fetch(`${baseUrl}/v1/monitoring/check/${customerId}?current_risk=${to === 'ESCALATED' ? 90 : 30}`, {
         method: 'POST',
