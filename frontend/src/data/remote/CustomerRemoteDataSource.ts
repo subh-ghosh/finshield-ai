@@ -58,41 +58,42 @@ export class CustomerRemoteDataSource {
     const numericPart = parseInt(id.replace(/\D/g, '') || "100", 10);
     const calculatedRisk: number = known.risk_score ?? Math.min(95, Math.max(15, (numericPart * 37) % 90 + 10));
     const riskLevel: string = known.risk_level ?? (calculatedRisk >= 85 ? "CRITICAL" : calculatedRisk >= 70 ? "HIGH" : calculatedRisk >= 45 ? "MEDIUM" : "LOW");
-    const rec: string = known.recommendation ?? (calculatedRisk >= 85 ? "FILE_SAR" : calculatedRisk >= 70 ? "ESCALATE" : calculatedRisk >= 45 ? "MONITOR" : "CLEAR");
 
     return {
       customer_id: id,
-      customer_name: known.customer_name || `Entity ${id}`,
-      risk_score: calculatedRisk,
-      risk_level: riskLevel,
-      recommendation: rec,
-      industry: known.industry || "Global Trade & Commerce",
-      jurisdiction: known.jurisdiction || "United States",
-      features: {
-        total_transactions: (numericPart % 200) + 25,
+      feature_metrics: {
+        customer_id: id,
+        transaction_count: (numericPart % 200) + 25,
         total_amount: (numericPart % 50 + 10) * 45000,
-        avg_amount: ((numericPart % 50 + 10) * 45000) / ((numericPart % 200) + 25),
-        max_amount: (numericPart % 30 + 5) * 20000,
-        rapid_velocity_count: (numericPart % 15) + 1,
-        structuring_count: (numericPart % 8),
-        anomaly_score: calculatedRisk / 100.0
+        average_amount: ((numericPart % 50 + 10) * 45000) / ((numericPart % 200) + 25),
+        maximum_amount: (numericPart % 30 + 5) * 20000,
+        minimum_amount: 150.0,
+        velocity_score: (numericPart % 15) + 1,
+        structuring_score: (numericPart % 8),
+        smurfing_score: (numericPart % 5),
+        recipient_diversity: 12.0,
+        sender_diversity: 8.0,
+        cash_in_ratio: 0.25,
+        cash_out_ratio: 0.75,
+        night_transaction_ratio: 0.15,
+        weekend_transaction_ratio: 0.20,
+        round_amount_ratio: 0.35,
+        rolling_amount_24h: 125000.0,
+        rolling_count_24h: 4,
+        days_since_last_transaction: 2.0,
+        account_age: 450.0,
+        risk_score_placeholder: calculatedRisk
       },
-      explainability: {
-        decision: rec,
-        confidence: 0.95,
-        top_factors: [
-          { factor: "Transaction Velocity vs Baseline", weight: 0.35 },
-          { factor: "Isolation Forest ML Anomaly Score", weight: 0.30 },
-          { factor: "High-Risk Jurisdiction Counterparty", weight: 0.20 },
-          { factor: "Round-Number Structuring Signals", weight: 0.15 }
-        ],
-        timeline: [
-          { stage: "Ingestion", timestamp: new Date().toISOString(), detail: "Dataset record loaded & feature engineered" },
-          { stage: "Rule Intelligence", timestamp: new Date().toISOString(), detail: "Rules evaluated against risk thresholds" },
-          { stage: "Isolation Forest ML", timestamp: new Date().toISOString(), detail: `Anomaly Score computed: ${(calculatedRisk / 100).toFixed(2)}` },
-          { stage: "Multi-Agent Consensus", timestamp: new Date().toISOString(), detail: `Final Recommendation: ${rec}` }
-        ]
+      rule_summary: {
+        score: Math.round(calculatedRisk * 0.6),
+        severity: riskLevel,
+        triggered_count: riskLevel === 'CRITICAL' ? 3 : riskLevel === 'HIGH' ? 2 : 1
+      },
+      anomaly_summary: {
+        anomaly_score: calculatedRisk / 100.0,
+        severity: riskLevel,
+        confidence: 0.94
       }
-    } as any;
+    };
   }
 }

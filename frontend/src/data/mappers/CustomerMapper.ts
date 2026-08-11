@@ -65,20 +65,37 @@ function generateOnboardingDate(id: string): string {
 
 export class CustomerMapper {
   static toDomain(dto: CustomerProfileDTO): CustomerProfile {
-    // Map severity to standard enum
+    // Map severity to standard enum with safe fallbacks
+    const ruleSev = dto.rule_summary?.severity || 'LOW';
+    const anomSev = dto.anomaly_summary?.severity || 'LOW';
     let riskLevel: 'Critical' | 'High' | 'Medium' | 'Low' = 'Low';
-    if (dto.rule_summary.severity === 'CRITICAL' || dto.anomaly_summary.severity === 'CRITICAL') riskLevel = 'Critical';
-    else if (dto.rule_summary.severity === 'HIGH' || dto.anomaly_summary.severity === 'HIGH') riskLevel = 'High';
-    else if (dto.rule_summary.severity === 'MEDIUM' || dto.anomaly_summary.severity === 'MEDIUM') riskLevel = 'Medium';
+    if (ruleSev === 'CRITICAL' || anomSev === 'CRITICAL') riskLevel = 'Critical';
+    else if (ruleSev === 'HIGH' || anomSev === 'HIGH') riskLevel = 'High';
+    else if (ruleSev === 'MEDIUM' || anomSev === 'MEDIUM') riskLevel = 'Medium';
 
-    const rawScore = dto.rule_summary.score + Math.round(dto.anomaly_summary.anomaly_score * 50);
+    const ruleScore = dto.rule_summary?.score ?? 20;
+    const anomScore = dto.anomaly_summary?.anomaly_score ?? 0.45;
+    const rawScore = ruleScore + Math.round(anomScore * 50);
     const riskScore = Math.min(Math.max(rawScore, 10), 99);
     const id = dto.customer_id;
     const hash = getHash(id);
 
+    // Known customer names for demo
+    const knownNames: Record<string, string> = {
+      "C_9358": "Julia Patel",
+      "C_3762": "Gallagher Trading Ltd",
+      "C_1204": "Astra Maritime Logistics",
+      "C_5519": "Vanguard Tech Holdings",
+      "C_8410": "Apex Minerals Corp",
+      "C_2190": "Crestview Holdings",
+      "C_4301": "Horizon Energy Group",
+      "C_6122": "Solaria Retail Ventures",
+      "C_1088": "BlueSky Media Inc"
+    };
+
     return {
       id: dto.customer_id,
-      name: generateEntityName(id),
+      name: knownNames[id] || generateEntityName(id),
       kyc_status: hash % 5 === 0 ? 'Under Review' : 'Active',
       risk_score: riskScore,
       onboarding_date: generateOnboardingDate(id),
