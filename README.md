@@ -4,7 +4,7 @@
 > [!IMPORTANT]
 > **Note for Hackathon Judges**  
 > For your convenience, we have fully deployed our submission to the cloud:
-> - **Live Demo (Frontend):** [https://finshield-ai.pages.dev/](https://finshield-ai.pages.dev/login)  
+> - **Live Demo (Frontend):** [https://finshield-ai.pages.dev/login](https://finshield-ai.pages.dev/login)  
 > - **Live API Docs (Backend):** [https://finshield-backend-131d.onrender.com/docs](https://finshield-backend-131d.onrender.com/docs)  
 > *(Note: The backend is hosted on Render's Free Tier and the frontend is on Cloudflare Pages. Please allow up to 50 seconds for the backend to cold-start on your first request.)*
 
